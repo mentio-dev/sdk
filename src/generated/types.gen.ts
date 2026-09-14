@@ -133,6 +133,10 @@ export type Mention = {
          */
         text: string;
         /**
+         * Links the post carries, in the order written, at most 20. Empty for a post with none, and for posts ingested before September 2026.
+         */
+        links: Array<string>;
+        /**
          * When the post was published.
          */
         publishedAt: string;
@@ -1784,6 +1788,10 @@ export type SearchMentionsData = {
          */
         tags?: Array<string> | null;
         /**
+         * Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated.
+         */
+        linkHost?: Array<string> | null;
+        /**
          * Substring search in the post text.
          */
         q?: string;
@@ -1899,6 +1907,10 @@ export type ExportMentionsCsvData = {
          * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
          */
         tags?: Array<string> | null;
+        /**
+         * Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated.
+         */
+        linkHost?: Array<string> | null;
         /**
          * Substring search in the post text.
          */
@@ -3486,6 +3498,94 @@ export type RunAlertDigestResponses = {
 };
 
 export type RunAlertDigestResponse = RunAlertDigestResponses[keyof RunAlertDigestResponses];
+
+export type MuteAlertAuthorsData = {
+    /**
+     * Authors to add to or remove from the alert's muted list.
+     */
+    body: {
+        /**
+         * Profile or post links (x.com/name, linkedin.com/in/name, reddit.com/user/name, a post URL), handles (@name, u/name), Bluesky DIDs or display names. A link is stored as the author's profile; a plain name or handle matches that name on every platform.
+         */
+        authors: Array<string>;
+    };
+    path: {
+        /**
+         * Alert id (feed_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/alerts/{id}/mute';
+};
+
+export type MuteAlertAuthorsErrors = {
+    /**
+     * An entry names no person, or the alert would mute more than 200 authors
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Rule not found
+     */
+    404: ErrorResponse;
+};
+
+export type MuteAlertAuthorsError = MuteAlertAuthorsErrors[keyof MuteAlertAuthorsErrors];
+
+export type MuteAlertAuthorsResponses = {
+    /**
+     * The alert, with its muted list
+     */
+    200: Alert;
+};
+
+export type MuteAlertAuthorsResponse = MuteAlertAuthorsResponses[keyof MuteAlertAuthorsResponses];
+
+export type UnmuteAlertAuthorsData = {
+    /**
+     * Authors to add to or remove from the alert's muted list.
+     */
+    body: {
+        /**
+         * Profile or post links (x.com/name, linkedin.com/in/name, reddit.com/user/name, a post URL), handles (@name, u/name), Bluesky DIDs or display names. A link is stored as the author's profile; a plain name or handle matches that name on every platform.
+         */
+        authors: Array<string>;
+    };
+    path: {
+        /**
+         * Alert id (feed_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/alerts/{id}/unmute';
+};
+
+export type UnmuteAlertAuthorsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Rule not found
+     */
+    404: ErrorResponse;
+};
+
+export type UnmuteAlertAuthorsError = UnmuteAlertAuthorsErrors[keyof UnmuteAlertAuthorsErrors];
+
+export type UnmuteAlertAuthorsResponses = {
+    /**
+     * The alert, with its muted list
+     */
+    200: Alert;
+};
+
+export type UnmuteAlertAuthorsResponse = UnmuteAlertAuthorsResponses[keyof UnmuteAlertAuthorsResponses];
 
 export type GetAnalyticsSummaryData = {
     body?: never;

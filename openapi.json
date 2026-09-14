@@ -289,6 +289,13 @@
                 "type": "string",
                 "description": "Title and body, truncated to 8 KB at ingest."
               },
+              "links": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Links the post carries, in the order written, at most 20. Empty for a post with none, and for posts ingested before September 2026."
+              },
               "publishedAt": {
                 "type": "string",
                 "description": "When the post was published."
@@ -325,6 +332,7 @@
               "platform",
               "url",
               "text",
+              "links",
               "publishedAt",
               "replyTo"
             ]
@@ -3537,6 +3545,23 @@
           },
           {
             "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 10,
+              "description": "Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated.",
+            "name": "linkHost",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "description": "Substring search in the post text."
             },
@@ -3852,6 +3877,23 @@
             "required": false,
             "description": "Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.",
             "name": "tags",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 10,
+              "description": "Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated.",
+            "name": "linkHost",
             "in": "query"
           },
           {
@@ -7327,6 +7369,192 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rule not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/alerts/{id}/mute": {
+      "post": {
+        "operationId": "muteAlertAuthors",
+        "summary": "Mute authors on an alert",
+        "description": "Add authors to the alert's muted list without touching the rest of its filter. Links are read the way the dashboard reads them: a post link mutes its author, twitter.com becomes x.com, a Hacker News profile keeps its id. Authors already muted are skipped, so a retry is safe. An entry that names no person (a subreddit, a story) rejects the request with that entry named.",
+        "tags": [
+          "Alerts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Alert id (feed_...).",
+              "example": "feed_abc123"
+            },
+            "required": true,
+            "description": "Alert id (feed_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "authors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "description": "Profile or post links (x.com/name, linkedin.com/in/name, reddit.com/user/name, a post URL), handles (@name, u/name), Bluesky DIDs or display names. A link is stored as the author's profile; a plain name or handle matches that name on every platform."
+                  }
+                },
+                "required": [
+                  "authors"
+                ],
+                "description": "Authors to add to or remove from the alert's muted list."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The alert, with its muted list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Alert"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "An entry names no person, or the alert would mute more than 200 authors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rule not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/alerts/{id}/unmute": {
+      "post": {
+        "operationId": "unmuteAlertAuthors",
+        "summary": "Unmute authors on an alert",
+        "description": "Remove authors from the alert's muted list without touching the rest of its filter. Name each one by the stored entry or by any link to that profile or its posts. Authors that are not muted are ignored, so a retry is safe.",
+        "tags": [
+          "Alerts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Alert id (feed_...).",
+              "example": "feed_abc123"
+            },
+            "required": true,
+            "description": "Alert id (feed_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "authors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "minItems": 1,
+                    "maxItems": 50,
+                    "description": "Profile or post links (x.com/name, linkedin.com/in/name, reddit.com/user/name, a post URL), handles (@name, u/name), Bluesky DIDs or display names. A link is stored as the author's profile; a plain name or handle matches that name on every platform."
+                  }
+                },
+                "required": [
+                  "authors"
+                ],
+                "description": "Authors to add to or remove from the alert's muted list."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The alert, with its muted list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Alert"
                 }
               }
             }
