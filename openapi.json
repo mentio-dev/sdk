@@ -878,6 +878,16 @@
                 "maximum": 365,
                 "description": "First seen within this many days."
               },
+              "linkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 253
+                },
+                "maxItems": 20,
+                "description": "At least one mention linking to any of these hosts, the host itself or a subdomain of it."
+              },
               "muted": {
                 "type": "boolean",
                 "description": "true: only muted people; false: only unmuted."
@@ -1060,6 +1070,16 @@
                 },
                 "maxItems": 20,
                 "description": "Only authors your workspace tagged with any of these."
+              },
+              "linkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 253
+                },
+                "maxItems": 20,
+                "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes."
               }
             }
           },
@@ -3552,12 +3572,12 @@
                 "minLength": 1,
                 "maxLength": 200
               },
-              "maxItems": 10,
-              "description": "Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated."
+              "maxItems": 20,
+              "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated."
             },
             "required": false,
-            "description": "Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated.",
-            "name": "linkHost",
+            "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated.",
+            "name": "linkHosts",
             "in": "query"
           },
           {
@@ -3888,12 +3908,12 @@
                 "minLength": 1,
                 "maxLength": 200
               },
-              "maxItems": 10,
-              "description": "Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated."
+              "maxItems": 20,
+              "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated."
             },
             "required": false,
-            "description": "Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated.",
-            "name": "linkHost",
+            "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated.",
+            "name": "linkHosts",
             "in": "query"
           },
           {
@@ -4224,6 +4244,23 @@
           },
           {
             "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.",
+            "name": "linkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "enum": [
                 "mentions",
@@ -4541,6 +4578,23 @@
             "required": false,
             "description": "First seen within this many days.",
             "name": "newSinceDays",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.",
+            "name": "linkHosts",
             "in": "query"
           },
           {
@@ -5339,6 +5393,16 @@
                                 "maximum": 365,
                                 "description": "First seen within this many days."
                               },
+                              "linkHosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 253
+                                },
+                                "maxItems": 20,
+                                "description": "At least one mention linking to any of these hosts, the host itself or a subdomain of it."
+                              },
                               "muted": {
                                 "type": "boolean",
                                 "description": "true: only muted people; false: only unmuted."
@@ -5479,6 +5543,16 @@
                                 "minimum": 1,
                                 "maximum": 365,
                                 "description": "First seen within this many days."
+                              },
+                              "linkHosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 253
+                                },
+                                "maxItems": 20,
+                                "description": "At least one mention linking to any of these hosts, the host itself or a subdomain of it."
                               },
                               "muted": {
                                 "type": "boolean",
@@ -5640,6 +5714,16 @@
                         "minimum": 1,
                         "maximum": 365,
                         "description": "First seen within this many days."
+                      },
+                      "linkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 253
+                        },
+                        "maxItems": 20,
+                        "description": "At least one mention linking to any of these hosts, the host itself or a subdomain of it."
                       },
                       "muted": {
                         "type": "boolean",
@@ -5895,6 +5979,16 @@
                         "minimum": 1,
                         "maximum": 365,
                         "description": "First seen within this many days."
+                      },
+                      "linkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 253
+                        },
+                        "maxItems": 20,
+                        "description": "At least one mention linking to any of these hosts, the host itself or a subdomain of it."
                       },
                       "muted": {
                         "type": "boolean",
@@ -6579,6 +6673,16 @@
                         },
                         "maxItems": 20,
                         "description": "Only authors your workspace tagged with any of these."
+                      },
+                      "linkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 253
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes."
                       }
                     },
                     "description": "Replaces the whole filter."
@@ -6852,6 +6956,16 @@
                                 },
                                 "maxItems": 20,
                                 "description": "Only authors your workspace tagged with any of these."
+                              },
+                              "linkHosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 253
+                                },
+                                "maxItems": 20,
+                                "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes."
                               }
                             }
                           },
@@ -7099,6 +7213,16 @@
                         },
                         "maxItems": 20,
                         "description": "Only authors your workspace tagged with any of these."
+                      },
+                      "linkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 253
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes."
                       }
                     },
                     "default": {}

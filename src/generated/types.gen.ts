@@ -407,6 +407,10 @@ export type Segment = {
          */
         newSinceDays?: number;
         /**
+         * At least one mention linking to any of these hosts, the host itself or a subdomain of it.
+         */
+        linkHosts?: Array<string>;
+        /**
          * true: only muted people; false: only unmuted.
          */
         muted?: boolean;
@@ -501,6 +505,10 @@ export type Alert = {
          * Only authors your workspace tagged with any of these.
          */
         tags?: Array<string>;
+        /**
+         * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
+         */
+        linkHosts?: Array<string>;
     };
     /**
      * Daily alerts only.
@@ -1788,9 +1796,9 @@ export type SearchMentionsData = {
          */
         tags?: Array<string> | null;
         /**
-         * Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated.
+         * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated.
          */
-        linkHost?: Array<string> | null;
+        linkHosts?: Array<string> | null;
         /**
          * Substring search in the post text.
          */
@@ -1908,9 +1916,9 @@ export type ExportMentionsCsvData = {
          */
         tags?: Array<string> | null;
         /**
-         * Only posts linking to any of these hosts, matched exactly and without `www.` (docs.mentio.dev). Repeatable, or comma-separated.
+         * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated.
          */
-        linkHost?: Array<string> | null;
+        linkHosts?: Array<string> | null;
         /**
          * Substring search in the post text.
          */
@@ -2022,6 +2030,10 @@ export type ExportPeopleCsvData = {
          */
         newSinceDays?: number;
         /**
+         * People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.
+         */
+        linkHosts?: Array<string> | null;
+        /**
          * mentions: most matches first. recent: last seen first. reach: most followers first, unknown last. new: first seen most recently first.
          */
         sort?: 'mentions' | 'recent' | 'reach' | 'new';
@@ -2127,6 +2139,10 @@ export type ListPeopleData = {
          * First seen within this many days.
          */
         newSinceDays?: number;
+        /**
+         * People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.
+         */
+        linkHosts?: Array<string> | null;
         /**
          * mentions: most matches first. recent: last seen first. reach: most followers first, unknown last. new: first seen most recently first.
          */
@@ -2512,6 +2528,10 @@ export type ListSegmentsResponses = {
                  */
                 newSinceDays?: number;
                 /**
+                 * At least one mention linking to any of these hosts, the host itself or a subdomain of it.
+                 */
+                linkHosts?: Array<string>;
+                /**
                  * true: only muted people; false: only unmuted.
                  */
                 muted?: boolean;
@@ -2578,6 +2598,10 @@ export type ListSegmentsResponses = {
                  */
                 newSinceDays?: number;
                 /**
+                 * At least one mention linking to any of these hosts, the host itself or a subdomain of it.
+                 */
+                linkHosts?: Array<string>;
+                /**
                  * true: only muted people; false: only unmuted.
                  */
                 muted?: boolean;
@@ -2633,6 +2657,10 @@ export type CreateSegmentData = {
              * First seen within this many days.
              */
             newSinceDays?: number;
+            /**
+             * At least one mention linking to any of these hosts, the host itself or a subdomain of it.
+             */
+            linkHosts?: Array<string>;
             /**
              * true: only muted people; false: only unmuted.
              */
@@ -2789,6 +2817,10 @@ export type UpdateSegmentData = {
              * First seen within this many days.
              */
             newSinceDays?: number;
+            /**
+             * At least one mention linking to any of these hosts, the host itself or a subdomain of it.
+             */
+            linkHosts?: Array<string>;
             /**
              * true: only muted people; false: only unmuted.
              */
@@ -3162,6 +3194,10 @@ export type UpdateAlertData = {
              * Only authors your workspace tagged with any of these.
              */
             tags?: Array<string>;
+            /**
+             * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
+             */
+            linkHosts?: Array<string>;
         };
         schedule?: {
             hour: number;
@@ -3276,6 +3312,10 @@ export type ListAlertsResponses = {
                  * Only authors your workspace tagged with any of these.
                  */
                 tags?: Array<string>;
+                /**
+                 * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
+                 */
+                linkHosts?: Array<string>;
             };
             /**
              * Daily alerts only.
@@ -3363,6 +3403,10 @@ export type CreateAlertData = {
              * Only authors your workspace tagged with any of these.
              */
             tags?: Array<string>;
+            /**
+             * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
+             */
+            linkHosts?: Array<string>;
         };
         /**
          * Required for daily alerts.
