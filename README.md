@@ -99,7 +99,7 @@ await mentio.updateMention({ path: { id: 'mm_...' }, body: { status: 'ignored' }
 
 ```ts
 const { data: channels } = await mentio.listChannels({ throwOnError: true });
-const slack = channels.data.find((c) => c.type === 'slack');
+const slack = channels.data.find((c) => c.kind === 'slack');
 
 await mentio.createAlert({
   body: {
@@ -121,7 +121,7 @@ const { data: summary } = await mentio.getAnalyticsSummary({
   query: { range: '30d', compare: true, timezone: 'Europe/Madrid' },
   throwOnError: true,
 });
-const { data: byPlatform } = await mentio.getAnalyticsBreakdown({ query: { range: '30d', dimension: 'platform' }, throwOnError: true });
+const { data: byPlatform } = await mentio.getAnalyticsBreakdown({ query: { range: '30d', by: 'platform' }, throwOnError: true });
 const { data: sov } = await mentio.getShareOfVoice({ query: { range: '90d' }, throwOnError: true });
 ```
 
