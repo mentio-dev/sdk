@@ -184,6 +184,7 @@
                   "telegram_not_configured",
                   "email_not_configured",
                   "invalid_assignee",
+                  "invalid_member",
                   "duplicate_segment",
                   "invalid_signature",
                   "webhook_not_configured",
@@ -753,6 +754,58 @@
               "muted"
             ],
             "description": "What this workspace wrote about the person."
+          },
+          "outreach": {
+            "type": "object",
+            "properties": {
+              "owner": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "User id of the workspace member."
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "email": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "email"
+                ],
+                "description": "The teammate who owns the contact; null when nobody does, or the owner left the workspace."
+              },
+              "stage": {
+                "type": "string",
+                "enum": [
+                  "not_contacted",
+                  "contacted",
+                  "replied",
+                  "in_talks",
+                  "customer",
+                  "not_a_fit"
+                ],
+                "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+              },
+              "lastContactedAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "The newest logged activity; null when nobody logged a contact."
+              }
+            },
+            "required": [
+              "owner",
+              "stage",
+              "lastContactedAt"
+            ],
+            "description": "Where your workspace stands with the person. The first logged activity claims an unowned person for whoever reached out and moves not_contacted to contacted."
           }
         },
         "required": [
@@ -766,7 +819,81 @@
           "reach",
           "profile",
           "stats",
-          "annotations"
+          "annotations",
+          "outreach"
+        ]
+      },
+      "PersonActivity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Activity id (act_...)."
+          },
+          "personId": {
+            "type": "string",
+            "description": "The person it belongs to (aut_...)."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "email",
+              "x",
+              "linkedin",
+              "bluesky",
+              "reddit",
+              "github",
+              "call",
+              "meeting",
+              "other"
+            ],
+            "description": "How they were reached: email, x, linkedin, bluesky, reddit, github, call, meeting or other."
+          },
+          "note": {
+            "type": "string",
+            "description": "What was sent or said, briefly; empty when nothing was written."
+          },
+          "member": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "User id of the workspace member."
+              },
+              "name": {
+                "type": "string",
+                "nullable": true
+              },
+              "email": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ],
+            "description": "Who reached out; null when an API key logged it without naming a member, or that member left the workspace."
+          },
+          "occurredAt": {
+            "type": "string",
+            "description": "When the contact happened."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When it was logged."
+          }
+        },
+        "required": [
+          "id",
+          "personId",
+          "channel",
+          "note",
+          "member",
+          "occurredAt",
+          "createdAt"
         ]
       },
       "Segment": {
@@ -891,6 +1018,33 @@
               "muted": {
                 "type": "boolean",
                 "description": "true: only muted people; false: only unmuted."
+              },
+              "stages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "not_contacted",
+                    "contacted",
+                    "replied",
+                    "in_talks",
+                    "customer",
+                    "not_a_fit"
+                  ],
+                  "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                },
+                "maxItems": 6,
+                "description": "People at any of these outreach stages."
+              },
+              "ownerIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
               }
             }
           },
@@ -3997,7 +4151,7 @@
       "get": {
         "operationId": "exportPeopleCsv",
         "summary": "Export people as CSV",
-        "description": "The same list as GET /v1/people (segmentId included) as CSV, one row per person with their contact columns: handle, followers, email, website, company, location, tags. Capped at 5,000 people. At most 6 exports per minute per workspace; a 429 carries Retry-After.",
+        "description": "The same list as GET /v1/people (segmentId included) as CSV, one row per person with their contact columns: handle, followers, email, website, company, location, tags, then outreach stage, owner and last contacted. Capped at 5,000 people. At most 6 exports per minute per workspace; a 429 carries Retry-After.",
         "tags": [
           "People"
         ],
@@ -4257,6 +4411,46 @@
             "required": false,
             "description": "People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.",
             "name": "linkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "not_contacted",
+                  "contacted",
+                  "replied",
+                  "in_talks",
+                  "customer",
+                  "not_a_fit"
+                ],
+                "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+              },
+              "maxItems": 6,
+              "description": "People at any of these outreach stages. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "People at any of these outreach stages. Repeatable, or comma-separated.",
+            "name": "stages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "People owned by any of these members (user ids); `none` matches people nobody owns. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "People owned by any of these members (user ids); `none` matches people nobody owns. Repeatable, or comma-separated.",
+            "name": "ownerIds",
             "in": "query"
           },
           {
@@ -4335,7 +4529,7 @@
       "get": {
         "operationId": "listPeople",
         "summary": "List people",
-        "description": "The people behind your mentions: one row per person, with their accounts, reach, public profile, per-workspace stats and your annotations. Filter by platform, tag, follower range, mention counts, intents seen, keyword kinds mentioned or never mentioned, or a saved segment. Offset-paginated with a total.",
+        "description": "The people behind your mentions: one row per person, with their accounts, reach, public profile, per-workspace stats, your annotations and where your outreach stands. Filter by platform, tag, follower range, mention counts, intents seen, keyword kinds mentioned or never mentioned, outreach stage, owner, or a saved segment. Offset-paginated with a total.",
         "tags": [
           "People"
         ],
@@ -4595,6 +4789,46 @@
             "required": false,
             "description": "People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.",
             "name": "linkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "not_contacted",
+                  "contacted",
+                  "replied",
+                  "in_talks",
+                  "customer",
+                  "not_a_fit"
+                ],
+                "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+              },
+              "maxItems": 6,
+              "description": "People at any of these outreach stages. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "People at any of these outreach stages. Repeatable, or comma-separated.",
+            "name": "stages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "People owned by any of these members (user ids); `none` matches people nobody owns. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "People owned by any of these members (user ids); `none` matches people nobody owns. Repeatable, or comma-separated.",
+            "name": "ownerIds",
             "in": "query"
           },
           {
@@ -4905,6 +5139,58 @@
                               "muted"
                             ],
                             "description": "What this workspace wrote about the person."
+                          },
+                          "outreach": {
+                            "type": "object",
+                            "properties": {
+                              "owner": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "description": "User id of the workspace member."
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "nullable": true
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "nullable": true
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "name",
+                                  "email"
+                                ],
+                                "description": "The teammate who owns the contact; null when nobody does, or the owner left the workspace."
+                              },
+                              "stage": {
+                                "type": "string",
+                                "enum": [
+                                  "not_contacted",
+                                  "contacted",
+                                  "replied",
+                                  "in_talks",
+                                  "customer",
+                                  "not_a_fit"
+                                ],
+                                "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                              },
+                              "lastContactedAt": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "The newest logged activity; null when nobody logged a contact."
+                              }
+                            },
+                            "required": [
+                              "owner",
+                              "stage",
+                              "lastContactedAt"
+                            ],
+                            "description": "Where your workspace stands with the person. The first logged activity claims an unowned person for whoever reached out and moves not_contacted to contacted."
                           }
                         },
                         "required": [
@@ -4918,7 +5204,8 @@
                           "reach",
                           "profile",
                           "stats",
-                          "annotations"
+                          "annotations",
+                          "outreach"
                         ]
                       }
                     },
@@ -5032,7 +5319,7 @@
       "patch": {
         "operationId": "updatePerson",
         "summary": "Update your annotations on a person",
-        "description": "Tags, notes and mute, for your workspace only. Mute hides their posts from your feed and every channel; ingest and billing never change.",
+        "description": "Tags, notes, mute, and the outreach owner (a workspace member; null clears) and stage, for your workspace only. Mute hides their posts from your feed and every channel; ingest and billing never change.",
         "tags": [
           "People"
         ],
@@ -5078,6 +5365,24 @@
                   },
                   "muted": {
                     "type": "boolean"
+                  },
+                  "ownerId": {
+                    "type": "string",
+                    "nullable": true,
+                    "minLength": 1,
+                    "description": "The member who owns the contact (user id); null clears."
+                  },
+                  "stage": {
+                    "type": "string",
+                    "enum": [
+                      "not_contacted",
+                      "contacted",
+                      "replied",
+                      "in_talks",
+                      "customer",
+                      "not_a_fit"
+                    ],
+                    "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -5092,6 +5397,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body, or the owner is not a workspace member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -5123,7 +5438,7 @@
       "post": {
         "operationId": "mergePeople",
         "summary": "Merge an account into a person",
-        "description": "Declare that this account and another person are the same human, for your workspace only. Their mentions, tags and notes combine under the person named by `into`.",
+        "description": "Declare that this account and another person are the same human, for your workspace only. Their mentions, tags, notes and outreach activities combine under the person named by `into`, which keeps its owner and stage unless it had none.",
         "tags": [
           "People"
         ],
@@ -5250,6 +5565,330 @@
           },
           "404": {
             "description": "This account was not merged into anyone",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/people/{id}/activities": {
+      "get": {
+        "operationId": "listPersonActivities",
+        "summary": "List outreach activities",
+        "description": "Every logged contact with this person across all their accounts, newest first (at most 200): who reached out, the channel, when, and a short note. Read it before reaching out so two teammates never contact the same person without knowing.",
+        "tags": [
+          "People"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Person id (aut_...).",
+              "example": "aut_abc123"
+            },
+            "required": true,
+            "description": "Person id (aut_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The activities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Activity id (act_...)."
+                          },
+                          "personId": {
+                            "type": "string",
+                            "description": "The person it belongs to (aut_...)."
+                          },
+                          "channel": {
+                            "type": "string",
+                            "enum": [
+                              "email",
+                              "x",
+                              "linkedin",
+                              "bluesky",
+                              "reddit",
+                              "github",
+                              "call",
+                              "meeting",
+                              "other"
+                            ],
+                            "description": "How they were reached: email, x, linkedin, bluesky, reddit, github, call, meeting or other."
+                          },
+                          "note": {
+                            "type": "string",
+                            "description": "What was sent or said, briefly; empty when nothing was written."
+                          },
+                          "member": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "User id of the workspace member."
+                              },
+                              "name": {
+                                "type": "string",
+                                "nullable": true
+                              },
+                              "email": {
+                                "type": "string",
+                                "nullable": true
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "name",
+                              "email"
+                            ],
+                            "description": "Who reached out; null when an API key logged it without naming a member, or that member left the workspace."
+                          },
+                          "occurredAt": {
+                            "type": "string",
+                            "description": "When the contact happened."
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "When it was logged."
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "personId",
+                          "channel",
+                          "note",
+                          "member",
+                          "occurredAt",
+                          "createdAt"
+                        ]
+                      },
+                      "description": "Newest first, at most 200."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No mention by this person for your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "logPersonActivity",
+        "summary": "Log an outreach activity",
+        "description": "Record that a teammate reached out to this person: an email, a DM, a call. The first activity claims an unowned person for whoever reached out and moves not_contacted to contacted; an existing owner and a later stage are kept. `memberId` defaults to the signed-in member; an API key that omits it logs an unattributed activity, which claims nobody.",
+        "tags": [
+          "People"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Person id (aut_...).",
+              "example": "aut_abc123"
+            },
+            "required": true,
+            "description": "Person id (aut_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "type": "string",
+                    "enum": [
+                      "email",
+                      "x",
+                      "linkedin",
+                      "bluesky",
+                      "reddit",
+                      "github",
+                      "call",
+                      "meeting",
+                      "other"
+                    ],
+                    "description": "How they were reached: email, x, linkedin, bluesky, reddit, github, call, meeting or other."
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 2000,
+                    "default": "",
+                    "description": "What was sent or said, briefly."
+                  },
+                  "occurredAt": {
+                    "type": "string",
+                    "description": "When the contact happened (ISO 8601, or epoch ms). Defaults to now.",
+                    "format": "date-time"
+                  },
+                  "memberId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The member who reached out (user id). Defaults to the signed-in member; an API key that omits it logs an unattributed activity."
+                  }
+                },
+                "required": [
+                  "channel"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The logged activity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonActivity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body, or memberId is not a workspace member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No mention by this person for your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/people/{id}/activities/{activityId}": {
+      "delete": {
+        "operationId": "deletePersonActivity",
+        "summary": "Delete an outreach activity",
+        "description": "Remove a contact logged by mistake. The person's owner and stage stay as they are.",
+        "tags": [
+          "People"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Person id (aut_...).",
+              "example": "aut_abc123"
+            },
+            "required": true,
+            "description": "Person id (aut_...).",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Activity id (act_...).",
+              "example": "act_abc123"
+            },
+            "required": true,
+            "description": "Activity id (act_...).",
+            "name": "activityId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such activity on this person for your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -5406,6 +6045,33 @@
                               "muted": {
                                 "type": "boolean",
                                 "description": "true: only muted people; false: only unmuted."
+                              },
+                              "stages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "not_contacted",
+                                    "contacted",
+                                    "replied",
+                                    "in_talks",
+                                    "customer",
+                                    "not_a_fit"
+                                  ],
+                                  "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                                },
+                                "maxItems": 6,
+                                "description": "People at any of these outreach stages."
+                              },
+                              "ownerIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 20,
+                                "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
                               }
                             }
                           },
@@ -5557,6 +6223,33 @@
                               "muted": {
                                 "type": "boolean",
                                 "description": "true: only muted people; false: only unmuted."
+                              },
+                              "stages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "not_contacted",
+                                    "contacted",
+                                    "replied",
+                                    "in_talks",
+                                    "customer",
+                                    "not_a_fit"
+                                  ],
+                                  "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                                },
+                                "maxItems": 6,
+                                "description": "People at any of these outreach stages."
+                              },
+                              "ownerIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 20,
+                                "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
                               }
                             }
                           }
@@ -5728,6 +6421,33 @@
                       "muted": {
                         "type": "boolean",
                         "description": "true: only muted people; false: only unmuted."
+                      },
+                      "stages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "not_contacted",
+                            "contacted",
+                            "replied",
+                            "in_talks",
+                            "customer",
+                            "not_a_fit"
+                          ],
+                          "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                        },
+                        "maxItems": 6,
+                        "description": "People at any of these outreach stages."
+                      },
+                      "ownerIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
                       }
                     },
                     "default": {}
@@ -5993,6 +6713,33 @@
                       "muted": {
                         "type": "boolean",
                         "description": "true: only muted people; false: only unmuted."
+                      },
+                      "stages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "not_contacted",
+                            "contacted",
+                            "replied",
+                            "in_talks",
+                            "customer",
+                            "not_a_fit"
+                          ],
+                          "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                        },
+                        "maxItems": 6,
+                        "description": "People at any of these outreach stages."
+                      },
+                      "ownerIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
                       }
                     },
                     "description": "Replaces the whole filter."
@@ -9154,6 +9901,13 @@
       "source": "user",
       "retryable": false,
       "description": "The assignee id is not a workspace member."
+    },
+    {
+      "code": "invalid_member",
+      "status": 400,
+      "source": "user",
+      "retryable": false,
+      "description": "A person's owner, and the member an outreach activity is credited to, must be workspace members."
     },
     {
       "code": "duplicate_segment",

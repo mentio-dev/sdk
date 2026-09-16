@@ -75,7 +75,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'duplicate_segment' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'invalid_member' | 'duplicate_segment' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -356,6 +356,68 @@ export type Person = {
          */
         muted: boolean;
     };
+    /**
+     * Where your workspace stands with the person. The first logged activity claims an unowned person for whoever reached out and moves not_contacted to contacted.
+     */
+    outreach: {
+        /**
+         * The teammate who owns the contact; null when nobody does, or the owner left the workspace.
+         */
+        owner: {
+            /**
+             * User id of the workspace member.
+             */
+            id: string;
+            name: string | null;
+            email: string | null;
+        } | null;
+        /**
+         * Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit.
+         */
+        stage: 'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit';
+        /**
+         * The newest logged activity; null when nobody logged a contact.
+         */
+        lastContactedAt: string | null;
+    };
+};
+
+export type PersonActivity = {
+    /**
+     * Activity id (act_...).
+     */
+    id: string;
+    /**
+     * The person it belongs to (aut_...).
+     */
+    personId: string;
+    /**
+     * How they were reached: email, x, linkedin, bluesky, reddit, github, call, meeting or other.
+     */
+    channel: 'email' | 'x' | 'linkedin' | 'bluesky' | 'reddit' | 'github' | 'call' | 'meeting' | 'other';
+    /**
+     * What was sent or said, briefly; empty when nothing was written.
+     */
+    note: string;
+    /**
+     * Who reached out; null when an API key logged it without naming a member, or that member left the workspace.
+     */
+    member: {
+        /**
+         * User id of the workspace member.
+         */
+        id: string;
+        name: string | null;
+        email: string | null;
+    } | null;
+    /**
+     * When the contact happened.
+     */
+    occurredAt: string;
+    /**
+     * When it was logged.
+     */
+    createdAt: string;
 };
 
 export type Segment = {
@@ -414,6 +476,14 @@ export type Segment = {
          * true: only muted people; false: only unmuted.
          */
         muted?: boolean;
+        /**
+         * People at any of these outreach stages.
+         */
+        stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * People owned by any of these members (user ids); "none" matches people nobody owns.
+         */
+        ownerIds?: Array<string>;
     };
     /**
      * People in the segment right now; it is evaluated on every read.
@@ -2034,6 +2104,14 @@ export type ExportPeopleCsvData = {
          */
         linkHosts?: Array<string> | null;
         /**
+         * People at any of these outreach stages. Repeatable, or comma-separated.
+         */
+        stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * People owned by any of these members (user ids); `none` matches people nobody owns. Repeatable, or comma-separated.
+         */
+        ownerIds?: Array<string> | null;
+        /**
          * mentions: most matches first. recent: last seen first. reach: most followers first, unknown last. new: first seen most recently first.
          */
         sort?: 'mentions' | 'recent' | 'reach' | 'new';
@@ -2143,6 +2221,14 @@ export type ListPeopleData = {
          * People with at least one mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.
          */
         linkHosts?: Array<string> | null;
+        /**
+         * People at any of these outreach stages. Repeatable, or comma-separated.
+         */
+        stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * People owned by any of these members (user ids); `none` matches people nobody owns. Repeatable, or comma-separated.
+         */
+        ownerIds?: Array<string> | null;
         /**
          * mentions: most matches first. recent: last seen first. reach: most followers first, unknown last. new: first seen most recently first.
          */
@@ -2297,6 +2383,30 @@ export type ListPeopleResponses = {
                  */
                 muted: boolean;
             };
+            /**
+             * Where your workspace stands with the person. The first logged activity claims an unowned person for whoever reached out and moves not_contacted to contacted.
+             */
+            outreach: {
+                /**
+                 * The teammate who owns the contact; null when nobody does, or the owner left the workspace.
+                 */
+                owner: {
+                    /**
+                     * User id of the workspace member.
+                     */
+                    id: string;
+                    name: string | null;
+                    email: string | null;
+                } | null;
+                /**
+                 * Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit.
+                 */
+                stage: 'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit';
+                /**
+                 * The newest logged activity; null when nobody logged a contact.
+                 */
+                lastContactedAt: string | null;
+            };
         }>;
         /**
          * People matching the filters, across all pages.
@@ -2352,6 +2462,14 @@ export type UpdatePersonData = {
         tags?: Array<string>;
         notes?: string;
         muted?: boolean;
+        /**
+         * The member who owns the contact (user id); null clears.
+         */
+        ownerId?: string | null;
+        /**
+         * Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit.
+         */
+        stage?: 'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit';
     };
     path: {
         /**
@@ -2364,6 +2482,10 @@ export type UpdatePersonData = {
 };
 
 export type UpdatePersonErrors = {
+    /**
+     * Invalid body, or the owner is not a workspace member
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -2458,6 +2580,174 @@ export type SplitPersonResponses = {
 
 export type SplitPersonResponse = SplitPersonResponses[keyof SplitPersonResponses];
 
+export type ListPersonActivitiesData = {
+    body?: never;
+    path: {
+        /**
+         * Person id (aut_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/people/{id}/activities';
+};
+
+export type ListPersonActivitiesErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No mention by this person for your workspace
+     */
+    404: ErrorResponse;
+};
+
+export type ListPersonActivitiesError = ListPersonActivitiesErrors[keyof ListPersonActivitiesErrors];
+
+export type ListPersonActivitiesResponses = {
+    /**
+     * The activities
+     */
+    200: {
+        /**
+         * Newest first, at most 200.
+         */
+        data: Array<{
+            /**
+             * Activity id (act_...).
+             */
+            id: string;
+            /**
+             * The person it belongs to (aut_...).
+             */
+            personId: string;
+            /**
+             * How they were reached: email, x, linkedin, bluesky, reddit, github, call, meeting or other.
+             */
+            channel: 'email' | 'x' | 'linkedin' | 'bluesky' | 'reddit' | 'github' | 'call' | 'meeting' | 'other';
+            /**
+             * What was sent or said, briefly; empty when nothing was written.
+             */
+            note: string;
+            /**
+             * Who reached out; null when an API key logged it without naming a member, or that member left the workspace.
+             */
+            member: {
+                /**
+                 * User id of the workspace member.
+                 */
+                id: string;
+                name: string | null;
+                email: string | null;
+            } | null;
+            /**
+             * When the contact happened.
+             */
+            occurredAt: string;
+            /**
+             * When it was logged.
+             */
+            createdAt: string;
+        }>;
+    };
+};
+
+export type ListPersonActivitiesResponse = ListPersonActivitiesResponses[keyof ListPersonActivitiesResponses];
+
+export type LogPersonActivityData = {
+    body: {
+        /**
+         * How they were reached: email, x, linkedin, bluesky, reddit, github, call, meeting or other.
+         */
+        channel: 'email' | 'x' | 'linkedin' | 'bluesky' | 'reddit' | 'github' | 'call' | 'meeting' | 'other';
+        /**
+         * What was sent or said, briefly.
+         */
+        note?: string;
+        /**
+         * When the contact happened (ISO 8601, or epoch ms). Defaults to now.
+         */
+        occurredAt?: string;
+        /**
+         * The member who reached out (user id). Defaults to the signed-in member; an API key that omits it logs an unattributed activity.
+         */
+        memberId?: string;
+    };
+    path: {
+        /**
+         * Person id (aut_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/people/{id}/activities';
+};
+
+export type LogPersonActivityErrors = {
+    /**
+     * Invalid body, or memberId is not a workspace member
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No mention by this person for your workspace
+     */
+    404: ErrorResponse;
+};
+
+export type LogPersonActivityError = LogPersonActivityErrors[keyof LogPersonActivityErrors];
+
+export type LogPersonActivityResponses = {
+    /**
+     * The logged activity
+     */
+    201: PersonActivity;
+};
+
+export type LogPersonActivityResponse = LogPersonActivityResponses[keyof LogPersonActivityResponses];
+
+export type DeletePersonActivityData = {
+    body?: never;
+    path: {
+        /**
+         * Person id (aut_...).
+         */
+        id: string;
+        /**
+         * Activity id (act_...).
+         */
+        activityId: string;
+    };
+    query?: never;
+    url: '/v1/people/{id}/activities/{activityId}';
+};
+
+export type DeletePersonActivityErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such activity on this person for your workspace
+     */
+    404: ErrorResponse;
+};
+
+export type DeletePersonActivityError = DeletePersonActivityErrors[keyof DeletePersonActivityErrors];
+
+export type DeletePersonActivityResponses = {
+    /**
+     * Deleted
+     */
+    204: void;
+};
+
+export type DeletePersonActivityResponse = DeletePersonActivityResponses[keyof DeletePersonActivityResponses];
+
 export type ListSegmentsData = {
     body?: never;
     path?: never;
@@ -2535,6 +2825,14 @@ export type ListSegmentsResponses = {
                  * true: only muted people; false: only unmuted.
                  */
                 muted?: boolean;
+                /**
+                 * People at any of these outreach stages.
+                 */
+                stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+                /**
+                 * People owned by any of these members (user ids); "none" matches people nobody owns.
+                 */
+                ownerIds?: Array<string>;
             };
             /**
              * People in the segment right now; it is evaluated on every read.
@@ -2605,6 +2903,14 @@ export type ListSegmentsResponses = {
                  * true: only muted people; false: only unmuted.
                  */
                 muted?: boolean;
+                /**
+                 * People at any of these outreach stages.
+                 */
+                stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+                /**
+                 * People owned by any of these members (user ids); "none" matches people nobody owns.
+                 */
+                ownerIds?: Array<string>;
             };
         }>;
     };
@@ -2665,6 +2971,14 @@ export type CreateSegmentData = {
              * true: only muted people; false: only unmuted.
              */
             muted?: boolean;
+            /**
+             * People at any of these outreach stages.
+             */
+            stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+            /**
+             * People owned by any of these members (user ids); "none" matches people nobody owns.
+             */
+            ownerIds?: Array<string>;
         };
     };
     path?: never;
@@ -2825,6 +3139,14 @@ export type UpdateSegmentData = {
              * true: only muted people; false: only unmuted.
              */
             muted?: boolean;
+            /**
+             * People at any of these outreach stages.
+             */
+            stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+            /**
+             * People owned by any of these members (user ids); "none" matches people nobody owns.
+             */
+            ownerIds?: Array<string>;
         };
     };
     path: {
