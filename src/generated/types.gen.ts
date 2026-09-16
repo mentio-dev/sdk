@@ -208,6 +208,10 @@ export type Mention = {
          */
         intents: Array<string>;
         /**
+         * The post reads as machine-made: a bot or app account, a scheduled or templated post, an obvious AI-written summary. A label only: automated mentions stay in the feed, are delivered as usual and are billed like any other match. false while unjudged.
+         */
+        automated: boolean;
+        /**
          * One sentence from the classifier explaining the score.
          */
         note: string | null;
@@ -492,6 +496,10 @@ export type Segment = {
          * People at any of these outreach stages.
          */
         stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
+         */
+        automated?: boolean;
         /**
          * People owned by any of these members (user ids); "none" matches people nobody owns.
          */
@@ -1846,6 +1854,10 @@ export type SearchMentionsData = {
          */
         intent?: string;
         /**
+         * true: only mentions that read as machine-made (a bot account, a scheduled or templated post, AI-written text); false: only the rest, mentions judged before this existed included. Omitted: everything.
+         */
+        automated?: boolean;
+        /**
          * Only this person (an id from /v1/people), merged accounts included. Implies includeMuted.
          */
         personId?: string;
@@ -2005,6 +2017,10 @@ export type ExportMentionsCsvData = {
          * Only mentions carrying this intent (buy_intent, question, complaint, praise, comparison).
          */
         intent?: string;
+        /**
+         * true: only mentions that read as machine-made (a bot account, a scheduled or templated post, AI-written text); false: only the rest, mentions judged before this existed included. Omitted: everything.
+         */
+        automated?: boolean;
         /**
          * Only this person (an id from /v1/people), merged accounts included. Implies includeMuted.
          */
@@ -2212,6 +2228,10 @@ export type ExportPeopleCsvData = {
          */
         stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
         /**
+         * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest; omitted: everyone.
+         */
+        automated?: boolean;
+        /**
          * People owned by any of these members (user ids); `none` matches people nobody owns. Repeatable, or comma-separated.
          */
         ownerIds?: Array<string> | null;
@@ -2341,6 +2361,10 @@ export type ListPeopleData = {
          * People at any of these outreach stages. Repeatable, or comma-separated.
          */
         stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest; omitted: everyone.
+         */
+        automated?: boolean;
         /**
          * People owned by any of these members (user ids); `none` matches people nobody owns. Repeatable, or comma-separated.
          */
@@ -2958,6 +2982,10 @@ export type ListSegmentsResponses = {
                  */
                 stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
                 /**
+                 * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
+                 */
+                automated?: boolean;
+                /**
                  * People owned by any of these members (user ids); "none" matches people nobody owns.
                  */
                 ownerIds?: Array<string>;
@@ -3048,6 +3076,10 @@ export type ListSegmentsResponses = {
                  */
                 stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
                 /**
+                 * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
+                 */
+                automated?: boolean;
+                /**
                  * People owned by any of these members (user ids); "none" matches people nobody owns.
                  */
                 ownerIds?: Array<string>;
@@ -3127,6 +3159,10 @@ export type CreateSegmentData = {
              * People at any of these outreach stages.
              */
             stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+            /**
+             * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
+             */
+            automated?: boolean;
             /**
              * People owned by any of these members (user ids); "none" matches people nobody owns.
              */
@@ -3307,6 +3343,10 @@ export type UpdateSegmentData = {
              * People at any of these outreach stages.
              */
             stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+            /**
+             * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
+             */
+            automated?: boolean;
             /**
              * People owned by any of these members (user ids); "none" matches people nobody owns.
              */
