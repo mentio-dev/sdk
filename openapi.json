@@ -999,6 +999,47 @@
                 "maxItems": 3,
                 "description": "Never mentioned a keyword of these kinds."
               },
+              "notPlatforms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                },
+                "maxItems": 20,
+                "description": "Nobody with an account on these platforms."
+              },
+              "notTags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Nobody carrying any of these tags."
+              },
+              "notIntents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 10,
+                "description": "Nobody whose mentions carry any of these intents."
+              },
               "newSinceDays": {
                 "type": "integer",
                 "minimum": 1,
@@ -3736,6 +3777,202 @@
           },
           {
             "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+              },
+              "maxItems": 20,
+              "description": "Only posts from any of these platforms."
+            },
+            "required": false,
+            "description": "Only posts from any of these platforms.",
+            "name": "platforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+              },
+              "maxItems": 20,
+              "description": "Never posts from these platforms."
+            },
+            "required": false,
+            "description": "Never posts from these platforms.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only matches of any of these keywords."
+            },
+            "required": false,
+            "description": "Only matches of any of these keywords.",
+            "name": "keywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never matches of these keywords."
+            },
+            "required": false,
+            "description": "Never matches of these keywords.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "positive",
+                  "neutral",
+                  "negative"
+                ],
+                "description": "Classifier sentiment."
+              },
+              "maxItems": 3,
+              "description": "Only these sentiments."
+            },
+            "required": false,
+            "description": "Only these sentiments.",
+            "name": "sentiments",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "positive",
+                  "neutral",
+                  "negative"
+                ],
+                "description": "Classifier sentiment."
+              },
+              "maxItems": 3,
+              "description": "Never these sentiments. A mention the classifier has not scored yet still passes."
+            },
+            "required": false,
+            "description": "Never these sentiments. A mention the classifier has not scored yet still passes.",
+            "name": "notSentiments",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 10,
+              "description": "Only mentions carrying any of these intents."
+            },
+            "required": false,
+            "description": "Only mentions carrying any of these intents.",
+            "name": "intents",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 10,
+              "description": "Never mentions carrying these intents."
+            },
+            "required": false,
+            "description": "Never mentions carrying these intents.",
+            "name": "notIntents",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never posts linking to these hosts, the host itself or a subdomain of it."
+            },
+            "required": false,
+            "description": "Never posts linking to these hosts, the host itself or a subdomain of it.",
+            "name": "notLinkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never authors your workspace tagged with any of these."
+            },
+            "required": false,
+            "description": "Never authors your workspace tagged with any of these.",
+            "name": "notTags",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "description": "Substring search in the post text."
             },
@@ -4072,6 +4309,202 @@
           },
           {
             "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+              },
+              "maxItems": 20,
+              "description": "Only posts from any of these platforms."
+            },
+            "required": false,
+            "description": "Only posts from any of these platforms.",
+            "name": "platforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+              },
+              "maxItems": 20,
+              "description": "Never posts from these platforms."
+            },
+            "required": false,
+            "description": "Never posts from these platforms.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only matches of any of these keywords."
+            },
+            "required": false,
+            "description": "Only matches of any of these keywords.",
+            "name": "keywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never matches of these keywords."
+            },
+            "required": false,
+            "description": "Never matches of these keywords.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "positive",
+                  "neutral",
+                  "negative"
+                ],
+                "description": "Classifier sentiment."
+              },
+              "maxItems": 3,
+              "description": "Only these sentiments."
+            },
+            "required": false,
+            "description": "Only these sentiments.",
+            "name": "sentiments",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "positive",
+                  "neutral",
+                  "negative"
+                ],
+                "description": "Classifier sentiment."
+              },
+              "maxItems": 3,
+              "description": "Never these sentiments. A mention the classifier has not scored yet still passes."
+            },
+            "required": false,
+            "description": "Never these sentiments. A mention the classifier has not scored yet still passes.",
+            "name": "notSentiments",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 10,
+              "description": "Only mentions carrying any of these intents."
+            },
+            "required": false,
+            "description": "Only mentions carrying any of these intents.",
+            "name": "intents",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 10,
+              "description": "Never mentions carrying these intents."
+            },
+            "required": false,
+            "description": "Never mentions carrying these intents.",
+            "name": "notIntents",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never posts linking to these hosts, the host itself or a subdomain of it."
+            },
+            "required": false,
+            "description": "Never posts linking to these hosts, the host itself or a subdomain of it.",
+            "name": "notLinkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never authors your workspace tagged with any of these."
+            },
+            "required": false,
+            "description": "Never authors your workspace tagged with any of these.",
+            "name": "notTags",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "description": "Substring search in the post text."
             },
@@ -4344,6 +4777,67 @@
             "required": false,
             "description": "At least one mention carrying any of these intents.",
             "name": "intents",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+              },
+              "maxItems": 20,
+              "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody with an account on these platforms. Repeatable, or comma-separated.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Nobody carrying any of these tags. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody carrying any of these tags. Repeatable, or comma-separated.",
+            "name": "notTags",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 10,
+              "description": "Nobody whose mentions carry any of these intents. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody whose mentions carry any of these intents. Repeatable, or comma-separated.",
+            "name": "notIntents",
             "in": "query"
           },
           {
@@ -4722,6 +5216,67 @@
             "required": false,
             "description": "At least one mention carrying any of these intents.",
             "name": "intents",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+              },
+              "maxItems": 20,
+              "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody with an account on these platforms. Repeatable, or comma-separated.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Nobody carrying any of these tags. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody carrying any of these tags. Repeatable, or comma-separated.",
+            "name": "notTags",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 10,
+              "description": "Nobody whose mentions carry any of these intents. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody whose mentions carry any of these intents. Repeatable, or comma-separated.",
+            "name": "notIntents",
             "in": "query"
           },
           {
@@ -6026,6 +6581,47 @@
                                 "maxItems": 3,
                                 "description": "Never mentioned a keyword of these kinds."
                               },
+                              "notPlatforms": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "bluesky",
+                                    "hackernews",
+                                    "github",
+                                    "stackoverflow",
+                                    "devto",
+                                    "reddit",
+                                    "x",
+                                    "youtube",
+                                    "news",
+                                    "linkedin"
+                                  ],
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                },
+                                "maxItems": 20,
+                                "description": "Nobody with an account on these platforms."
+                              },
+                              "notTags": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Nobody carrying any of these tags."
+                              },
+                              "notIntents": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 10,
+                                "description": "Nobody whose mentions carry any of these intents."
+                              },
                               "newSinceDays": {
                                 "type": "integer",
                                 "minimum": 1,
@@ -6203,6 +6799,47 @@
                                 },
                                 "maxItems": 3,
                                 "description": "Never mentioned a keyword of these kinds."
+                              },
+                              "notPlatforms": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "bluesky",
+                                    "hackernews",
+                                    "github",
+                                    "stackoverflow",
+                                    "devto",
+                                    "reddit",
+                                    "x",
+                                    "youtube",
+                                    "news",
+                                    "linkedin"
+                                  ],
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                },
+                                "maxItems": 20,
+                                "description": "Nobody with an account on these platforms."
+                              },
+                              "notTags": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Nobody carrying any of these tags."
+                              },
+                              "notIntents": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 10,
+                                "description": "Nobody whose mentions carry any of these intents."
                               },
                               "newSinceDays": {
                                 "type": "integer",
@@ -6401,6 +7038,47 @@
                         },
                         "maxItems": 3,
                         "description": "Never mentioned a keyword of these kinds."
+                      },
+                      "notPlatforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                        },
+                        "maxItems": 20,
+                        "description": "Nobody with an account on these platforms."
+                      },
+                      "notTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Nobody carrying any of these tags."
+                      },
+                      "notIntents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 10,
+                        "description": "Nobody whose mentions carry any of these intents."
                       },
                       "newSinceDays": {
                         "type": "integer",
@@ -6693,6 +7371,47 @@
                         },
                         "maxItems": 3,
                         "description": "Never mentioned a keyword of these kinds."
+                      },
+                      "notPlatforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                        },
+                        "maxItems": 20,
+                        "description": "Nobody with an account on these platforms."
+                      },
+                      "notTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Nobody carrying any of these tags."
+                      },
+                      "notIntents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 10,
+                        "description": "Nobody whose mentions carry any of these intents."
                       },
                       "newSinceDays": {
                         "type": "integer",

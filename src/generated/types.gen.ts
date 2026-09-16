@@ -465,6 +465,18 @@ export type Segment = {
          */
         neverKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
+         * Nobody with an account on these platforms.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Nobody carrying any of these tags.
+         */
+        notTags?: Array<string>;
+        /**
+         * Nobody whose mentions carry any of these intents.
+         */
+        notIntents?: Array<string>;
+        /**
          * First seen within this many days.
          */
         newSinceDays?: number;
@@ -1870,6 +1882,46 @@ export type SearchMentionsData = {
          */
         linkHosts?: Array<string> | null;
         /**
+         * Only posts from any of these platforms.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Never posts from these platforms.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Only matches of any of these keywords.
+         */
+        keywordIds?: Array<string> | null;
+        /**
+         * Never matches of these keywords.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Only these sentiments.
+         */
+        sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Never these sentiments. A mention the classifier has not scored yet still passes.
+         */
+        notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions carrying any of these intents.
+         */
+        intents?: Array<string> | null;
+        /**
+         * Never mentions carrying these intents.
+         */
+        notIntents?: Array<string> | null;
+        /**
+         * Never posts linking to these hosts, the host itself or a subdomain of it.
+         */
+        notLinkHosts?: Array<string> | null;
+        /**
+         * Never authors your workspace tagged with any of these.
+         */
+        notTags?: Array<string> | null;
+        /**
          * Substring search in the post text.
          */
         q?: string;
@@ -1990,6 +2042,46 @@ export type ExportMentionsCsvData = {
          */
         linkHosts?: Array<string> | null;
         /**
+         * Only posts from any of these platforms.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Never posts from these platforms.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Only matches of any of these keywords.
+         */
+        keywordIds?: Array<string> | null;
+        /**
+         * Never matches of these keywords.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Only these sentiments.
+         */
+        sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Never these sentiments. A mention the classifier has not scored yet still passes.
+         */
+        notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions carrying any of these intents.
+         */
+        intents?: Array<string> | null;
+        /**
+         * Never mentions carrying these intents.
+         */
+        notIntents?: Array<string> | null;
+        /**
+         * Never posts linking to these hosts, the host itself or a subdomain of it.
+         */
+        notLinkHosts?: Array<string> | null;
+        /**
+         * Never authors your workspace tagged with any of these.
+         */
+        notTags?: Array<string> | null;
+        /**
          * Substring search in the post text.
          */
         q?: string;
@@ -2087,6 +2179,18 @@ export type ExportPeopleCsvData = {
          * At least one mention carrying any of these intents.
          */
         intents?: Array<string> | null;
+        /**
+         * Nobody with an account on these platforms. Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Nobody carrying any of these tags. Repeatable, or comma-separated.
+         */
+        notTags?: Array<string> | null;
+        /**
+         * Nobody whose mentions carry any of these intents. Repeatable, or comma-separated.
+         */
+        notIntents?: Array<string> | null;
         /**
          * Mentioned a keyword of any of these kinds.
          */
@@ -2205,6 +2309,18 @@ export type ListPeopleData = {
          * At least one mention carrying any of these intents.
          */
         intents?: Array<string> | null;
+        /**
+         * Nobody with an account on these platforms. Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Nobody carrying any of these tags. Repeatable, or comma-separated.
+         */
+        notTags?: Array<string> | null;
+        /**
+         * Nobody whose mentions carry any of these intents. Repeatable, or comma-separated.
+         */
+        notIntents?: Array<string> | null;
         /**
          * Mentioned a keyword of any of these kinds.
          */
@@ -2814,6 +2930,18 @@ export type ListSegmentsResponses = {
                  */
                 neverKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
                 /**
+                 * Nobody with an account on these platforms.
+                 */
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+                /**
+                 * Nobody carrying any of these tags.
+                 */
+                notTags?: Array<string>;
+                /**
+                 * Nobody whose mentions carry any of these intents.
+                 */
+                notIntents?: Array<string>;
+                /**
                  * First seen within this many days.
                  */
                 newSinceDays?: number;
@@ -2892,6 +3020,18 @@ export type ListSegmentsResponses = {
                  */
                 neverKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
                 /**
+                 * Nobody with an account on these platforms.
+                 */
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+                /**
+                 * Nobody carrying any of these tags.
+                 */
+                notTags?: Array<string>;
+                /**
+                 * Nobody whose mentions carry any of these intents.
+                 */
+                notIntents?: Array<string>;
+                /**
                  * First seen within this many days.
                  */
                 newSinceDays?: number;
@@ -2959,6 +3099,18 @@ export type CreateSegmentData = {
              * Never mentioned a keyword of these kinds.
              */
             neverKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Nobody with an account on these platforms.
+             */
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+            /**
+             * Nobody carrying any of these tags.
+             */
+            notTags?: Array<string>;
+            /**
+             * Nobody whose mentions carry any of these intents.
+             */
+            notIntents?: Array<string>;
             /**
              * First seen within this many days.
              */
@@ -3127,6 +3279,18 @@ export type UpdateSegmentData = {
              * Never mentioned a keyword of these kinds.
              */
             neverKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Nobody with an account on these platforms.
+             */
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+            /**
+             * Nobody carrying any of these tags.
+             */
+            notTags?: Array<string>;
+            /**
+             * Nobody whose mentions carry any of these intents.
+             */
+            notIntents?: Array<string>;
             /**
              * First seen within this many days.
              */
