@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetHealthData, GetHealthResponses, GetKeywordData, GetKeywordErrors, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses } from './types.gen';
+import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetHealthData, GetHealthResponses, GetKeywordData, GetKeywordErrors, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageData, GetUsageErrors, GetUsageResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -34,7 +34,7 @@ export const listKeywords = <ThrowOnError extends boolean = false>(options?: Opt
 /**
  * Track a keyword
  *
- * Start tracking a word or phrase. Matching, classification and delivery begin on the next poll. A funded workspace tracks up to 500 keywords; each costs $5 per month, deducted daily from the balance.
+ * Start tracking a word or phrase. Matching, classification and delivery begin on the next poll. A funded workspace tracks up to 500 keywords; each costs $5 per month, deducted daily from the balance. `matching` narrows what the term matches (required and excluded terms, excluded authors, case) before a mention is stored, so a rejected post is never billed; `context` is a sentence the classifier reads for this keyword only.
  */
 export const createKeyword = <ThrowOnError extends boolean = false>(options: Options<CreateKeywordData, ThrowOnError>): RequestResult<CreateKeywordResponses, CreateKeywordErrors, ThrowOnError> => (options.client ?? client).post<CreateKeywordResponses, CreateKeywordErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -69,11 +69,37 @@ export const getKeyword = <ThrowOnError extends boolean = false>(options: Option
 /**
  * Update a keyword
  *
- * Mute or unmute it, or change the platforms it is tracked on.
+ * Mute or unmute it, reclassify it (`kind`), change the platforms it is tracked on, its classifier `context`, or its `matching` rules (each rule field optional; an empty list clears one). Rules apply to new mentions from the next poll; stored mentions are untouched.
  */
 export const updateKeyword = <ThrowOnError extends boolean = false>(options: Options<UpdateKeywordData, ThrowOnError>): RequestResult<UpdateKeywordResponses, UpdateKeywordErrors, ThrowOnError> => (options.client ?? client).patch<UpdateKeywordResponses, UpdateKeywordErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/keywords/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get the workspace filters
+ *
+ * The noise rules applied to every keyword before a mention is stored: excluded terms and authors, excluded GitHub repositories, and the subreddits Reddit posts may (or may not) come from. A post they reject is never classified, delivered or billed. Keyword-level rules live on each keyword (`matching`); both apply.
+ */
+export const getFilters = <ThrowOnError extends boolean = false>(options?: Options<GetFiltersData, ThrowOnError>): RequestResult<GetFiltersResponses, GetFiltersErrors, ThrowOnError> => (options?.client ?? client).get<GetFiltersResponses, GetFiltersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/filters',
+    ...options
+});
+
+/**
+ * Update the workspace filters
+ *
+ * Replace any of the lists; an omitted list is untouched and an empty one clears it. Entries are stored in canonical form (terms lowercased, authors as profile links or bare names, repositories as owner/name, subreddits without r/). Takes effect on new mentions within a minute; stored mentions are untouched.
+ */
+export const updateFilters = <ThrowOnError extends boolean = false>(options: Options<UpdateFiltersData, ThrowOnError>): RequestResult<UpdateFiltersResponses, UpdateFiltersErrors, ThrowOnError> => (options.client ?? client).patch<UpdateFiltersResponses, UpdateFiltersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/filters',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -95,7 +121,7 @@ export const getMention = <ThrowOnError extends boolean = false>(options: Option
 /**
  * Update a mention
  *
- * The one write on a mention. Set status to ignored or done to handle it (open puts it back), assign it to a workspace member, snooze it out of the feed, or leave an internal note. Null clears a field; omitted fields are untouched. Delivery and billing never change.
+ * The one write on a mention. Set status to ignored or done to handle it (open puts it back), assign it to a workspace member, snooze it out of the feed, leave an internal note, or correct the classifier: `relevant` true or false is your verdict (relevance becomes 100 or 0, and every list, filter, digest and report follows it), `sentiment` replaces the label; null withdraws a verdict and restores the classifier's value. Omitted fields are untouched. Delivery and billing never change.
  */
 export const updateMention = <ThrowOnError extends boolean = false>(options: Options<UpdateMentionData, ThrowOnError>): RequestResult<UpdateMentionResponses, UpdateMentionErrors, ThrowOnError> => (options.client ?? client).patch<UpdateMentionResponses, UpdateMentionErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -110,7 +136,7 @@ export const updateMention = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * List mentions
  *
- * Mentions matched to your keywords, filtered and paginated. Default order is newest match first; sort=priority ranks the last 30 days of matches by attention score. Page with nextCursor, passing the same filters and sort. A mention is one post matched to one keyword.
+ * Mentions matched to your keywords, filtered and paginated. Default order is newest match first; sort=priority ranks the last 30 days of matches by attention score. Page with nextCursor, passing the same filters and sort. A mention is one post matched to one keyword. alertId applies an alert rule's filter on top of the others: the same mentions that rule would send.
  */
 export const searchMentions = <ThrowOnError extends boolean = false>(options?: Options<SearchMentionsData, ThrowOnError>): RequestResult<SearchMentionsResponses, SearchMentionsErrors, ThrowOnError> => (options?.client ?? client).get<SearchMentionsResponses, SearchMentionsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -335,7 +361,7 @@ export const listApiKeys = <ThrowOnError extends boolean = false>(options?: Opti
 /**
  * Create an API key
  *
- * Mint a key for this workspace. The key itself is returned once; only its hash is stored.
+ * Mint a key for this workspace. The key itself is returned once; only its hash is stored. `expiresAt` makes it stop working at an instant (a key for a contractor or a one-off script); it stays listed until revoked.
  */
 export const createApiKey = <ThrowOnError extends boolean = false>(options: Options<CreateApiKeyData, ThrowOnError>): RequestResult<CreateApiKeyResponses, CreateApiKeyErrors, ThrowOnError> => (options.client ?? client).post<CreateApiKeyResponses, CreateApiKeyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -355,6 +381,87 @@ export const createApiKey = <ThrowOnError extends boolean = false>(options: Opti
 export const revokeApiKey = <ThrowOnError extends boolean = false>(options: Options<RevokeApiKeyData, ThrowOnError>): RequestResult<RevokeApiKeyResponses, RevokeApiKeyErrors, ThrowOnError> => (options.client ?? client).delete<RevokeApiKeyResponses, RevokeApiKeyErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/api-keys/{id}',
+    ...options
+});
+
+/**
+ * Introspect the credential
+ *
+ * The workspace this credential acts on, how the request authenticated (an API key, an OAuth access token from an MCP sign-in, or the dashboard session), whether it may write, and for a key its id and expiry. Run it first: a read key answers 403 read_only_key on every write, and a wrong workspace is the classic scripting mistake.
+ */
+export const whoami = <ThrowOnError extends boolean = false>(options?: Options<WhoamiData, ThrowOnError>): RequestResult<WhoamiResponses, WhoamiErrors, ThrowOnError> => (options?.client ?? client).get<WhoamiResponses, WhoamiErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/whoami',
+    ...options
+});
+
+/**
+ * List members
+ *
+ * Everyone in the workspace, owners first. `userId` is what a mention's assigneeId and a person's ownerId take.
+ */
+export const listMembers = <ThrowOnError extends boolean = false>(options?: Options<ListMembersData, ThrowOnError>): RequestResult<ListMembersResponses, ListMembersErrors, ThrowOnError> => (options?.client ?? client).get<ListMembersResponses, ListMembersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/members',
+    ...options
+});
+
+/**
+ * List pending invitations
+ *
+ * Invitations sent and not yet accepted, declined or expired. An accepted one appears in GET /v1/members instead.
+ */
+export const listInvitations = <ThrowOnError extends boolean = false>(options?: Options<ListInvitationsData, ThrowOnError>): RequestResult<ListInvitationsResponses, ListInvitationsErrors, ThrowOnError> => (options?.client ?? client).get<ListInvitationsResponses, ListInvitationsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/members/invitations',
+    ...options
+});
+
+/**
+ * Invite a member
+ *
+ * Send an email invitation to join the workspace as admin or member; it expires after 48 hours. Idempotent: an address that already holds an open invitation gets it back with 200 and no second email. An address that is already a member is a 409 already_member. Team changes need a signed-in owner or admin (an OAuth token from an MCP sign-in, or the dashboard session): an API key answers 403.
+ */
+export const createInvitation = <ThrowOnError extends boolean = false>(options: Options<CreateInvitationData, ThrowOnError>): RequestResult<CreateInvitationResponses, CreateInvitationErrors, ThrowOnError> => (options.client ?? client).post<CreateInvitationResponses, CreateInvitationErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/members/invitations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Revoke an invitation
+ *
+ * The link in the email stops working at once. Needs a signed-in owner or admin; an API key answers 403.
+ */
+export const revokeInvitation = <ThrowOnError extends boolean = false>(options: Options<RevokeInvitationData, ThrowOnError>): RequestResult<RevokeInvitationResponses, RevokeInvitationErrors, ThrowOnError> => (options.client ?? client).delete<RevokeInvitationResponses, RevokeInvitationErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/members/invitations/{id}',
+    ...options
+});
+
+/**
+ * Remove a member
+ *
+ * The person loses the workspace within a minute (their dashboard session on the next request, an OAuth token when its short cache lapses). Their mentions, notes and outreach stay. Needs a signed-in owner or admin; only an owner removes another owner, and the last owner cannot be removed (409 last_owner).
+ */
+export const removeMember = <ThrowOnError extends boolean = false>(options: Options<RemoveMemberData, ThrowOnError>): RequestResult<RemoveMemberResponses, RemoveMemberErrors, ThrowOnError> => (options.client ?? client).delete<RemoveMemberResponses, RemoveMemberErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/members/{id}',
+    ...options
+});
+
+/**
+ * Get usage and balance
+ *
+ * The prepaid balance (ledger, pending mention charges, and the effective balance the stop rule reads), the daily burn and the days it buys, the keywords the wallet runs and pauses, the matches recorded today and over 30 days, and whether tracking is stopped or the balance is low. Every matched mention bills ($0.008), relevant or not; every active keyword bills $5 a month, charged daily.
+ */
+export const getUsage = <ThrowOnError extends boolean = false>(options?: Options<GetUsageData, ThrowOnError>): RequestResult<GetUsageResponses, GetUsageErrors, ThrowOnError> => (options?.client ?? client).get<GetUsageResponses, GetUsageErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/usage',
     ...options
 });
 
@@ -400,6 +507,8 @@ export const listAlerts = <ThrowOnError extends boolean = false>(options?: Optio
 
 /**
  * Create an alert
+ *
+ * A rule (what to watch, the filter) times channels. mode instant sends each matching mention as it happens; daily sends one digest at schedule.hour in schedule.timezone; weekly sends one a week on schedule.weekday (0 Sunday to 6 Saturday).
  */
 export const createAlert = <ThrowOnError extends boolean = false>(options: Options<CreateAlertData, ThrowOnError>): RequestResult<CreateAlertResponses, CreateAlertErrors, ThrowOnError> => (options.client ?? client).post<CreateAlertResponses, CreateAlertErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

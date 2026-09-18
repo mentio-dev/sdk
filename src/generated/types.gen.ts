@@ -24,6 +24,35 @@ export type Keyword = {
      */
     platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'> | null;
     /**
+     * A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+     */
+    context: string | null;
+    /**
+     * Matching rules applied before a mention is stored; a rejected post is never billed.
+     */
+    matching: {
+        /**
+         * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+         */
+        requiredTerms: Array<string>;
+        /**
+         * any: at least one required term must appear. all: every one must.
+         */
+        requiredMode: 'any' | 'all';
+        /**
+         * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
+         */
+        excludedTerms: Array<string>;
+        /**
+         * Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list.
+         */
+        excludedAuthors: Array<string>;
+        /**
+         * true: the term must appear in the case it was typed (RAG, never rag). Default false.
+         */
+        caseSensitive: boolean;
+    };
+    /**
      * Computed over this workspace's matches.
      */
     stats: {
@@ -43,6 +72,19 @@ export type Keyword = {
          * Newest matched post; null until the first one.
          */
         lastMentionAt: string | null;
+        /**
+         * Your verdicts on this keyword's mentions (PATCH /v1/mentions/{id} relevant).
+         */
+        feedback: {
+            /**
+             * Mentions a person marked relevant.
+             */
+            relevant: number;
+            /**
+             * Mentions a person marked not relevant: the noise the classifier let through.
+             */
+            notRelevant: number;
+        };
     };
     /**
      * Poll health per platform polled on a schedule. Live feeds (Bluesky) have no entry.
@@ -75,7 +117,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'invalid_member' | 'duplicate_segment' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -89,6 +131,41 @@ export type ErrorResponse = {
          */
         retryAfterSeconds?: number;
     };
+};
+
+/**
+ * Workspace-wide matching rules; a rejected post is never billed.
+ */
+export type WorkspaceFilters = {
+    /**
+     * A post containing any of these is dropped, whatever keyword matched it. Same phrase rule as a keyword; a `*` at an end is a wildcard. "hiring, job, careers" is the classic list.
+     */
+    excludedTerms: Array<string>;
+    /**
+     * Posts by these authors are dropped everywhere: your own accounts, employees, known spammers. Profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form.
+     */
+    excludedAuthors: Array<string>;
+    /**
+     * GitHub repositories whose issues, pull requests and comments are dropped, as owner/name or a github.com link (facebook/react, https://github.com/facebook/react).
+     */
+    excludedRepos: Array<string>;
+    /**
+     * Reddit only.
+     */
+    subreddits: {
+        /**
+         * When non-empty, ONLY Reddit posts from these subreddits pass and `excluded` is ignored. r/name or name.
+         */
+        only: Array<string>;
+        /**
+         * Reddit posts from these subreddits are dropped. r/name or name.
+         */
+        excluded: Array<string>;
+    };
+    /**
+     * Last edit; null until the first.
+     */
+    updatedAt: string | null;
 };
 
 export type Mention = {
@@ -192,7 +269,7 @@ export type Mention = {
         tags: Array<string>;
     } | null;
     /**
-     * The classifier verdict; null while the post is still queued for classification.
+     * The classifier verdict, as corrected by your feedback; null while the post is still queued for classification.
      */
     classification: {
         /**
@@ -212,6 +289,10 @@ export type Mention = {
          */
         automated: boolean;
         /**
+         * The language the post is written in, as an ISO 639-1 code (en, es, de); null when unknown or classified before languages were recorded.
+         */
+        language: string | null;
+        /**
          * One sentence from the classifier explaining the score.
          */
         note: string | null;
@@ -219,6 +300,36 @@ export type Mention = {
          * true when the model could not score this post; it stays in the feed and is not billed.
          */
         failed: boolean;
+        /**
+         * A person's correction of the verdict, or null. A relevance verdict sets `relevance` to 100 or 0 and `relevant` with it; a corrected sentiment replaces `sentiment`. Every list, filter, digest and report reads the corrected values.
+         */
+        feedback: {
+            /**
+             * Your verdict on relevance, or null when you only corrected the sentiment.
+             */
+            relevant: boolean | null;
+            /**
+             * Your corrected sentiment, or null when you only judged relevance.
+             */
+            sentiment: 'positive' | 'neutral' | 'negative';
+            /**
+             * When the last verdict was given.
+             */
+            at: string;
+            /**
+             * The classifier values your feedback replaced.
+             */
+            original: {
+                /**
+                 * What the classifier scored before your verdict; null if it had not scored it.
+                 */
+                relevance: number | null;
+                /**
+                 * The sentiment the classifier gave before your correction.
+                 */
+                sentiment: 'positive' | 'neutral' | 'negative';
+            };
+        } | null;
     } | null;
     triage: {
         /**
@@ -546,9 +657,213 @@ export type Company = {
         linkedin: string | null;
     };
     /**
+     * The company website, as set up during onboarding.
+     */
+    website: string | null;
+    /**
+     * Competitors by name, so the classifier reads a rival's mention as such; usually the same names as your competitor keywords.
+     */
+    competitors: Array<string>;
+    /**
+     * Free-text rules for the classifier: what counts as relevant for you and what never does ("posts about our API, never job listings"). The second biggest lever after the description.
+     */
+    guidelines: string | null;
+    /**
      * The text the classifier reads. Composed from the fields above unless you override it.
      */
     context: string;
+};
+
+export type Whoami = {
+    /**
+     * The workspace this credential acts on.
+     */
+    workspace: {
+        /**
+         * Workspace id (org_...).
+         */
+        id: string;
+        /**
+         * The workspace name, as the dashboard shows it.
+         */
+        name: string;
+    };
+    /**
+     * The credential.
+     */
+    auth: {
+        /**
+         * How the request authenticated: an API key, an OAuth access token (MCP sign-in), or the dashboard session.
+         */
+        kind: 'api_key' | 'oauth' | 'session';
+        /**
+         * What the credential may do: read (GET only) or write.
+         */
+        scope: 'read' | 'write';
+        /**
+         * The key id (key_...) when authenticated with an API key; null otherwise.
+         */
+        apiKeyId: string | null;
+        /**
+         * When an API key stops working; null for a key that never expires, an OAuth token or a session.
+         */
+        expiresAt: string | null;
+    };
+    /**
+     * The person behind an OAuth token or a session; null for an API key, which has no person behind it.
+     */
+    user: {
+        /**
+         * User id, what assigneeId and ownerId take.
+         */
+        id: string;
+        /**
+         * The account's email address.
+         */
+        email: string;
+        /**
+         * The name on the account; null when they never set one.
+         */
+        name: string | null;
+    } | null;
+};
+
+export type Member = {
+    /**
+     * Membership id (mem_...), what DELETE /v1/members/{id} takes.
+     */
+    id: string;
+    /**
+     * The person's user id, what assigneeId and ownerId take.
+     */
+    userId: string;
+    /**
+     * The account's email address.
+     */
+    email: string;
+    /**
+     * The name on the account; null when they never set one.
+     */
+    name: string | null;
+    /**
+     * owner: everything, billing included. admin: manages the team. member: works the feed.
+     */
+    role: 'owner' | 'admin' | 'member';
+    /**
+     * When the membership was created.
+     */
+    joinedAt: string;
+};
+
+export type Invitation = {
+    /**
+     * Invitation id (inv_...).
+     */
+    id: string;
+    /**
+     * The invited address, lowercased.
+     */
+    email: string;
+    /**
+     * The role they join with.
+     */
+    role: 'owner' | 'admin' | 'member';
+    /**
+     * Who sent it; an API key invites on behalf of the oldest owner.
+     */
+    invitedBy: {
+        id: string;
+        email: string;
+        name: string | null;
+    } | null;
+    /**
+     * Invitations last 48 hours; an expired one is no longer listed.
+     */
+    expiresAt: string;
+    /**
+     * When the invitation was sent.
+     */
+    createdAt: string;
+};
+
+export type UsageSummary = {
+    /**
+     * The prepaid wallet.
+     */
+    balance: {
+        /**
+         * Ledger balance: every credit minus every settled debit.
+         */
+        cents: number;
+        /**
+         * Mentions matched since the last daily settlement, priced but not yet debited.
+         */
+        pendingCents: number;
+        /**
+         * cents minus pendingCents: what the stop rule and the keyword gate look at.
+         */
+        effectiveCents: number;
+        currency: 'USD';
+    };
+    /**
+     * How fast the balance goes.
+     */
+    burn: {
+        /**
+         * Average daily debit over the last 7 days (or since the workspace was created).
+         */
+        perDayCents: number;
+        /**
+         * effectiveCents divided by perDayCents; null when nothing is burning.
+         */
+        daysLeft: number | null;
+    };
+    /**
+     * Keywords against the wallet.
+     */
+    keywords: {
+        /**
+         * Unmuted keywords, the ones charged daily.
+         */
+        active: number;
+        /**
+         * Keywords the wallet paused for lack of balance; a top-up resumes them.
+         */
+        paused: number;
+        /**
+         * How many keywords the workspace may run right now: the self-serve ceiling when the balance covers one more keyword-day, else 0.
+         */
+        limit: number;
+        /**
+         * What one more day of the active keywords costs.
+         */
+        dayCents: number;
+    };
+    /**
+     * Matched mentions, the other thing that bills.
+     */
+    mentions: {
+        /**
+         * Matches recorded today (UTC), relevant or not: every one bills.
+         */
+        today: number;
+        /**
+         * Matches recorded in the last 30 days.
+         */
+        last30d: number;
+    };
+    /**
+     * The wallet paused tracking; a top-up that covers a day of every keyword resumes it.
+     */
+    stopped: boolean;
+    /**
+     * Running, and the effective balance is at or under 20 percent of the last credit.
+     */
+    lowBalance: boolean;
+    /**
+     * Newest paid top-up; null before the first.
+     */
+    lastTopUpAt: string | null;
 };
 
 export type Alert = {
@@ -559,9 +874,9 @@ export type Alert = {
     name: string;
     enabled: boolean;
     /**
-     * instant: each matching mention as it happens. daily: one digest at the scheduled local time.
+     * instant: each matching mention as it happens. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday.
      */
-    mode: 'instant' | 'daily';
+    mode: 'instant' | 'daily' | 'weekly';
     filter: {
         /**
          * Only these keywords.
@@ -599,15 +914,27 @@ export type Alert = {
          * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
          */
         linkHosts?: Array<string>;
+        /**
+         * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
+         */
+        languages?: Array<string>;
+        /**
+         * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
+         */
+        automated?: boolean;
     };
     /**
-     * Daily alerts only.
+     * Daily and weekly alerts only.
      */
     schedule: {
         hour: number;
         minute?: number;
         timezone: string;
         skipEmpty?: boolean;
+        /**
+         * Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules.
+         */
+        weekday?: number;
     } | null;
     /**
      * Event name carried in webhook payloads; the mode default unless you set one.
@@ -634,7 +961,7 @@ export type Alert = {
          */
         lastSentAt: string | null;
         /**
-         * Daily alerts: the next digest; null when disabled or instant.
+         * Daily and weekly alerts: the next digest; null when disabled or instant.
          */
         nextRunAt: string | null;
     };
@@ -869,20 +1196,20 @@ export type AnalyticsSeries = {
          */
         timezone: string;
         /**
-         * Point granularity: day, or week (Monday to Sunday).
+         * Point granularity used: hour, day, week (Monday to Sunday) or month.
          */
-        bucket: 'day' | 'week';
+        bucket: 'hour' | 'day' | 'week' | 'month';
     };
     /**
      * One item per series, most matched first; a single "total" item when not split.
      */
     data: Array<{
         /**
-         * Platform name, keyword id, "total" for the unsplit series, or "other" for the keys beyond the top 20.
+         * Platform name, keyword id, sentiment (positive, neutral, negative, unclassified), "total" for the unsplit series, or "other" for the keys beyond the top 20.
          */
         key: string;
         /**
-         * Readable name: the platform, the keyword term, "Total" or "Other".
+         * Readable name: the platform, the keyword term, the sentiment, "Total" or "Other".
          */
         label: string;
         /**
@@ -907,7 +1234,7 @@ export type AnalyticsSeries = {
          */
         points: Array<{
             /**
-             * The day, or the Monday of the week.
+             * The bucket start in `timezone`: the day (YYYY-MM-DD), the Monday of the week, the first of the month, or the hour as YYYY-MM-DDTHH:00.
              */
             date: string;
             /**
@@ -941,11 +1268,11 @@ export type AnalyticsSeries = {
      */
     previous: Array<{
         /**
-         * Platform name, keyword id, "total" for the unsplit series, or "other" for the keys beyond the top 20.
+         * Platform name, keyword id, sentiment (positive, neutral, negative, unclassified), "total" for the unsplit series, or "other" for the keys beyond the top 20.
          */
         key: string;
         /**
-         * Readable name: the platform, the keyword term, "Total" or "Other".
+         * Readable name: the platform, the keyword term, the sentiment, "Total" or "Other".
          */
         label: string;
         /**
@@ -970,7 +1297,7 @@ export type AnalyticsSeries = {
          */
         points: Array<{
             /**
-             * The day, or the Monday of the week.
+             * The bucket start in `timezone`: the day (YYYY-MM-DD), the Monday of the week, the first of the month, or the hour as YYYY-MM-DDTHH:00.
              */
             date: string;
             /**
@@ -1026,7 +1353,7 @@ export type AnalyticsBreakdown = {
     /**
      * The dimension the rows are grouped by.
      */
-    by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person';
+    by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language';
     /**
      * Most matched first, at most 50 groups. by=hour is chronological and unlimited (168 cells at most).
      */
@@ -1522,6 +1849,35 @@ export type ListKeywordsResponses = {
              */
             platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'> | null;
             /**
+             * A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+             */
+            context: string | null;
+            /**
+             * Matching rules applied before a mention is stored; a rejected post is never billed.
+             */
+            matching: {
+                /**
+                 * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+                 */
+                requiredTerms: Array<string>;
+                /**
+                 * any: at least one required term must appear. all: every one must.
+                 */
+                requiredMode: 'any' | 'all';
+                /**
+                 * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
+                 */
+                excludedTerms: Array<string>;
+                /**
+                 * Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list.
+                 */
+                excludedAuthors: Array<string>;
+                /**
+                 * true: the term must appear in the case it was typed (RAG, never rag). Default false.
+                 */
+                caseSensitive: boolean;
+            };
+            /**
              * Computed over this workspace's matches.
              */
             stats: {
@@ -1541,6 +1897,19 @@ export type ListKeywordsResponses = {
                  * Newest matched post; null until the first one.
                  */
                 lastMentionAt: string | null;
+                /**
+                 * Your verdicts on this keyword's mentions (PATCH /v1/mentions/{id} relevant).
+                 */
+                feedback: {
+                    /**
+                     * Mentions a person marked relevant.
+                     */
+                    relevant: number;
+                    /**
+                     * Mentions a person marked not relevant: the noise the classifier let through.
+                     */
+                    notRelevant: number;
+                };
             };
             /**
              * Poll health per platform polled on a schedule. Live feeds (Bluesky) have no entry.
@@ -1583,6 +1952,35 @@ export type CreateKeywordData = {
          * Platforms to track it on; omit or null for every platform.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'> | null;
+        /**
+         * A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+         */
+        context?: string | null;
+        /**
+         * Omitted fields are untouched; an empty list clears one.
+         */
+        matching?: {
+            /**
+             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+             */
+            requiredTerms?: Array<string>;
+            /**
+             * any: at least one required term must appear. all: every one must.
+             */
+            requiredMode?: 'any' | 'all';
+            /**
+             * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
+             */
+            excludedTerms?: Array<string>;
+            /**
+             * Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list.
+             */
+            excludedAuthors?: Array<string>;
+            /**
+             * true: the term must appear in the case it was typed (RAG, never rag). Default false.
+             */
+            caseSensitive?: boolean;
+        };
     };
     path?: never;
     query?: never;
@@ -1689,6 +2087,10 @@ export type UpdateKeywordData = {
      */
     body: {
         /**
+         * Reclassify it as brand, competitor or topic.
+         */
+        kind?: 'brand' | 'competitor' | 'topic';
+        /**
          * A muted keyword stops polling and matching; its mentions stay.
          */
         muted?: boolean;
@@ -1696,6 +2098,35 @@ export type UpdateKeywordData = {
          * Replaces the platform list; null means every platform.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'> | null;
+        /**
+         * A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+         */
+        context?: string | null;
+        /**
+         * Omitted fields are untouched; an empty list clears one.
+         */
+        matching?: {
+            /**
+             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+             */
+            requiredTerms?: Array<string>;
+            /**
+             * any: at least one required term must appear. all: every one must.
+             */
+            requiredMode?: 'any' | 'all';
+            /**
+             * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
+             */
+            excludedTerms?: Array<string>;
+            /**
+             * Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list.
+             */
+            excludedAuthors?: Array<string>;
+            /**
+             * true: the term must appear in the case it was typed (RAG, never rag). Default false.
+             */
+            caseSensitive?: boolean;
+        };
     };
     path: {
         /**
@@ -1732,6 +2163,89 @@ export type UpdateKeywordResponses = {
 };
 
 export type UpdateKeywordResponse = UpdateKeywordResponses[keyof UpdateKeywordResponses];
+
+export type GetFiltersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/filters';
+};
+
+export type GetFiltersErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type GetFiltersError = GetFiltersErrors[keyof GetFiltersErrors];
+
+export type GetFiltersResponses = {
+    /**
+     * The workspace filters
+     */
+    200: WorkspaceFilters;
+};
+
+export type GetFiltersResponse = GetFiltersResponses[keyof GetFiltersResponses];
+
+export type UpdateFiltersData = {
+    /**
+     * Omitted fields are untouched; an empty list clears one.
+     */
+    body: {
+        /**
+         * Replaces the list; [] clears it.
+         */
+        excludedTerms?: Array<string>;
+        /**
+         * Replaces the list; [] clears it.
+         */
+        excludedAuthors?: Array<string>;
+        /**
+         * Replaces the list; [] clears it.
+         */
+        excludedRepos?: Array<string>;
+        /**
+         * Reddit only; an omitted list is untouched.
+         */
+        subreddits?: {
+            /**
+             * Replaces the allowlist; [] clears it.
+             */
+            only?: Array<string>;
+            /**
+             * Replaces the deny list; [] clears it.
+             */
+            excluded?: Array<string>;
+        };
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/filters';
+};
+
+export type UpdateFiltersErrors = {
+    /**
+     * An entry is not a term, an author, a repository or a subreddit
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type UpdateFiltersError = UpdateFiltersErrors[keyof UpdateFiltersErrors];
+
+export type UpdateFiltersResponses = {
+    /**
+     * The updated filters
+     */
+    200: WorkspaceFilters;
+};
+
+export type UpdateFiltersResponse = UpdateFiltersResponses[keyof UpdateFiltersResponses];
 
 export type GetMentionData = {
     body?: never;
@@ -1788,6 +2302,14 @@ export type UpdateMentionData = {
          * Internal note; null or empty clears it.
          */
         note?: string | null;
+        /**
+         * Your verdict on relevance, correcting the classifier: true sets relevance to 100 and puts a filtered mention back in the relevant feed, false sets it to 0 and takes it out; null withdraws the verdict and restores the classifier's score. Never billed or unbilled. A mention still being classified answers 409 classification_pending.
+         */
+        relevant?: boolean | null;
+        /**
+         * Your corrected sentiment; null withdraws the correction and restores the classifier's.
+         */
+        sentiment?: 'positive' | 'neutral' | 'negative';
     };
     path: {
         /**
@@ -1812,6 +2334,10 @@ export type UpdateMentionErrors = {
      * Mention not found
      */
     404: ErrorResponse;
+    /**
+     * A verdict on a mention the classifier has not scored yet (classification_pending)
+     */
+    409: ErrorResponse;
 };
 
 export type UpdateMentionError = UpdateMentionErrors[keyof UpdateMentionErrors];
@@ -1886,6 +2412,18 @@ export type SearchMentionsData = {
          */
         minFollowers?: number | null;
         /**
+         * Only authors with at most this many followers. Unknown reach never passes.
+         */
+        maxFollowers?: number | null;
+        /**
+         * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
+         */
+        isReply?: boolean;
+        /**
+         * Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.
+         */
+        alertId?: string;
+        /**
          * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
          */
         tags?: Array<string> | null;
@@ -1934,7 +2472,15 @@ export type SearchMentionsData = {
          */
         notTags?: Array<string> | null;
         /**
-         * Substring search in the post text.
+         * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
+         */
+        languages?: Array<string>;
+        /**
+         * Never posts in these languages. A post whose language is unknown still passes.
+         */
+        notLanguages?: Array<string>;
+        /**
+         * Substring search in the post text or the author's name.
          */
         q?: string;
         /**
@@ -2050,6 +2596,18 @@ export type ExportMentionsCsvData = {
          */
         minFollowers?: number | null;
         /**
+         * Only authors with at most this many followers. Unknown reach never passes.
+         */
+        maxFollowers?: number | null;
+        /**
+         * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
+         */
+        isReply?: boolean;
+        /**
+         * Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.
+         */
+        alertId?: string;
+        /**
          * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
          */
         tags?: Array<string> | null;
@@ -2098,7 +2656,15 @@ export type ExportMentionsCsvData = {
          */
         notTags?: Array<string> | null;
         /**
-         * Substring search in the post text.
+         * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
+         */
+        languages?: Array<string>;
+        /**
+         * Never posts in these languages. A post whose language is unknown still passes.
+         */
+        notLanguages?: Array<string>;
+        /**
+         * Substring search in the post text or the author's name.
          */
         q?: string;
         /**
@@ -3434,6 +4000,18 @@ export type UpdateCompanyData = {
             linkedin?: string | null;
         };
         /**
+         * The company website; null clears it.
+         */
+        website?: string | null;
+        /**
+         * Replaces the whole list; [] clears it.
+         */
+        competitors?: Array<string>;
+        /**
+         * Free-text rules for the classifier; null clears them.
+         */
+        guidelines?: string | null;
+        /**
          * Overrides the composed context until the next profile edit.
          */
         context?: string;
@@ -3508,6 +4086,10 @@ export type ListApiKeysResponses = {
              * ISO 8601 timestamp, UTC.
              */
             lastUsedAt: string | null;
+            /**
+             * When the key stops working; null for a key that never expires. An expired key stays listed until revoked.
+             */
+            expiresAt: string | null;
         }>;
     };
 };
@@ -3524,6 +4106,10 @@ export type CreateApiKeyData = {
          * read: GET only. write: everything.
          */
         scope?: 'read' | 'write';
+        /**
+         * When the key stops working (ISO 8601, or epoch ms), for a key handed to a script or a contractor. Must be in the future. Omit or null for a key that never expires.
+         */
+        expiresAt?: string;
     };
     path?: never;
     query?: never;
@@ -3531,6 +4117,10 @@ export type CreateApiKeyData = {
 };
 
 export type CreateApiKeyErrors = {
+    /**
+     * expiresAt is not in the future
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -3565,6 +4155,10 @@ export type CreateApiKeyResponses = {
          * ISO 8601 timestamp, UTC.
          */
         lastUsedAt: string | null;
+        /**
+         * When the key stops working; null for a key that never expires. An expired key stays listed until revoked.
+         */
+        expiresAt: string | null;
         /**
          * The full key. Shown once; store it now.
          */
@@ -3607,6 +4201,236 @@ export type RevokeApiKeyResponses = {
 };
 
 export type RevokeApiKeyResponse = RevokeApiKeyResponses[keyof RevokeApiKeyResponses];
+
+export type WhoamiData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/whoami';
+};
+
+export type WhoamiErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type WhoamiError = WhoamiErrors[keyof WhoamiErrors];
+
+export type WhoamiResponses = {
+    /**
+     * The credential
+     */
+    200: Whoami;
+};
+
+export type WhoamiResponse = WhoamiResponses[keyof WhoamiResponses];
+
+export type ListMembersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/members';
+};
+
+export type ListMembersErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListMembersError = ListMembersErrors[keyof ListMembersErrors];
+
+export type ListMembersResponses = {
+    /**
+     * The members
+     */
+    200: {
+        data: Array<Member>;
+    };
+};
+
+export type ListMembersResponse = ListMembersResponses[keyof ListMembersResponses];
+
+export type ListInvitationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/members/invitations';
+};
+
+export type ListInvitationsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListInvitationsError = ListInvitationsErrors[keyof ListInvitationsErrors];
+
+export type ListInvitationsResponses = {
+    /**
+     * The open invitations
+     */
+    200: {
+        data: Array<Invitation>;
+    };
+};
+
+export type ListInvitationsResponse = ListInvitationsResponses[keyof ListInvitationsResponses];
+
+export type CreateInvitationData = {
+    body: {
+        /**
+         * The address to invite; it receives an email with a link to join.
+         */
+        email: string;
+        /**
+         * The role they join with. Ownership is only handed over in the dashboard.
+         */
+        role?: 'admin' | 'member';
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/members/invitations';
+};
+
+export type CreateInvitationErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * The credential is an API key, or its person is not an owner or admin
+     */
+    403: ErrorResponse;
+    /**
+     * The address is already a member (already_member)
+     */
+    409: ErrorResponse;
+};
+
+export type CreateInvitationError = CreateInvitationErrors[keyof CreateInvitationErrors];
+
+export type CreateInvitationResponses = {
+    /**
+     * The open invitation this address already had
+     */
+    200: Invitation;
+    /**
+     * The invitation, emailed
+     */
+    201: Invitation;
+};
+
+export type CreateInvitationResponse = CreateInvitationResponses[keyof CreateInvitationResponses];
+
+export type RevokeInvitationData = {
+    body?: never;
+    path: {
+        /**
+         * Invitation id (inv_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/members/invitations/{id}';
+};
+
+export type RevokeInvitationErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * The credential is an API key, or its person is not an owner or admin
+     */
+    403: ErrorResponse;
+    /**
+     * No open invitation with that id
+     */
+    404: ErrorResponse;
+};
+
+export type RevokeInvitationError = RevokeInvitationErrors[keyof RevokeInvitationErrors];
+
+export type RevokeInvitationResponses = {
+    /**
+     * Revoked
+     */
+    204: void;
+};
+
+export type RevokeInvitationResponse = RevokeInvitationResponses[keyof RevokeInvitationResponses];
+
+export type RemoveMemberData = {
+    body?: never;
+    path: {
+        /**
+         * Membership id (mem_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/members/{id}';
+};
+
+export type RemoveMemberErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * The credential is an API key, its person is not an owner or admin, or an admin tried to remove an owner
+     */
+    403: ErrorResponse;
+    /**
+     * Member not found
+     */
+    404: ErrorResponse;
+    /**
+     * The last owner cannot be removed (last_owner)
+     */
+    409: ErrorResponse;
+};
+
+export type RemoveMemberError = RemoveMemberErrors[keyof RemoveMemberErrors];
+
+export type RemoveMemberResponses = {
+    /**
+     * Removed
+     */
+    204: void;
+};
+
+export type RemoveMemberResponse = RemoveMemberResponses[keyof RemoveMemberResponses];
+
+export type GetUsageData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/usage';
+};
+
+export type GetUsageErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type GetUsageError = GetUsageErrors[keyof GetUsageErrors];
+
+export type GetUsageResponses = {
+    /**
+     * The usage summary
+     */
+    200: UsageSummary;
+};
+
+export type GetUsageResponse = GetUsageResponses[keyof GetUsageResponses];
 
 export type DeleteAlertData = {
     body?: never;
@@ -3683,7 +4507,7 @@ export type UpdateAlertData = {
     body: {
         name?: string;
         enabled?: boolean;
-        mode?: 'instant' | 'daily';
+        mode?: 'instant' | 'daily' | 'weekly';
         /**
          * Replaces the whole filter.
          */
@@ -3724,12 +4548,24 @@ export type UpdateAlertData = {
              * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
              */
             linkHosts?: Array<string>;
+            /**
+             * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
+             */
+            languages?: Array<string>;
+            /**
+             * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
+             */
+            automated?: boolean;
         };
         schedule?: {
             hour: number;
             minute?: number;
             timezone: string;
             skipEmpty?: boolean;
+            /**
+             * Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules.
+             */
+            weekday?: number;
         } | null;
         event?: string | null;
         /**
@@ -3749,7 +4585,7 @@ export type UpdateAlertData = {
 
 export type UpdateAlertErrors = {
     /**
-     * A daily rule without a schedule, or an unknown channel
+     * A daily or weekly rule without a schedule (or a weekly one without a weekday), or an unknown channel
      */
     400: ErrorResponse;
     /**
@@ -3802,9 +4638,9 @@ export type ListAlertsResponses = {
             name: string;
             enabled: boolean;
             /**
-             * instant: each matching mention as it happens. daily: one digest at the scheduled local time.
+             * instant: each matching mention as it happens. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday.
              */
-            mode: 'instant' | 'daily';
+            mode: 'instant' | 'daily' | 'weekly';
             filter: {
                 /**
                  * Only these keywords.
@@ -3842,15 +4678,27 @@ export type ListAlertsResponses = {
                  * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
                  */
                 linkHosts?: Array<string>;
+                /**
+                 * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
+                 */
+                languages?: Array<string>;
+                /**
+                 * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
+                 */
+                automated?: boolean;
             };
             /**
-             * Daily alerts only.
+             * Daily and weekly alerts only.
              */
             schedule: {
                 hour: number;
                 minute?: number;
                 timezone: string;
                 skipEmpty?: boolean;
+                /**
+                 * Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules.
+                 */
+                weekday?: number;
             } | null;
             /**
              * Event name carried in webhook payloads; the mode default unless you set one.
@@ -3877,7 +4725,7 @@ export type ListAlertsResponses = {
                  */
                 lastSentAt: string | null;
                 /**
-                 * Daily alerts: the next digest; null when disabled or instant.
+                 * Daily and weekly alerts: the next digest; null when disabled or instant.
                  */
                 nextRunAt: string | null;
             };
@@ -3895,7 +4743,7 @@ export type CreateAlertData = {
     body: {
         name: string;
         enabled?: boolean;
-        mode?: 'instant' | 'daily';
+        mode?: 'instant' | 'daily' | 'weekly';
         filter?: {
             /**
              * Only these keywords.
@@ -3933,15 +4781,27 @@ export type CreateAlertData = {
              * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
              */
             linkHosts?: Array<string>;
+            /**
+             * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
+             */
+            languages?: Array<string>;
+            /**
+             * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
+             */
+            automated?: boolean;
         };
         /**
-         * Required for daily alerts.
+         * Required for daily and weekly alerts (weekly ones also need schedule.weekday).
          */
         schedule?: {
             hour: number;
             minute?: number;
             timezone: string;
             skipEmpty?: boolean;
+            /**
+             * Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules.
+             */
+            weekday?: number;
         };
         /**
          * Custom event name for webhook payloads; null for the mode default.
@@ -3959,7 +4819,7 @@ export type CreateAlertData = {
 
 export type CreateAlertErrors = {
     /**
-     * A daily rule without a schedule, or an unknown channel
+     * A daily or weekly rule without a schedule (or a weekly one without a weekday), or an unknown channel
      */
     400: ErrorResponse;
     /**
@@ -4033,7 +4893,7 @@ export type RunAlertDigestData = {
 
 export type RunAlertDigestErrors = {
     /**
-     * Only daily rules have a digest
+     * Only daily and weekly rules have a digest
      */
     400: ErrorResponse;
     /**
@@ -4050,7 +4910,7 @@ export type RunAlertDigestError = RunAlertDigestErrors[keyof RunAlertDigestError
 
 export type RunAlertDigestResponses = {
     /**
-     * The digest for the last 24 hours was sent now (the scheduled one still runs)
+     * The digest for the rule's own period (the last day, or the last week) was sent now (the scheduled one still runs)
      */
     200: {
         /**
@@ -4248,13 +5108,13 @@ export type GetAnalyticsSeriesData = {
          */
         timezone?: string;
         /**
-         * Point granularity. Default: day up to 90 days, week beyond. Weeks start on Monday.
+         * Point granularity: hour (windows of at most 14 days), day, week (Monday start) or month. Default: day up to 90 days, week beyond.
          */
-        bucket?: 'day' | 'week';
+        bucket?: 'hour' | 'day' | 'week' | 'month';
         /**
-         * Split into one series per platform or per keyword (the top 20 by matched, the rest folded into "other"). Omit for one total series.
+         * Split into one series per platform, per keyword (the top 20 by matched, the rest folded into "other") or per sentiment (positive, neutral, negative, unclassified). Omit for one total series.
          */
-        by?: 'platform' | 'keyword';
+        by?: 'platform' | 'keyword' | 'sentiment';
     };
     url: '/v1/analytics/series';
 };
@@ -4314,9 +5174,9 @@ export type GetAnalyticsBreakdownData = {
          */
         timezone?: string;
         /**
-         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out).
+         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; "unknown" for posts without one).
          */
-        by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person';
+        by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language';
     };
     url: '/v1/analytics/breakdown';
 };

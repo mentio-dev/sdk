@@ -66,6 +66,67 @@
             "minItems": 1,
             "description": "Platforms this keyword is tracked on; null means every platform."
           },
+          "context": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 300,
+            "description": "A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+          },
+          "matching": {
+            "type": "object",
+            "properties": {
+              "requiredTerms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "maxItems": 50,
+                "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+              },
+              "requiredMode": {
+                "type": "string",
+                "enum": [
+                  "any",
+                  "all"
+                ],
+                "description": "any: at least one required term must appear. all: every one must."
+              },
+              "excludedTerms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "maxItems": 50,
+                "description": "A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot)."
+              },
+              "excludedAuthors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "maxItems": 100,
+                "description": "Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list."
+              },
+              "caseSensitive": {
+                "type": "boolean",
+                "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+              }
+            },
+            "required": [
+              "requiredTerms",
+              "requiredMode",
+              "excludedTerms",
+              "excludedAuthors",
+              "caseSensitive"
+            ],
+            "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
+          },
           "stats": {
             "type": "object",
             "properties": {
@@ -88,13 +149,34 @@
                 "type": "string",
                 "nullable": true,
                 "description": "Newest matched post; null until the first one."
+              },
+              "feedback": {
+                "type": "object",
+                "properties": {
+                  "relevant": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Mentions a person marked relevant."
+                  },
+                  "notRelevant": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Mentions a person marked not relevant: the noise the classifier let through."
+                  }
+                },
+                "required": [
+                  "relevant",
+                  "notRelevant"
+                ],
+                "description": "Your verdicts on this keyword's mentions (PATCH /v1/mentions/{id} relevant)."
               }
             },
             "required": [
               "mentions",
               "relevant",
               "last7d",
-              "lastMentionAt"
+              "lastMentionAt",
+              "feedback"
             ],
             "description": "Computed over this workspace's matches."
           },
@@ -149,6 +231,8 @@
           "muted",
           "pausedForBalance",
           "platforms",
+          "context",
+          "matching",
           "stats",
           "polling",
           "createdAt"
@@ -184,7 +268,10 @@
                   "telegram_not_configured",
                   "email_not_configured",
                   "invalid_assignee",
+                  "classification_pending",
                   "invalid_member",
+                  "already_member",
+                  "last_owner",
                   "duplicate_segment",
                   "invalid_signature",
                   "webhook_not_configured",
@@ -218,6 +305,84 @@
         "required": [
           "error"
         ]
+      },
+      "WorkspaceFilters": {
+        "type": "object",
+        "properties": {
+          "excludedTerms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80
+            },
+            "maxItems": 200,
+            "description": "A post containing any of these is dropped, whatever keyword matched it. Same phrase rule as a keyword; a `*` at an end is a wildcard. \"hiring, job, careers\" is the classic list."
+          },
+          "excludedAuthors": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            },
+            "maxItems": 200,
+            "description": "Posts by these authors are dropped everywhere: your own accounts, employees, known spammers. Profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form."
+          },
+          "excludedRepos": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 200,
+            "description": "GitHub repositories whose issues, pull requests and comments are dropped, as owner/name or a github.com link (facebook/react, https://github.com/facebook/react)."
+          },
+          "subreddits": {
+            "type": "object",
+            "properties": {
+              "only": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "maxItems": 200,
+                "description": "When non-empty, ONLY Reddit posts from these subreddits pass and `excluded` is ignored. r/name or name."
+              },
+              "excluded": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "maxItems": 200,
+                "description": "Reddit posts from these subreddits are dropped. r/name or name."
+              }
+            },
+            "required": [
+              "only",
+              "excluded"
+            ],
+            "description": "Reddit only."
+          },
+          "updatedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "Last edit; null until the first."
+          }
+        },
+        "required": [
+          "excludedTerms",
+          "excludedAuthors",
+          "excludedRepos",
+          "subreddits",
+          "updatedAt"
+        ],
+        "description": "Workspace-wide matching rules; a rejected post is never billed."
       },
       "Mention": {
         "type": "object",
@@ -423,6 +588,11 @@
                 "type": "boolean",
                 "description": "The post reads as machine-made: a bot or app account, a scheduled or templated post, an obvious AI-written summary. A label only: automated mentions stay in the feed, are delivered as usual and are billed like any other match. false while unjudged."
               },
+              "language": {
+                "type": "string",
+                "nullable": true,
+                "description": "The language the post is written in, as an ISO 639-1 code (en, es, de); null when unknown or classified before languages were recorded."
+              },
               "note": {
                 "type": "string",
                 "nullable": true,
@@ -431,6 +601,65 @@
               "failed": {
                 "type": "boolean",
                 "description": "true when the model could not score this post; it stays in the feed and is not billed."
+              },
+              "feedback": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "relevant": {
+                    "type": "boolean",
+                    "nullable": true,
+                    "description": "Your verdict on relevance, or null when you only corrected the sentiment."
+                  },
+                  "sentiment": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "positive",
+                      "neutral",
+                      "negative"
+                    ],
+                    "description": "Your corrected sentiment, or null when you only judged relevance."
+                  },
+                  "at": {
+                    "type": "string",
+                    "description": "When the last verdict was given."
+                  },
+                  "original": {
+                    "type": "object",
+                    "properties": {
+                      "relevance": {
+                        "type": "integer",
+                        "nullable": true,
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": "What the classifier scored before your verdict; null if it had not scored it."
+                      },
+                      "sentiment": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                          "positive",
+                          "neutral",
+                          "negative"
+                        ],
+                        "description": "The sentiment the classifier gave before your correction."
+                      }
+                    },
+                    "required": [
+                      "relevance",
+                      "sentiment"
+                    ],
+                    "description": "The classifier values your feedback replaced."
+                  }
+                },
+                "required": [
+                  "relevant",
+                  "sentiment",
+                  "at",
+                  "original"
+                ],
+                "description": "A person's correction of the verdict, or null. A relevance verdict sets `relevance` to 100 or 0 and `relevant` with it; a corrected sentiment replaces `sentiment`. Every list, filter, digest and report reads the corrected values."
               }
             },
             "required": [
@@ -438,10 +667,12 @@
               "sentiment",
               "intents",
               "automated",
+              "language",
               "note",
-              "failed"
+              "failed",
+              "feedback"
             ],
-            "description": "The classifier verdict; null while the post is still queued for classification."
+            "description": "The classifier verdict, as corrected by your feedback; null while the post is still queued for classification."
           },
           "triage": {
             "type": "object",
@@ -1160,6 +1391,23 @@
             ],
             "description": "Your own accounts, so your own posts are recognized."
           },
+          "website": {
+            "type": "string",
+            "nullable": true,
+            "description": "The company website, as set up during onboarding."
+          },
+          "competitors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Competitors by name, so the classifier reads a rival's mention as such; usually the same names as your competitor keywords."
+          },
+          "guidelines": {
+            "type": "string",
+            "nullable": true,
+            "description": "Free-text rules for the classifier: what counts as relevant for you and what never does (\"posts about our API, never job listings\"). The second biggest lever after the description."
+          },
           "context": {
             "type": "string",
             "description": "The text the classifier reads. Composed from the fields above unless you override it."
@@ -1170,7 +1418,333 @@
           "description",
           "useCases",
           "accounts",
+          "website",
+          "competitors",
+          "guidelines",
           "context"
+        ]
+      },
+      "Whoami": {
+        "type": "object",
+        "properties": {
+          "workspace": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Workspace id (org_...)."
+              },
+              "name": {
+                "type": "string",
+                "description": "The workspace name, as the dashboard shows it."
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "description": "The workspace this credential acts on."
+          },
+          "auth": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "api_key",
+                  "oauth",
+                  "session"
+                ],
+                "description": "How the request authenticated: an API key, an OAuth access token (MCP sign-in), or the dashboard session."
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "read",
+                  "write"
+                ],
+                "description": "What the credential may do: read (GET only) or write."
+              },
+              "apiKeyId": {
+                "type": "string",
+                "nullable": true,
+                "description": "The key id (key_...) when authenticated with an API key; null otherwise."
+              },
+              "expiresAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "When an API key stops working; null for a key that never expires, an OAuth token or a session."
+              }
+            },
+            "required": [
+              "kind",
+              "scope",
+              "apiKeyId",
+              "expiresAt"
+            ],
+            "description": "The credential."
+          },
+          "user": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "User id, what assigneeId and ownerId take."
+              },
+              "email": {
+                "type": "string",
+                "description": "The account's email address."
+              },
+              "name": {
+                "type": "string",
+                "nullable": true,
+                "description": "The name on the account; null when they never set one."
+              }
+            },
+            "required": [
+              "id",
+              "email",
+              "name"
+            ],
+            "description": "The person behind an OAuth token or a session; null for an API key, which has no person behind it."
+          }
+        },
+        "required": [
+          "workspace",
+          "auth",
+          "user"
+        ]
+      },
+      "Member": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Membership id (mem_...), what DELETE /v1/members/{id} takes."
+          },
+          "userId": {
+            "type": "string",
+            "description": "The person's user id, what assigneeId and ownerId take."
+          },
+          "email": {
+            "type": "string",
+            "description": "The account's email address."
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "The name on the account; null when they never set one."
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ],
+            "description": "owner: everything, billing included. admin: manages the team. member: works the feed."
+          },
+          "joinedAt": {
+            "type": "string",
+            "description": "When the membership was created."
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "email",
+          "name",
+          "role",
+          "joinedAt"
+        ]
+      },
+      "Invitation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Invitation id (inv_...)."
+          },
+          "email": {
+            "type": "string",
+            "description": "The invited address, lowercased."
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "admin",
+              "member"
+            ],
+            "description": "The role they join with."
+          },
+          "invitedBy": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "email",
+              "name"
+            ],
+            "description": "Who sent it; an API key invites on behalf of the oldest owner."
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "Invitations last 48 hours; an expired one is no longer listed."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the invitation was sent."
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "role",
+          "invitedBy",
+          "expiresAt",
+          "createdAt"
+        ]
+      },
+      "UsageSummary": {
+        "type": "object",
+        "properties": {
+          "balance": {
+            "type": "object",
+            "properties": {
+              "cents": {
+                "type": "integer",
+                "description": "Ledger balance: every credit minus every settled debit."
+              },
+              "pendingCents": {
+                "type": "integer",
+                "description": "Mentions matched since the last daily settlement, priced but not yet debited."
+              },
+              "effectiveCents": {
+                "type": "integer",
+                "description": "cents minus pendingCents: what the stop rule and the keyword gate look at."
+              },
+              "currency": {
+                "type": "string",
+                "enum": [
+                  "USD"
+                ]
+              }
+            },
+            "required": [
+              "cents",
+              "pendingCents",
+              "effectiveCents",
+              "currency"
+            ],
+            "description": "The prepaid wallet."
+          },
+          "burn": {
+            "type": "object",
+            "properties": {
+              "perDayCents": {
+                "type": "integer",
+                "description": "Average daily debit over the last 7 days (or since the workspace was created)."
+              },
+              "daysLeft": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0,
+                "description": "effectiveCents divided by perDayCents; null when nothing is burning."
+              }
+            },
+            "required": [
+              "perDayCents",
+              "daysLeft"
+            ],
+            "description": "How fast the balance goes."
+          },
+          "keywords": {
+            "type": "object",
+            "properties": {
+              "active": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Unmuted keywords, the ones charged daily."
+              },
+              "paused": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Keywords the wallet paused for lack of balance; a top-up resumes them."
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "How many keywords the workspace may run right now: the self-serve ceiling when the balance covers one more keyword-day, else 0."
+              },
+              "dayCents": {
+                "type": "integer",
+                "description": "What one more day of the active keywords costs."
+              }
+            },
+            "required": [
+              "active",
+              "paused",
+              "limit",
+              "dayCents"
+            ],
+            "description": "Keywords against the wallet."
+          },
+          "mentions": {
+            "type": "object",
+            "properties": {
+              "today": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Matches recorded today (UTC), relevant or not: every one bills."
+              },
+              "last30d": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Matches recorded in the last 30 days."
+              }
+            },
+            "required": [
+              "today",
+              "last30d"
+            ],
+            "description": "Matched mentions, the other thing that bills."
+          },
+          "stopped": {
+            "type": "boolean",
+            "description": "The wallet paused tracking; a top-up that covers a day of every keyword resumes it."
+          },
+          "lowBalance": {
+            "type": "boolean",
+            "description": "Running, and the effective balance is at or under 20 percent of the last credit."
+          },
+          "lastTopUpAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "Newest paid top-up; null before the first."
+          }
+        },
+        "required": [
+          "balance",
+          "burn",
+          "keywords",
+          "mentions",
+          "stopped",
+          "lowBalance",
+          "lastTopUpAt"
         ]
       },
       "Alert": {
@@ -1190,9 +1764,10 @@
             "type": "string",
             "enum": [
               "instant",
-              "daily"
+              "daily",
+              "weekly"
             ],
-            "description": "instant: each matching mention as it happens. daily: one digest at the scheduled local time."
+            "description": "instant: each matching mention as it happens. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday."
           },
           "filter": {
             "type": "object",
@@ -1284,6 +1859,19 @@
                 },
                 "maxItems": 20,
                 "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes."
+              },
+              "languages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2}$"
+                },
+                "maxItems": 20,
+                "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes."
+              },
+              "automated": {
+                "type": "boolean",
+                "description": "true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both."
               }
             }
           },
@@ -1310,13 +1898,19 @@
               "skipEmpty": {
                 "type": "boolean",
                 "default": true
+              },
+              "weekday": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 6,
+                "description": "Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules."
               }
             },
             "required": [
               "hour",
               "timezone"
             ],
-            "description": "Daily alerts only."
+            "description": "Daily and weekly alerts only."
           },
           "event": {
             "type": "string",
@@ -1367,7 +1961,7 @@
               "nextRunAt": {
                 "type": "string",
                 "nullable": true,
-                "description": "Daily alerts: the next digest; null when disabled or instant."
+                "description": "Daily and weekly alerts: the next digest; null when disabled or instant."
               }
             },
             "required": [
@@ -1742,10 +2336,12 @@
               "bucket": {
                 "type": "string",
                 "enum": [
+                  "hour",
                   "day",
-                  "week"
+                  "week",
+                  "month"
                 ],
-                "description": "Point granularity: day, or week (Monday to Sunday)."
+                "description": "Point granularity used: hour, day, week (Monday to Sunday) or month."
               }
             },
             "required": [
@@ -1764,11 +2360,11 @@
               "properties": {
                 "key": {
                   "type": "string",
-                  "description": "Platform name, keyword id, \"total\" for the unsplit series, or \"other\" for the keys beyond the top 20."
+                  "description": "Platform name, keyword id, sentiment (positive, neutral, negative, unclassified), \"total\" for the unsplit series, or \"other\" for the keys beyond the top 20."
                 },
                 "label": {
                   "type": "string",
-                  "description": "Readable name: the platform, the keyword term, \"Total\" or \"Other\"."
+                  "description": "Readable name: the platform, the keyword term, the sentiment, \"Total\" or \"Other\"."
                 },
                 "keyword": {
                   "type": "object",
@@ -1806,8 +2402,7 @@
                     "properties": {
                       "date": {
                         "type": "string",
-                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                        "description": "The day, or the Monday of the week."
+                        "description": "The bucket start in `timezone`: the day (YYYY-MM-DD), the Monday of the week, the first of the month, or the hour as YYYY-MM-DDTHH:00."
                       },
                       "matched": {
                         "type": "integer",
@@ -1870,11 +2465,11 @@
               "properties": {
                 "key": {
                   "type": "string",
-                  "description": "Platform name, keyword id, \"total\" for the unsplit series, or \"other\" for the keys beyond the top 20."
+                  "description": "Platform name, keyword id, sentiment (positive, neutral, negative, unclassified), \"total\" for the unsplit series, or \"other\" for the keys beyond the top 20."
                 },
                 "label": {
                   "type": "string",
-                  "description": "Readable name: the platform, the keyword term, \"Total\" or \"Other\"."
+                  "description": "Readable name: the platform, the keyword term, the sentiment, \"Total\" or \"Other\"."
                 },
                 "keyword": {
                   "type": "object",
@@ -1912,8 +2507,7 @@
                     "properties": {
                       "date": {
                         "type": "string",
-                        "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                        "description": "The day, or the Monday of the week."
+                        "description": "The bucket start in `timezone`: the day (YYYY-MM-DD), the Monday of the week, the first of the month, or the hour as YYYY-MM-DDTHH:00."
                       },
                       "matched": {
                         "type": "integer",
@@ -2018,7 +2612,8 @@
               "intent",
               "status",
               "hour",
-              "person"
+              "person",
+              "language"
             ],
             "description": "The dimension the rows are grouped by."
           },
@@ -2899,7 +3494,7 @@
       "post": {
         "operationId": "createKeyword",
         "summary": "Track a keyword",
-        "description": "Start tracking a word or phrase. Matching, classification and delivery begin on the next poll. A funded workspace tracks up to 500 keywords; each costs $5 per month, deducted daily from the balance.",
+        "description": "Start tracking a word or phrase. Matching, classification and delivery begin on the next poll. A funded workspace tracks up to 500 keywords; each costs $5 per month, deducted daily from the balance. `matching` narrows what the term matches (required and excluded terms, excluded authors, case) before a mention is stored, so a rejected post is never billed; `context` is a sentence the classifier reads for this keyword only.",
         "tags": [
           "Keywords"
         ],
@@ -2951,6 +3546,60 @@
                     },
                     "minItems": 1,
                     "description": "Platforms to track it on; omit or null for every platform."
+                  },
+                  "context": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 300,
+                    "description": "A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+                  },
+                  "matching": {
+                    "type": "object",
+                    "properties": {
+                      "requiredTerms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "maxItems": 50,
+                        "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                      },
+                      "requiredMode": {
+                        "type": "string",
+                        "enum": [
+                          "any",
+                          "all"
+                        ],
+                        "description": "any: at least one required term must appear. all: every one must."
+                      },
+                      "excludedTerms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "maxItems": 50,
+                        "description": "A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot)."
+                      },
+                      "excludedAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "maxItems": 100,
+                        "description": "Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list."
+                      },
+                      "caseSensitive": {
+                        "type": "boolean",
+                        "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                      }
+                    },
+                    "description": "Omitted fields are untouched; an empty list clears one."
                   }
                 },
                 "required": [
@@ -3072,6 +3721,67 @@
                             "minItems": 1,
                             "description": "Platforms this keyword is tracked on; null means every platform."
                           },
+                          "context": {
+                            "type": "string",
+                            "nullable": true,
+                            "maxLength": 300,
+                            "description": "A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+                          },
+                          "matching": {
+                            "type": "object",
+                            "properties": {
+                              "requiredTerms": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 80
+                                },
+                                "maxItems": 50,
+                                "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                              },
+                              "requiredMode": {
+                                "type": "string",
+                                "enum": [
+                                  "any",
+                                  "all"
+                                ],
+                                "description": "any: at least one required term must appear. all: every one must."
+                              },
+                              "excludedTerms": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 80
+                                },
+                                "maxItems": 50,
+                                "description": "A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot)."
+                              },
+                              "excludedAuthors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 500
+                                },
+                                "maxItems": 100,
+                                "description": "Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list."
+                              },
+                              "caseSensitive": {
+                                "type": "boolean",
+                                "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                              }
+                            },
+                            "required": [
+                              "requiredTerms",
+                              "requiredMode",
+                              "excludedTerms",
+                              "excludedAuthors",
+                              "caseSensitive"
+                            ],
+                            "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
+                          },
                           "stats": {
                             "type": "object",
                             "properties": {
@@ -3094,13 +3804,34 @@
                                 "type": "string",
                                 "nullable": true,
                                 "description": "Newest matched post; null until the first one."
+                              },
+                              "feedback": {
+                                "type": "object",
+                                "properties": {
+                                  "relevant": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Mentions a person marked relevant."
+                                  },
+                                  "notRelevant": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Mentions a person marked not relevant: the noise the classifier let through."
+                                  }
+                                },
+                                "required": [
+                                  "relevant",
+                                  "notRelevant"
+                                ],
+                                "description": "Your verdicts on this keyword's mentions (PATCH /v1/mentions/{id} relevant)."
                               }
                             },
                             "required": [
                               "mentions",
                               "relevant",
                               "last7d",
-                              "lastMentionAt"
+                              "lastMentionAt",
+                              "feedback"
                             ],
                             "description": "Computed over this workspace's matches."
                           },
@@ -3155,6 +3886,8 @@
                           "muted",
                           "pausedForBalance",
                           "platforms",
+                          "context",
+                          "matching",
                           "stats",
                           "polling",
                           "createdAt"
@@ -3244,7 +3977,7 @@
       "patch": {
         "operationId": "updateKeyword",
         "summary": "Update a keyword",
-        "description": "Mute or unmute it, or change the platforms it is tracked on.",
+        "description": "Mute or unmute it, reclassify it (`kind`), change the platforms it is tracked on, its classifier `context`, or its `matching` rules (each rule field optional; an empty list clears one). Rules apply to new mentions from the next poll; stored mentions are untouched.",
         "tags": [
           "Keywords"
         ],
@@ -3274,6 +4007,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "brand",
+                      "competitor",
+                      "topic"
+                    ],
+                    "description": "Reclassify it as brand, competitor or topic."
+                  },
                   "muted": {
                     "type": "boolean",
                     "description": "A muted keyword stops polling and matching; its mentions stay."
@@ -3298,6 +4040,60 @@
                     },
                     "minItems": 1,
                     "description": "Replaces the platform list; null means every platform."
+                  },
+                  "context": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 300,
+                    "description": "A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+                  },
+                  "matching": {
+                    "type": "object",
+                    "properties": {
+                      "requiredTerms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "maxItems": 50,
+                        "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                      },
+                      "requiredMode": {
+                        "type": "string",
+                        "enum": [
+                          "any",
+                          "all"
+                        ],
+                        "description": "any: at least one required term must appear. all: every one must."
+                      },
+                      "excludedTerms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "maxItems": 50,
+                        "description": "A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot)."
+                      },
+                      "excludedAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "maxItems": 100,
+                        "description": "Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list."
+                      },
+                      "caseSensitive": {
+                        "type": "boolean",
+                        "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                      }
+                    },
+                    "description": "Omitted fields are untouched; an empty list clears one."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -3401,11 +4197,162 @@
         }
       }
     },
+    "/v1/filters": {
+      "get": {
+        "operationId": "getFilters",
+        "summary": "Get the workspace filters",
+        "description": "The noise rules applied to every keyword before a mention is stored: excluded terms and authors, excluded GitHub repositories, and the subreddits Reddit posts may (or may not) come from. A post they reject is never classified, delivered or billed. Keyword-level rules live on each keyword (`matching`); both apply.",
+        "tags": [
+          "Filters"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The workspace filters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceFilters"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateFilters",
+        "summary": "Update the workspace filters",
+        "description": "Replace any of the lists; an omitted list is untouched and an empty one clears it. Entries are stored in canonical form (terms lowercased, authors as profile links or bare names, repositories as owner/name, subreddits without r/). Takes effect on new mentions within a minute; stored mentions are untouched.",
+        "tags": [
+          "Filters"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "excludedTerms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "maxItems": 200,
+                    "description": "Replaces the list; [] clears it."
+                  },
+                  "excludedAuthors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "maxItems": 200,
+                    "description": "Replaces the list; [] clears it."
+                  },
+                  "excludedRepos": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "maxItems": 200,
+                    "description": "Replaces the list; [] clears it."
+                  },
+                  "subreddits": {
+                    "type": "object",
+                    "properties": {
+                      "only": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "maxItems": 200,
+                        "description": "Replaces the allowlist; [] clears it."
+                      },
+                      "excluded": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "maxItems": 200,
+                        "description": "Replaces the deny list; [] clears it."
+                      }
+                    },
+                    "description": "Reddit only; an omitted list is untouched."
+                  }
+                },
+                "description": "Omitted fields are untouched; an empty list clears one."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated filters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceFilters"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "An entry is not a term, an author, a repository or a subreddit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/mentions/{id}": {
       "patch": {
         "operationId": "updateMention",
         "summary": "Update a mention",
-        "description": "The one write on a mention. Set status to ignored or done to handle it (open puts it back), assign it to a workspace member, snooze it out of the feed, or leave an internal note. Null clears a field; omitted fields are untouched. Delivery and billing never change.",
+        "description": "The one write on a mention. Set status to ignored or done to handle it (open puts it back), assign it to a workspace member, snooze it out of the feed, leave an internal note, or correct the classifier: `relevant` true or false is your verdict (relevance becomes 100 or 0, and every list, filter, digest and report follows it), `sentiment` replaces the label; null withdraws a verdict and restores the classifier's value. Omitted fields are untouched. Delivery and billing never change.",
         "tags": [
           "Mentions"
         ],
@@ -3460,6 +4407,21 @@
                     "nullable": true,
                     "maxLength": 2000,
                     "description": "Internal note; null or empty clears it."
+                  },
+                  "relevant": {
+                    "type": "boolean",
+                    "nullable": true,
+                    "description": "Your verdict on relevance, correcting the classifier: true sets relevance to 100 and puts a filtered mention back in the relevant feed, false sets it to 0 and takes it out; null withdraws the verdict and restores the classifier's score. Never billed or unbilled. A mention still being classified answers 409 classification_pending."
+                  },
+                  "sentiment": {
+                    "type": "string",
+                    "nullable": true,
+                    "enum": [
+                      "positive",
+                      "neutral",
+                      "negative"
+                    ],
+                    "description": "Your corrected sentiment; null withdraws the correction and restores the classifier's."
                   }
                 },
                 "description": "Every field is optional; omitted fields are untouched."
@@ -3500,6 +4462,16 @@
           },
           "404": {
             "description": "Mention not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A verdict on a mention the classifier has not scored yet (classification_pending)",
             "content": {
               "application/json": {
                 "schema": {
@@ -3574,7 +4546,7 @@
       "get": {
         "operationId": "searchMentions",
         "summary": "List mentions",
-        "description": "Mentions matched to your keywords, filtered and paginated. Default order is newest match first; sort=priority ranks the last 30 days of matches by attention score. Page with nextCursor, passing the same filters and sort. A mention is one post matched to one keyword.",
+        "description": "Mentions matched to your keywords, filtered and paginated. Default order is newest match first; sort=priority ranks the last 30 days of matches by attention score. Page with nextCursor, passing the same filters and sort. A mention is one post matched to one keyword. alertId applies an alert rule's filter on top of the others: the same mentions that rule would send.",
         "tags": [
           "Mentions"
         ],
@@ -3758,6 +4730,39 @@
             "required": false,
             "description": "Only authors with at least this many followers. Unknown reach never passes.",
             "name": "minFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only authors with at most this many followers. Unknown reach never passes."
+            },
+            "required": false,
+            "description": "Only authors with at most this many followers. Unknown reach never passes.",
+            "name": "maxFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both."
+            },
+            "required": false,
+            "description": "true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.",
+            "name": "isReply",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404."
+            },
+            "required": false,
+            "description": "Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.",
+            "name": "alertId",
             "in": "query"
           },
           {
@@ -3992,11 +4997,41 @@
           },
           {
             "schema": {
-              "type": "string",
-              "description": "Substring search in the post text."
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$"
+              },
+              "maxItems": 20,
+              "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes."
             },
             "required": false,
-            "description": "Substring search in the post text.",
+            "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.",
+            "name": "languages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$"
+              },
+              "maxItems": 20,
+              "description": "Never posts in these languages. A post whose language is unknown still passes."
+            },
+            "required": false,
+            "description": "Never posts in these languages. A post whose language is unknown still passes.",
+            "name": "notLanguages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Substring search in the post text or the author's name."
+            },
+            "required": false,
+            "description": "Substring search in the post text or the author's name.",
             "name": "q",
             "in": "query"
           },
@@ -4304,6 +5339,39 @@
           },
           {
             "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only authors with at most this many followers. Unknown reach never passes."
+            },
+            "required": false,
+            "description": "Only authors with at most this many followers. Unknown reach never passes.",
+            "name": "maxFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both."
+            },
+            "required": false,
+            "description": "true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.",
+            "name": "isReply",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404."
+            },
+            "required": false,
+            "description": "Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.",
+            "name": "alertId",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "array",
               "nullable": true,
               "items": {
@@ -4534,11 +5602,41 @@
           },
           {
             "schema": {
-              "type": "string",
-              "description": "Substring search in the post text."
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$"
+              },
+              "maxItems": 20,
+              "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes."
             },
             "required": false,
-            "description": "Substring search in the post text.",
+            "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.",
+            "name": "languages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$"
+              },
+              "maxItems": 20,
+              "description": "Never posts in these languages. A post whose language is unknown still passes."
+            },
+            "required": false,
+            "description": "Never posts in these languages. A post whose language is unknown still passes.",
+            "name": "notLanguages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Substring search in the post text or the author's name."
+            },
+            "required": false,
+            "description": "Substring search in the post text or the author's name.",
             "name": "q",
             "in": "query"
           },
@@ -7729,6 +8827,29 @@
                       }
                     }
                   },
+                  "website": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 300,
+                    "format": "uri",
+                    "description": "The company website; null clears it."
+                  },
+                  "competitors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120
+                    },
+                    "maxItems": 50,
+                    "description": "Replaces the whole list; [] clears it."
+                  },
+                  "guidelines": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 2000,
+                    "description": "Free-text rules for the classifier; null clears them."
+                  },
                   "context": {
                     "type": "string",
                     "maxLength": 4000,
@@ -7778,7 +8899,7 @@
       "post": {
         "operationId": "createApiKey",
         "summary": "Create an API key",
-        "description": "Mint a key for this workspace. The key itself is returned once; only its hash is stored.",
+        "description": "Mint a key for this workspace. The key itself is returned once; only its hash is stored. `expiresAt` makes it stop working at an instant (a key for a contractor or a one-off script); it stays listed until revoked.",
         "tags": [
           "API keys"
         ],
@@ -7808,6 +8929,11 @@
                     ],
                     "default": "write",
                     "description": "read: GET only. write: everything."
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "description": "When the key stops working (ISO 8601, or epoch ms), for a key handed to a script or a contractor. Must be in the future. Omit or null for a key that never expires.",
+                    "format": "date-time"
                   }
                 }
               }
@@ -7850,6 +8976,11 @@
                       "nullable": true,
                       "description": "ISO 8601 timestamp, UTC."
                     },
+                    "expiresAt": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "When the key stops working; null for a key that never expires. An expired key stays listed until revoked."
+                    },
                     "key": {
                       "type": "string",
                       "description": "The full key. Shown once; store it now."
@@ -7862,8 +8993,19 @@
                     "scope",
                     "createdAt",
                     "lastUsedAt",
+                    "expiresAt",
                     "key"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "expiresAt is not in the future",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -7931,6 +9073,11 @@
                             "type": "string",
                             "nullable": true,
                             "description": "ISO 8601 timestamp, UTC."
+                          },
+                          "expiresAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "When the key stops working; null for a key that never expires. An expired key stays listed until revoked."
                           }
                         },
                         "required": [
@@ -7939,7 +9086,8 @@
                           "prefix",
                           "scope",
                           "createdAt",
-                          "lastUsedAt"
+                          "lastUsedAt",
+                          "expiresAt"
                         ]
                       }
                     }
@@ -8007,6 +9155,409 @@
           },
           "404": {
             "description": "API key not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/whoami": {
+      "get": {
+        "operationId": "whoami",
+        "summary": "Introspect the credential",
+        "description": "The workspace this credential acts on, how the request authenticated (an API key, an OAuth access token from an MCP sign-in, or the dashboard session), whether it may write, and for a key its id and expiry. Run it first: a read key answers 403 read_only_key on every write, and a wrong workspace is the classic scripting mistake.",
+        "tags": [
+          "Auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The credential",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Whoami"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/members": {
+      "get": {
+        "operationId": "listMembers",
+        "summary": "List members",
+        "description": "Everyone in the workspace, owners first. `userId` is what a mention's assigneeId and a person's ownerId take.",
+        "tags": [
+          "Members"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The members",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Member"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/members/invitations": {
+      "get": {
+        "operationId": "listInvitations",
+        "summary": "List pending invitations",
+        "description": "Invitations sent and not yet accepted, declined or expired. An accepted one appears in GET /v1/members instead.",
+        "tags": [
+          "Members"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The open invitations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Invitation"
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createInvitation",
+        "summary": "Invite a member",
+        "description": "Send an email invitation to join the workspace as admin or member; it expires after 48 hours. Idempotent: an address that already holds an open invitation gets it back with 200 and no second email. An address that is already a member is a 409 already_member. Team changes need a signed-in owner or admin (an OAuth token from an MCP sign-in, or the dashboard session): an API key answers 403.",
+        "tags": [
+          "Members"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "format": "email",
+                    "description": "The address to invite; it receives an email with a link to join."
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "admin",
+                      "member"
+                    ],
+                    "default": "member",
+                    "description": "The role they join with. Ownership is only handed over in the dashboard."
+                  }
+                },
+                "required": [
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The open invitation this address already had",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invitation"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The invitation, emailed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invitation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The credential is an API key, or its person is not an owner or admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The address is already a member (already_member)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/members/invitations/{id}": {
+      "delete": {
+        "operationId": "revokeInvitation",
+        "summary": "Revoke an invitation",
+        "description": "The link in the email stops working at once. Needs a signed-in owner or admin; an API key answers 403.",
+        "tags": [
+          "Members"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Invitation id (inv_...).",
+              "example": "inv_abc123"
+            },
+            "required": true,
+            "description": "Invitation id (inv_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Revoked"
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The credential is an API key, or its person is not an owner or admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No open invitation with that id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/members/{id}": {
+      "delete": {
+        "operationId": "removeMember",
+        "summary": "Remove a member",
+        "description": "The person loses the workspace within a minute (their dashboard session on the next request, an OAuth token when its short cache lapses). Their mentions, notes and outreach stay. Needs a signed-in owner or admin; only an owner removes another owner, and the last owner cannot be removed (409 last_owner).",
+        "tags": [
+          "Members"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Membership id (mem_...).",
+              "example": "mem_abc123"
+            },
+            "required": true,
+            "description": "Membership id (mem_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Removed"
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The credential is an API key, its person is not an owner or admin, or an admin tried to remove an owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Member not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The last owner cannot be removed (last_owner)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/usage": {
+      "get": {
+        "operationId": "getUsage",
+        "summary": "Get usage and balance",
+        "description": "The prepaid balance (ledger, pending mention charges, and the effective balance the stop rule reads), the daily burn and the days it buys, the keywords the wallet runs and pauses, the matches recorded today and over 30 days, and whether tracking is stopped or the balance is low. Every matched mention bills ($0.008), relevant or not; every active keyword bills $5 a month, charged daily.",
+        "tags": [
+          "Usage"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The usage summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
             "content": {
               "application/json": {
                 "schema": {
@@ -8121,7 +9672,8 @@
                     "type": "string",
                     "enum": [
                       "instant",
-                      "daily"
+                      "daily",
+                      "weekly"
                     ]
                   },
                   "filter": {
@@ -8214,6 +9766,19 @@
                         },
                         "maxItems": 20,
                         "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes."
+                      },
+                      "languages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes."
+                      },
+                      "automated": {
+                        "type": "boolean",
+                        "description": "true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both."
                       }
                     },
                     "description": "Replaces the whole filter."
@@ -8241,6 +9806,12 @@
                       "skipEmpty": {
                         "type": "boolean",
                         "default": true
+                      },
+                      "weekday": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6,
+                        "description": "Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules."
                       }
                     },
                     "required": [
@@ -8281,7 +9852,7 @@
             }
           },
           "400": {
-            "description": "A daily rule without a schedule, or an unknown channel",
+            "description": "A daily or weekly rule without a schedule (or a weekly one without a weekday), or an unknown channel",
             "content": {
               "application/json": {
                 "schema": {
@@ -8403,9 +9974,10 @@
                             "type": "string",
                             "enum": [
                               "instant",
-                              "daily"
+                              "daily",
+                              "weekly"
                             ],
-                            "description": "instant: each matching mention as it happens. daily: one digest at the scheduled local time."
+                            "description": "instant: each matching mention as it happens. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday."
                           },
                           "filter": {
                             "type": "object",
@@ -8497,6 +10069,19 @@
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes."
+                              },
+                              "languages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "pattern": "^[a-z]{2}$"
+                                },
+                                "maxItems": 20,
+                                "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes."
+                              },
+                              "automated": {
+                                "type": "boolean",
+                                "description": "true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both."
                               }
                             }
                           },
@@ -8523,13 +10108,19 @@
                               "skipEmpty": {
                                 "type": "boolean",
                                 "default": true
+                              },
+                              "weekday": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 6,
+                                "description": "Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules."
                               }
                             },
                             "required": [
                               "hour",
                               "timezone"
                             ],
-                            "description": "Daily alerts only."
+                            "description": "Daily and weekly alerts only."
                           },
                           "event": {
                             "type": "string",
@@ -8580,7 +10171,7 @@
                               "nextRunAt": {
                                 "type": "string",
                                 "nullable": true,
-                                "description": "Daily alerts: the next digest; null when disabled or instant."
+                                "description": "Daily and weekly alerts: the next digest; null when disabled or instant."
                               }
                             },
                             "required": [
@@ -8632,6 +10223,7 @@
       "post": {
         "operationId": "createAlert",
         "summary": "Create an alert",
+        "description": "A rule (what to watch, the filter) times channels. mode instant sends each matching mention as it happens; daily sends one digest at schedule.hour in schedule.timezone; weekly sends one a week on schedule.weekday (0 Sunday to 6 Saturday).",
         "tags": [
           "Alerts"
         ],
@@ -8660,7 +10252,8 @@
                     "type": "string",
                     "enum": [
                       "instant",
-                      "daily"
+                      "daily",
+                      "weekly"
                     ],
                     "default": "instant"
                   },
@@ -8754,6 +10347,19 @@
                         },
                         "maxItems": 20,
                         "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes."
+                      },
+                      "languages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes."
+                      },
+                      "automated": {
+                        "type": "boolean",
+                        "description": "true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both."
                       }
                     },
                     "default": {}
@@ -8780,13 +10386,19 @@
                       "skipEmpty": {
                         "type": "boolean",
                         "default": true
+                      },
+                      "weekday": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 6,
+                        "description": "Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules."
                       }
                     },
                     "required": [
                       "hour",
                       "timezone"
                     ],
-                    "description": "Required for daily alerts."
+                    "description": "Required for daily and weekly alerts (weekly ones also need schedule.weekday)."
                   },
                   "event": {
                     "type": "string",
@@ -8825,7 +10437,7 @@
             }
           },
           "400": {
-            "description": "A daily rule without a schedule, or an unknown channel",
+            "description": "A daily or weekly rule without a schedule (or a weekly one without a weekday), or an unknown channel",
             "content": {
               "application/json": {
                 "schema": {
@@ -8963,7 +10575,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The digest for the last 24 hours was sent now (the scheduled one still runs)",
+            "description": "The digest for the rule's own period (the last day, or the last week) was sent now (the scheduled one still runs)",
             "content": {
               "application/json": {
                 "schema": {
@@ -9019,7 +10631,7 @@
             }
           },
           "400": {
-            "description": "Only daily rules have a digest",
+            "description": "Only daily and weekly rules have a digest",
             "content": {
               "application/json": {
                 "schema": {
@@ -9508,13 +11120,15 @@
             "schema": {
               "type": "string",
               "enum": [
+                "hour",
                 "day",
-                "week"
+                "week",
+                "month"
               ],
-              "description": "Point granularity. Default: day up to 90 days, week beyond. Weeks start on Monday."
+              "description": "Point granularity: hour (windows of at most 14 days), day, week (Monday start) or month. Default: day up to 90 days, week beyond."
             },
             "required": false,
-            "description": "Point granularity. Default: day up to 90 days, week beyond. Weeks start on Monday.",
+            "description": "Point granularity: hour (windows of at most 14 days), day, week (Monday start) or month. Default: day up to 90 days, week beyond.",
             "name": "bucket",
             "in": "query"
           },
@@ -9523,12 +11137,13 @@
               "type": "string",
               "enum": [
                 "platform",
-                "keyword"
+                "keyword",
+                "sentiment"
               ],
-              "description": "Split into one series per platform or per keyword (the top 20 by matched, the rest folded into \"other\"). Omit for one total series."
+              "description": "Split into one series per platform, per keyword (the top 20 by matched, the rest folded into \"other\") or per sentiment (positive, neutral, negative, unclassified). Omit for one total series."
             },
             "required": false,
-            "description": "Split into one series per platform or per keyword (the top 20 by matched, the rest folded into \"other\"). Omit for one total series.",
+            "description": "Split into one series per platform, per keyword (the top 20 by matched, the rest folded into \"other\") or per sentiment (positive, neutral, negative, unclassified). Omit for one total series.",
             "name": "by",
             "in": "query"
           }
@@ -9693,12 +11308,13 @@
                 "intent",
                 "status",
                 "hour",
-                "person"
+                "person",
+                "language"
               ],
-              "description": "The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out)."
+              "description": "The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; \"unknown\" for posts without one)."
             },
             "required": true,
-            "description": "The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out).",
+            "description": "The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; \"unknown\" for posts without one).",
             "name": "by",
             "in": "query"
           }
@@ -10687,11 +12303,32 @@
       "description": "The assignee id is not a workspace member."
     },
     {
+      "code": "classification_pending",
+      "status": 409,
+      "source": "user",
+      "retryable": true,
+      "description": "A relevance or sentiment verdict was sent for a mention the classifier has not scored yet."
+    },
+    {
       "code": "invalid_member",
       "status": 400,
       "source": "user",
       "retryable": false,
       "description": "A person's owner, and the member an outreach activity is credited to, must be workspace members."
+    },
+    {
+      "code": "already_member",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "An invitation was sent to an address that already belongs to a member."
+    },
+    {
+      "code": "last_owner",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "Removing this member would leave the workspace without an owner."
     },
     {
       "code": "duplicate_segment",
