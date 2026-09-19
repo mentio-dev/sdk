@@ -147,7 +147,7 @@ export const searchMentions = <ThrowOnError extends boolean = false>(options?: O
 /**
  * Export mentions as CSV
  *
- * The same mentions GET /v1/mentions would list for these filters, as CSV, newest matched first (the order they entered your feed, which can differ from the post date): id, published_at, platform, keyword, author, author_url, author_followers, relevance, sentiment, intents (pipe-separated), status, relevant, delivered, url, text (first 1,000 characters). Capped at 10,000 rows; the X-Mentions-Truncated header says when the cap cut the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.
+ * The same mentions GET /v1/mentions would list for these filters, as CSV, newest matched first (the order they entered your feed, which can differ from the post date): id, published_at, platform, keyword, author, author_url, author_followers, relevance, sentiment, intents (pipe-separated), language, confidence, status, relevant, delivered, url, links (pipe-separated), text (first 1,000 characters). Capped at 10,000 rows; the X-Mentions-Truncated header says when the cap cut the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.
  */
 export const exportMentionsCsv = <ThrowOnError extends boolean = false>(options?: Options<ExportMentionsCsvData, ThrowOnError>): RequestResult<ExportMentionsCsvResponses, ExportMentionsCsvErrors, ThrowOnError> => (options?.client ?? client).get<ExportMentionsCsvResponses, ExportMentionsCsvErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

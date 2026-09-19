@@ -281,7 +281,7 @@ export type Mention = {
          */
         sentiment: 'positive' | 'neutral' | 'negative';
         /**
-         * Detected intents: buy_intent, question, complaint, praise, comparison.
+         * Intent and topic tags: buy_intent, question, complaint, praise, comparison, churn_intent (leaving or replacing the keyword), bug_report, pricing, hiring, event, promotional.
          */
         intents: Array<string>;
         /**
@@ -292,6 +292,14 @@ export type Mention = {
          * The language the post is written in, as an ISO 639-1 code (en, es, de); null when unknown or classified before languages were recorded.
          */
         language: string | null;
+        /**
+         * How sure the classifier is of its relevance verdict, 0 to 1. null when the verdict came without one: the fallback model judged, or the row was scored before confidence was recorded.
+         */
+        confidence: number | null;
+        /**
+         * The verdict deserves a human look: confidence under 0.4, or the model that wrote the note disagreed with the verdict. A flag for reviewers; it never hides a mention.
+         */
+        uncertain: boolean;
         /**
          * One sentence from the classifier explaining the score.
          */
@@ -891,11 +899,15 @@ export type Alert = {
          */
         minRelevance?: number;
         /**
+         * Only mentions whose classifier confidence is at least this, 0 to 1. A mention without a confidence never passes.
+         */
+        minConfidence?: number;
+        /**
          * Only these sentiments.
          */
         sentiments?: Array<'positive' | 'neutral' | 'negative'>;
         /**
-         * At least one of these intents.
+         * At least one of these intent or topic tags.
          */
         intents?: Array<string>;
         /**
@@ -2376,7 +2388,7 @@ export type SearchMentionsData = {
          */
         sentiment?: 'positive' | 'neutral' | 'negative';
         /**
-         * Only mentions carrying this intent (buy_intent, question, complaint, praise, comparison).
+         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional).
          */
         intent?: string;
         /**
@@ -2407,6 +2419,10 @@ export type SearchMentionsData = {
          * Only mentions scored at least this; unclassified ones are excluded.
          */
         minRelevance?: number | null;
+        /**
+         * Only mentions whose classifier confidence is at least this, 0 to 1. Mentions without a confidence are excluded.
+         */
+        minConfidence?: number | null;
         /**
          * Only authors with at least this many followers. Unknown reach never passes.
          */
@@ -2456,11 +2472,11 @@ export type SearchMentionsData = {
          */
         notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
         /**
-         * Only mentions carrying any of these intents.
+         * Only mentions carrying any of these intent or topic tags.
          */
         intents?: Array<string> | null;
         /**
-         * Never mentions carrying these intents.
+         * Never mentions carrying these intent or topic tags.
          */
         notIntents?: Array<string> | null;
         /**
@@ -2560,7 +2576,7 @@ export type ExportMentionsCsvData = {
          */
         sentiment?: 'positive' | 'neutral' | 'negative';
         /**
-         * Only mentions carrying this intent (buy_intent, question, complaint, praise, comparison).
+         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional).
          */
         intent?: string;
         /**
@@ -2591,6 +2607,10 @@ export type ExportMentionsCsvData = {
          * Only mentions scored at least this; unclassified ones are excluded.
          */
         minRelevance?: number | null;
+        /**
+         * Only mentions whose classifier confidence is at least this, 0 to 1. Mentions without a confidence are excluded.
+         */
+        minConfidence?: number | null;
         /**
          * Only authors with at least this many followers. Unknown reach never passes.
          */
@@ -2640,11 +2660,11 @@ export type ExportMentionsCsvData = {
          */
         notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
         /**
-         * Only mentions carrying any of these intents.
+         * Only mentions carrying any of these intent or topic tags.
          */
         intents?: Array<string> | null;
         /**
-         * Never mentions carrying these intents.
+         * Never mentions carrying these intent or topic tags.
          */
         notIntents?: Array<string> | null;
         /**
@@ -4525,11 +4545,15 @@ export type UpdateAlertData = {
              */
             minRelevance?: number;
             /**
+             * Only mentions whose classifier confidence is at least this, 0 to 1. A mention without a confidence never passes.
+             */
+            minConfidence?: number;
+            /**
              * Only these sentiments.
              */
             sentiments?: Array<'positive' | 'neutral' | 'negative'>;
             /**
-             * At least one of these intents.
+             * At least one of these intent or topic tags.
              */
             intents?: Array<string>;
             /**
@@ -4655,11 +4679,15 @@ export type ListAlertsResponses = {
                  */
                 minRelevance?: number;
                 /**
+                 * Only mentions whose classifier confidence is at least this, 0 to 1. A mention without a confidence never passes.
+                 */
+                minConfidence?: number;
+                /**
                  * Only these sentiments.
                  */
                 sentiments?: Array<'positive' | 'neutral' | 'negative'>;
                 /**
-                 * At least one of these intents.
+                 * At least one of these intent or topic tags.
                  */
                 intents?: Array<string>;
                 /**
@@ -4758,11 +4786,15 @@ export type CreateAlertData = {
              */
             minRelevance?: number;
             /**
+             * Only mentions whose classifier confidence is at least this, 0 to 1. A mention without a confidence never passes.
+             */
+            minConfidence?: number;
+            /**
              * Only these sentiments.
              */
             sentiments?: Array<'positive' | 'neutral' | 'negative'>;
             /**
-             * At least one of these intents.
+             * At least one of these intent or topic tags.
              */
             intents?: Array<string>;
             /**
