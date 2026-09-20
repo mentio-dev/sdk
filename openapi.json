@@ -12278,7 +12278,8 @@
       "status": 429,
       "source": "user",
       "retryable": true,
-      "description": "The per-workspace limit for this endpoint was hit; Retry-After says when."
+      "description": "The workspace made more than 600 requests in a minute (every key and token together), or hit an endpoint's own cap; Retry-After says when.",
+      "fix": "Wait Retry-After seconds and send the same request again. X-RateLimit-Remaining on every response says how much room is left."
     },
     {
       "code": "duplicate_keyword",
