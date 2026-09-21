@@ -3674,7 +3674,7 @@
       "get": {
         "operationId": "listKeywords",
         "summary": "List keywords",
-        "description": "Every keyword of the workspace, newest first, with its match stats and poll health.",
+        "description": "The keywords of the workspace with their match stats and poll health. Without parameters: every keyword, newest first. `q` searches the term and the context; `kind`, `status` and `platform` narrow the list; `sort` orders it; `limit` and `offset` page it. `total` counts the keywords that matched before paging.",
         "tags": [
           "Keywords"
         ],
@@ -3683,9 +3683,134 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Text to find in the term or in the keyword's context, case-insensitive."
+            },
+            "required": false,
+            "description": "Text to find in the term or in the keyword's context, case-insensitive.",
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Only these kinds: brand, competitor, topic. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only these kinds: brand, competitor, topic. Repeatable, or comma-separated.",
+            "name": "kind",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "muted",
+                  "paused"
+                ],
+                "description": "active: tracking. muted: switched off by a person. paused: switched off by the wallet for lack of balance."
+              },
+              "maxItems": 3,
+              "description": "Only keywords in these states: active, muted, paused. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only keywords in these states: active, muted, paused. Repeatable, or comma-separated.",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+              },
+              "maxItems": 20,
+              "description": "Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated.",
+            "name": "platform",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "newest",
+                "oldest",
+                "term",
+                "mentions",
+                "relevant",
+                "recent",
+                "lastMention"
+              ],
+              "default": "newest",
+              "description": "newest: created most recently first. oldest: the reverse. term: A to Z. mentions: most matches first. relevant: most relevant matches first. recent: most matches in the last 7 days first. lastMention: newest matched post first, keywords with none last."
+            },
+            "required": false,
+            "description": "newest: created most recently first. oldest: the reverse. term: A to Z. mentions: most matches first. relevant: most relevant matches first. recent: most matches in the last 7 days first. lastMention: newest matched post first, keywords with none last.",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "description": "Page size, 1 to 500. Omit for every keyword after `offset`."
+            },
+            "required": false,
+            "description": "Page size, 1 to 500. Omit for every keyword after `offset`.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Skip this many keywords."
+            },
+            "required": false,
+            "description": "Skip this many keywords.",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
         "responses": {
           "200": {
-            "description": "All keywords",
+            "description": "The matching keywords and how many there are",
             "content": {
               "application/json": {
                 "schema": {
@@ -3912,11 +4037,27 @@
                           "createdAt"
                         ]
                       }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Keywords matching the filters, before `limit` and `offset`."
                     }
                   },
                   "required": [
-                    "data"
+                    "data",
+                    "total"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }

@@ -1823,11 +1823,44 @@ export type GetHealthResponse = GetHealthResponses[keyof GetHealthResponses];
 export type ListKeywordsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Text to find in the term or in the keyword's context, case-insensitive.
+         */
+        q?: string;
+        /**
+         * Only these kinds: brand, competitor, topic. Repeatable, or comma-separated.
+         */
+        kind?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Only keywords in these states: active, muted, paused. Repeatable, or comma-separated.
+         */
+        status?: Array<'active' | 'muted' | 'paused'>;
+        /**
+         * Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated.
+         */
+        platform?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * newest: created most recently first. oldest: the reverse. term: A to Z. mentions: most matches first. relevant: most relevant matches first. recent: most matches in the last 7 days first. lastMention: newest matched post first, keywords with none last.
+         */
+        sort?: 'newest' | 'oldest' | 'term' | 'mentions' | 'relevant' | 'recent' | 'lastMention';
+        /**
+         * Page size, 1 to 500. Omit for every keyword after `offset`.
+         */
+        limit?: number;
+        /**
+         * Skip this many keywords.
+         */
+        offset?: number | null;
+    };
     url: '/v1/keywords';
 };
 
 export type ListKeywordsErrors = {
+    /**
+     * Invalid query parameters
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -1838,7 +1871,7 @@ export type ListKeywordsError = ListKeywordsErrors[keyof ListKeywordsErrors];
 
 export type ListKeywordsResponses = {
     /**
-     * All keywords
+     * The matching keywords and how many there are
      */
     200: {
         data: Array<{
@@ -1945,6 +1978,10 @@ export type ListKeywordsResponses = {
              */
             createdAt: string;
         }>;
+        /**
+         * Keywords matching the filters, before `limit` and `offset`.
+         */
+        total: number;
     };
 };
 

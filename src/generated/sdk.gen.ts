@@ -23,7 +23,7 @@ export const getHealth = <ThrowOnError extends boolean = false>(options?: Option
 /**
  * List keywords
  *
- * Every keyword of the workspace, newest first, with its match stats and poll health.
+ * The keywords of the workspace with their match stats and poll health. Without parameters: every keyword, newest first. `q` searches the term and the context; `kind`, `status` and `platform` narrow the list; `sort` orders it; `limit` and `offset` page it. `total` counts the keywords that matched before paging.
  */
 export const listKeywords = <ThrowOnError extends boolean = false>(options?: Options<ListKeywordsData, ThrowOnError>): RequestResult<ListKeywordsResponses, ListKeywordsErrors, ThrowOnError> => (options?.client ?? client).get<ListKeywordsResponses, ListKeywordsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
