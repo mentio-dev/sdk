@@ -218,6 +218,17 @@ export type Mention = {
          */
         publishedAt: string;
         /**
+         * Engagement counts as the platform reported them when the post was ingested, usually minutes after it was written; a count the platform does not have is null. Null as a whole for platforms that report none and for posts ingested before September 2026. X carries all six.
+         */
+        engagement: {
+            likes: number | null;
+            reposts: number | null;
+            replies: number | null;
+            quotes: number | null;
+            views: number | null;
+            bookmarks: number | null;
+        } | null;
+        /**
          * The post this one replies to (X, Bluesky); null for top-level posts.
          */
         replyTo: {

@@ -467,6 +467,51 @@
                 "type": "string",
                 "description": "When the post was published."
               },
+              "engagement": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "likes": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "reposts": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "replies": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "quotes": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "views": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  },
+                  "bookmarks": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "likes",
+                  "reposts",
+                  "replies",
+                  "quotes",
+                  "views",
+                  "bookmarks"
+                ],
+                "description": "Engagement counts as the platform reported them when the post was ingested, usually minutes after it was written; a count the platform does not have is null. Null as a whole for platforms that report none and for posts ingested before September 2026. X carries all six."
+              },
               "replyTo": {
                 "type": "object",
                 "nullable": true,
@@ -501,6 +546,7 @@
               "text",
               "links",
               "publishedAt",
+              "engagement",
               "replyTo"
             ]
           },
