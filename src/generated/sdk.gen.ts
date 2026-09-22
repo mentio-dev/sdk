@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetHealthData, GetHealthResponses, GetKeywordData, GetKeywordErrors, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageData, GetUsageErrors, GetUsageResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
+import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateViewData, CreateViewErrors, CreateViewResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetHealthData, GetHealthResponses, GetKeywordData, GetKeywordErrors, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListViewsData, ListViewsErrors, ListViewsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -316,6 +316,67 @@ export const getSegment = <ThrowOnError extends boolean = false>(options: Option
 export const updateSegment = <ThrowOnError extends boolean = false>(options: Options<UpdateSegmentData, ThrowOnError>): RequestResult<UpdateSegmentResponses, UpdateSegmentErrors, ThrowOnError> => (options.client ?? client).patch<UpdateSegmentResponses, UpdateSegmentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/segments/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List views
+ *
+ * The saved views of the workspace, oldest first. A view is a named filter over mentions: pass its id as `viewId` to GET /v1/mentions or the export to read exactly what it selects.
+ */
+export const listViews = <ThrowOnError extends boolean = false>(options?: Options<ListViewsData, ThrowOnError>): RequestResult<ListViewsResponses, ListViewsErrors, ThrowOnError> => (options?.client ?? client).get<ListViewsResponses, ListViewsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/views',
+    ...options
+});
+
+/**
+ * Save a view
+ *
+ * Save a named filter over mentions. The filter takes the same fields as GET /v1/mentions (lists are any-of, `not` lists none-of, every condition ANDed); an empty filter is every mention. Nothing is materialized: the view selects whatever matches when it is read.
+ */
+export const createView = <ThrowOnError extends boolean = false>(options: Options<CreateViewData, ThrowOnError>): RequestResult<CreateViewResponses, CreateViewErrors, ThrowOnError> => (options.client ?? client).post<CreateViewResponses, CreateViewErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/views',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete a view
+ *
+ * Removes the view. No mention is affected.
+ */
+export const deleteView = <ThrowOnError extends boolean = false>(options: Options<DeleteViewData, ThrowOnError>): RequestResult<DeleteViewResponses, DeleteViewErrors, ThrowOnError> => (options.client ?? client).delete<DeleteViewResponses, DeleteViewErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/views/{id}',
+    ...options
+});
+
+/**
+ * Get a view
+ */
+export const getView = <ThrowOnError extends boolean = false>(options: Options<GetViewData, ThrowOnError>): RequestResult<GetViewResponses, GetViewErrors, ThrowOnError> => (options.client ?? client).get<GetViewResponses, GetViewErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/views/{id}',
+    ...options
+});
+
+/**
+ * Update a view
+ *
+ * Rename, describe or refilter a view. `filter` replaces the whole filter.
+ */
+export const updateView = <ThrowOnError extends boolean = false>(options: Options<UpdateViewData, ThrowOnError>): RequestResult<UpdateViewResponses, UpdateViewErrors, ThrowOnError> => (options.client ?? client).patch<UpdateViewResponses, UpdateViewErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/views/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

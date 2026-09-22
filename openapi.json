@@ -273,6 +273,7 @@
                   "already_member",
                   "last_owner",
                   "duplicate_segment",
+                  "duplicate_view",
                   "invalid_signature",
                   "webhook_not_configured",
                   "invalid_token",
@@ -1362,6 +1363,280 @@
           "description",
           "filter",
           "count",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "View": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "View id (vw_...)."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "filter": {
+            "type": "object",
+            "properties": {
+              "q": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "Substring in the post text or the author's name."
+              },
+              "keywordIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "description": "Only matches of any of these keywords."
+              },
+              "notKeywordIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "description": "Never matches of these keywords."
+              },
+              "keywordKinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "brand",
+                    "competitor",
+                    "topic"
+                  ]
+                },
+                "maxItems": 3,
+                "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+              },
+              "platforms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                },
+                "maxItems": 20,
+                "description": "Only posts from any of these platforms."
+              },
+              "notPlatforms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                },
+                "maxItems": 20,
+                "description": "Never posts from these platforms."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "ignored",
+                  "done"
+                ],
+                "description": "Only mentions in this status: open, ignored, done."
+              },
+              "relevant": {
+                "type": "boolean",
+                "description": "true: only mentions the classifier scored relevant; false: only the rest."
+              },
+              "minRelevance": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Only mentions scored at least this."
+              },
+              "minConfidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Only mentions whose classifier confidence is at least this."
+              },
+              "sentiments": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "positive",
+                    "neutral",
+                    "negative"
+                  ],
+                  "description": "Classifier sentiment."
+                },
+                "maxItems": 3,
+                "description": "Only these sentiments."
+              },
+              "notSentiments": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "positive",
+                    "neutral",
+                    "negative"
+                  ],
+                  "description": "Classifier sentiment."
+                },
+                "maxItems": 3,
+                "description": "Never these sentiments; an unscored mention still passes."
+              },
+              "intents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Only mentions carrying any of these intent or topic tags."
+              },
+              "notIntents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Never mentions carrying these tags."
+              },
+              "automated": {
+                "type": "boolean",
+                "description": "true: only posts that read as machine-made; false: only the rest."
+              },
+              "languages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2}$"
+                },
+                "maxItems": 20,
+                "description": "Only posts in any of these languages (ISO 639-1)."
+              },
+              "notLanguages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2}$"
+                },
+                "maxItems": 20,
+                "description": "Never posts in these languages; an unknown language still passes."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Only authors your workspace tagged with any of these."
+              },
+              "notTags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Never authors tagged with any of these."
+              },
+              "linkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+              },
+              "notLinkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "Never posts linking to these hosts."
+              },
+              "minFollowers": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only authors with at least this many followers; unknown reach never passes."
+              },
+              "maxFollowers": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only authors with at most this many followers; unknown reach never passes."
+              },
+              "isReply": {
+                "type": "boolean",
+                "description": "true: only replies and comments; false: only top-level posts."
+              },
+              "excludeAuthors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 200,
+                "description": "Never these authors: display names, handles or profile URLs."
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO 8601 timestamp, UTC."
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO 8601 timestamp, UTC."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "filter",
           "createdAt",
           "updatedAt"
         ]
@@ -4940,6 +5215,36 @@
           },
           {
             "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404."
+            },
+            "required": false,
+            "description": "Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404.",
+            "name": "viewId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.",
+            "name": "keywordKinds",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "array",
               "nullable": true,
               "items": {
@@ -5554,6 +5859,36 @@
             "required": false,
             "description": "Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.",
             "name": "alertId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404."
+            },
+            "required": false,
+            "description": "Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404.",
+            "name": "viewId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.",
+            "name": "keywordKinds",
             "in": "query"
           },
           {
@@ -8903,6 +9238,1089 @@
           },
           "404": {
             "description": "No such segment for your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/views": {
+      "get": {
+        "operationId": "listViews",
+        "summary": "List views",
+        "description": "The saved views of the workspace, oldest first. A view is a named filter over mentions: pass its id as `viewId` to GET /v1/mentions or the export to read exactly what it selects.",
+        "tags": [
+          "Views"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Saved views",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "View id (vw_...)."
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "filter": {
+                            "type": "object",
+                            "properties": {
+                              "q": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "Substring in the post text or the author's name."
+                              },
+                              "keywordIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "maxItems": 50,
+                                "description": "Only matches of any of these keywords."
+                              },
+                              "notKeywordIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "maxItems": 50,
+                                "description": "Never matches of these keywords."
+                              },
+                              "keywordKinds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "brand",
+                                    "competitor",
+                                    "topic"
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                              },
+                              "platforms": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "bluesky",
+                                    "hackernews",
+                                    "github",
+                                    "stackoverflow",
+                                    "devto",
+                                    "reddit",
+                                    "x",
+                                    "youtube",
+                                    "news",
+                                    "linkedin"
+                                  ],
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                },
+                                "maxItems": 20,
+                                "description": "Only posts from any of these platforms."
+                              },
+                              "notPlatforms": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "bluesky",
+                                    "hackernews",
+                                    "github",
+                                    "stackoverflow",
+                                    "devto",
+                                    "reddit",
+                                    "x",
+                                    "youtube",
+                                    "news",
+                                    "linkedin"
+                                  ],
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                },
+                                "maxItems": 20,
+                                "description": "Never posts from these platforms."
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "open",
+                                  "ignored",
+                                  "done"
+                                ],
+                                "description": "Only mentions in this status: open, ignored, done."
+                              },
+                              "relevant": {
+                                "type": "boolean",
+                                "description": "true: only mentions the classifier scored relevant; false: only the rest."
+                              },
+                              "minRelevance": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 100,
+                                "description": "Only mentions scored at least this."
+                              },
+                              "minConfidence": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1,
+                                "description": "Only mentions whose classifier confidence is at least this."
+                              },
+                              "sentiments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "positive",
+                                    "neutral",
+                                    "negative"
+                                  ],
+                                  "description": "Classifier sentiment."
+                                },
+                                "maxItems": 3,
+                                "description": "Only these sentiments."
+                              },
+                              "notSentiments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "positive",
+                                    "neutral",
+                                    "negative"
+                                  ],
+                                  "description": "Classifier sentiment."
+                                },
+                                "maxItems": 3,
+                                "description": "Never these sentiments; an unscored mention still passes."
+                              },
+                              "intents": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Only mentions carrying any of these intent or topic tags."
+                              },
+                              "notIntents": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Never mentions carrying these tags."
+                              },
+                              "automated": {
+                                "type": "boolean",
+                                "description": "true: only posts that read as machine-made; false: only the rest."
+                              },
+                              "languages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "pattern": "^[a-z]{2}$"
+                                },
+                                "maxItems": 20,
+                                "description": "Only posts in any of these languages (ISO 639-1)."
+                              },
+                              "notLanguages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "pattern": "^[a-z]{2}$"
+                                },
+                                "maxItems": 20,
+                                "description": "Never posts in these languages; an unknown language still passes."
+                              },
+                              "tags": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Only authors your workspace tagged with any of these."
+                              },
+                              "notTags": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Never authors tagged with any of these."
+                              },
+                              "linkHosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 20,
+                                "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+                              },
+                              "notLinkHosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 20,
+                                "description": "Never posts linking to these hosts."
+                              },
+                              "minFollowers": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only authors with at least this many followers; unknown reach never passes."
+                              },
+                              "maxFollowers": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only authors with at most this many followers; unknown reach never passes."
+                              },
+                              "isReply": {
+                                "type": "boolean",
+                                "description": "true: only replies and comments; false: only top-level posts."
+                              },
+                              "excludeAuthors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 200,
+                                "description": "Never these authors: display names, handles or profile URLs."
+                              }
+                            }
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "ISO 8601 timestamp, UTC."
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "description": "ISO 8601 timestamp, UTC."
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "filter",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Saved views, oldest first."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createView",
+        "summary": "Save a view",
+        "description": "Save a named filter over mentions. The filter takes the same fields as GET /v1/mentions (lists are any-of, `not` lists none-of, every condition ANDed); an empty filter is every mention. Nothing is materialized: the view selects whatever matches when it is read.",
+        "tags": [
+          "Views"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "description": "Unique per workspace, case-insensitive."
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500,
+                    "default": "",
+                    "description": "What the view is for, shown under its name."
+                  },
+                  "filter": {
+                    "type": "object",
+                    "properties": {
+                      "q": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "description": "Substring in the post text or the author's name."
+                      },
+                      "keywordIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Only matches of any of these keywords."
+                      },
+                      "notKeywordIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Never matches of these keywords."
+                      },
+                      "keywordKinds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ]
+                        },
+                        "maxItems": 3,
+                        "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                      },
+                      "platforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts from any of these platforms."
+                      },
+                      "notPlatforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts from these platforms."
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "open",
+                          "ignored",
+                          "done"
+                        ],
+                        "description": "Only mentions in this status: open, ignored, done."
+                      },
+                      "relevant": {
+                        "type": "boolean",
+                        "description": "true: only mentions the classifier scored relevant; false: only the rest."
+                      },
+                      "minRelevance": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": "Only mentions scored at least this."
+                      },
+                      "minConfidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Only mentions whose classifier confidence is at least this."
+                      },
+                      "sentiments": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "positive",
+                            "neutral",
+                            "negative"
+                          ],
+                          "description": "Classifier sentiment."
+                        },
+                        "maxItems": 3,
+                        "description": "Only these sentiments."
+                      },
+                      "notSentiments": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "positive",
+                            "neutral",
+                            "negative"
+                          ],
+                          "description": "Classifier sentiment."
+                        },
+                        "maxItems": 3,
+                        "description": "Never these sentiments; an unscored mention still passes."
+                      },
+                      "intents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these intent or topic tags."
+                      },
+                      "notIntents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying these tags."
+                      },
+                      "automated": {
+                        "type": "boolean",
+                        "description": "true: only posts that read as machine-made; false: only the rest."
+                      },
+                      "languages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts in any of these languages (ISO 639-1)."
+                      },
+                      "notLanguages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts in these languages; an unknown language still passes."
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only authors your workspace tagged with any of these."
+                      },
+                      "notTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never authors tagged with any of these."
+                      },
+                      "linkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+                      },
+                      "notLinkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts linking to these hosts."
+                      },
+                      "minFollowers": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only authors with at least this many followers; unknown reach never passes."
+                      },
+                      "maxFollowers": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only authors with at most this many followers; unknown reach never passes."
+                      },
+                      "isReply": {
+                        "type": "boolean",
+                        "description": "true: only replies and comments; false: only top-level posts."
+                      },
+                      "excludeAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 200,
+                        "description": "Never these authors: display names, handles or profile URLs."
+                      }
+                    },
+                    "default": {},
+                    "description": "The filter; empty selects every mention."
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The saved view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A view with that name already exists (duplicate_view)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/views/{id}": {
+      "get": {
+        "operationId": "getView",
+        "summary": "Get a view",
+        "tags": [
+          "Views"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "View id (vw_...).",
+              "example": "vw_abc123"
+            },
+            "required": true,
+            "description": "View id (vw_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such view in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateView",
+        "summary": "Update a view",
+        "description": "Rename, describe or refilter a view. `filter` replaces the whole filter.",
+        "tags": [
+          "Views"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "View id (vw_...).",
+              "example": "vw_abc123"
+            },
+            "required": true,
+            "description": "View id (vw_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "description": {
+                    "type": "string",
+                    "maxLength": 500
+                  },
+                  "filter": {
+                    "type": "object",
+                    "properties": {
+                      "q": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "description": "Substring in the post text or the author's name."
+                      },
+                      "keywordIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Only matches of any of these keywords."
+                      },
+                      "notKeywordIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Never matches of these keywords."
+                      },
+                      "keywordKinds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ]
+                        },
+                        "maxItems": 3,
+                        "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                      },
+                      "platforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts from any of these platforms."
+                      },
+                      "notPlatforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts from these platforms."
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "open",
+                          "ignored",
+                          "done"
+                        ],
+                        "description": "Only mentions in this status: open, ignored, done."
+                      },
+                      "relevant": {
+                        "type": "boolean",
+                        "description": "true: only mentions the classifier scored relevant; false: only the rest."
+                      },
+                      "minRelevance": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": "Only mentions scored at least this."
+                      },
+                      "minConfidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Only mentions whose classifier confidence is at least this."
+                      },
+                      "sentiments": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "positive",
+                            "neutral",
+                            "negative"
+                          ],
+                          "description": "Classifier sentiment."
+                        },
+                        "maxItems": 3,
+                        "description": "Only these sentiments."
+                      },
+                      "notSentiments": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "positive",
+                            "neutral",
+                            "negative"
+                          ],
+                          "description": "Classifier sentiment."
+                        },
+                        "maxItems": 3,
+                        "description": "Never these sentiments; an unscored mention still passes."
+                      },
+                      "intents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these intent or topic tags."
+                      },
+                      "notIntents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying these tags."
+                      },
+                      "automated": {
+                        "type": "boolean",
+                        "description": "true: only posts that read as machine-made; false: only the rest."
+                      },
+                      "languages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts in any of these languages (ISO 639-1)."
+                      },
+                      "notLanguages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts in these languages; an unknown language still passes."
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only authors your workspace tagged with any of these."
+                      },
+                      "notTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never authors tagged with any of these."
+                      },
+                      "linkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+                      },
+                      "notLinkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts linking to these hosts."
+                      },
+                      "minFollowers": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only authors with at least this many followers; unknown reach never passes."
+                      },
+                      "maxFollowers": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only authors with at most this many followers; unknown reach never passes."
+                      },
+                      "isReply": {
+                        "type": "boolean",
+                        "description": "true: only replies and comments; false: only top-level posts."
+                      },
+                      "excludeAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 200,
+                        "description": "Never these authors: display names, handles or profile URLs."
+                      }
+                    },
+                    "description": "Replaces the whole filter."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated view",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such view in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A view with that name already exists (duplicate_view)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteView",
+        "summary": "Delete a view",
+        "description": "Removes the view. No mention is affected.",
+        "tags": [
+          "Views"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "View id (vw_...).",
+              "example": "vw_abc123"
+            },
+            "required": true,
+            "description": "View id (vw_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such view in this workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -12541,6 +13959,13 @@
       "source": "user",
       "retryable": false,
       "description": "Segment names are unique per workspace."
+    },
+    {
+      "code": "duplicate_view",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "View names are unique per workspace."
     },
     {
       "code": "invalid_signature",

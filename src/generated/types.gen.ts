@@ -117,7 +117,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'duplicate_view' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -628,6 +628,125 @@ export type Segment = {
      * People in the segment right now; it is evaluated on every read.
      */
     count: number;
+    /**
+     * ISO 8601 timestamp, UTC.
+     */
+    createdAt: string;
+    /**
+     * ISO 8601 timestamp, UTC.
+     */
+    updatedAt: string;
+};
+
+export type View = {
+    /**
+     * View id (vw_...).
+     */
+    id: string;
+    name: string;
+    description: string;
+    filter: {
+        /**
+         * Substring in the post text or the author's name.
+         */
+        q?: string;
+        /**
+         * Only matches of any of these keywords.
+         */
+        keywordIds?: Array<string>;
+        /**
+         * Never matches of these keywords.
+         */
+        notKeywordIds?: Array<string>;
+        /**
+         * Only matches of keywords of any of these kinds: brand, competitor, topic.
+         */
+        keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Only posts from any of these platforms.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Never posts from these platforms.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+        /**
+         * Only mentions in this status: open, ignored, done.
+         */
+        status?: 'open' | 'ignored' | 'done';
+        /**
+         * true: only mentions the classifier scored relevant; false: only the rest.
+         */
+        relevant?: boolean;
+        /**
+         * Only mentions scored at least this.
+         */
+        minRelevance?: number;
+        /**
+         * Only mentions whose classifier confidence is at least this.
+         */
+        minConfidence?: number;
+        /**
+         * Only these sentiments.
+         */
+        sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Never these sentiments; an unscored mention still passes.
+         */
+        notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions carrying any of these intent or topic tags.
+         */
+        intents?: Array<string>;
+        /**
+         * Never mentions carrying these tags.
+         */
+        notIntents?: Array<string>;
+        /**
+         * true: only posts that read as machine-made; false: only the rest.
+         */
+        automated?: boolean;
+        /**
+         * Only posts in any of these languages (ISO 639-1).
+         */
+        languages?: Array<string>;
+        /**
+         * Never posts in these languages; an unknown language still passes.
+         */
+        notLanguages?: Array<string>;
+        /**
+         * Only authors your workspace tagged with any of these.
+         */
+        tags?: Array<string>;
+        /**
+         * Never authors tagged with any of these.
+         */
+        notTags?: Array<string>;
+        /**
+         * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+         */
+        linkHosts?: Array<string>;
+        /**
+         * Never posts linking to these hosts.
+         */
+        notLinkHosts?: Array<string>;
+        /**
+         * Only authors with at least this many followers; unknown reach never passes.
+         */
+        minFollowers?: number;
+        /**
+         * Only authors with at most this many followers; unknown reach never passes.
+         */
+        maxFollowers?: number;
+        /**
+         * true: only replies and comments; false: only top-level posts.
+         */
+        isReply?: boolean;
+        /**
+         * Never these authors: display names, handles or profile URLs.
+         */
+        excludeAuthors?: Array<string>;
+    };
     /**
      * ISO 8601 timestamp, UTC.
      */
@@ -2477,6 +2596,14 @@ export type SearchMentionsData = {
          */
         alertId?: string;
         /**
+         * Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404.
+         */
+        viewId?: string;
+        /**
+         * Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.
+         */
+        keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
          * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
          */
         tags?: Array<string> | null;
@@ -2664,6 +2791,14 @@ export type ExportMentionsCsvData = {
          * Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.
          */
         alertId?: string;
+        /**
+         * Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404.
+         */
+        viewId?: string;
+        /**
+         * Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.
+         */
+        keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
          * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
          */
@@ -4011,6 +4146,510 @@ export type UpdateSegmentResponses = {
 };
 
 export type UpdateSegmentResponse = UpdateSegmentResponses[keyof UpdateSegmentResponses];
+
+export type ListViewsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/views';
+};
+
+export type ListViewsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListViewsError = ListViewsErrors[keyof ListViewsErrors];
+
+export type ListViewsResponses = {
+    /**
+     * Saved views
+     */
+    200: {
+        /**
+         * Saved views, oldest first.
+         */
+        data: Array<{
+            /**
+             * View id (vw_...).
+             */
+            id: string;
+            name: string;
+            description: string;
+            filter: {
+                /**
+                 * Substring in the post text or the author's name.
+                 */
+                q?: string;
+                /**
+                 * Only matches of any of these keywords.
+                 */
+                keywordIds?: Array<string>;
+                /**
+                 * Never matches of these keywords.
+                 */
+                notKeywordIds?: Array<string>;
+                /**
+                 * Only matches of keywords of any of these kinds: brand, competitor, topic.
+                 */
+                keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+                /**
+                 * Only posts from any of these platforms.
+                 */
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+                /**
+                 * Never posts from these platforms.
+                 */
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+                /**
+                 * Only mentions in this status: open, ignored, done.
+                 */
+                status?: 'open' | 'ignored' | 'done';
+                /**
+                 * true: only mentions the classifier scored relevant; false: only the rest.
+                 */
+                relevant?: boolean;
+                /**
+                 * Only mentions scored at least this.
+                 */
+                minRelevance?: number;
+                /**
+                 * Only mentions whose classifier confidence is at least this.
+                 */
+                minConfidence?: number;
+                /**
+                 * Only these sentiments.
+                 */
+                sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+                /**
+                 * Never these sentiments; an unscored mention still passes.
+                 */
+                notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+                /**
+                 * Only mentions carrying any of these intent or topic tags.
+                 */
+                intents?: Array<string>;
+                /**
+                 * Never mentions carrying these tags.
+                 */
+                notIntents?: Array<string>;
+                /**
+                 * true: only posts that read as machine-made; false: only the rest.
+                 */
+                automated?: boolean;
+                /**
+                 * Only posts in any of these languages (ISO 639-1).
+                 */
+                languages?: Array<string>;
+                /**
+                 * Never posts in these languages; an unknown language still passes.
+                 */
+                notLanguages?: Array<string>;
+                /**
+                 * Only authors your workspace tagged with any of these.
+                 */
+                tags?: Array<string>;
+                /**
+                 * Never authors tagged with any of these.
+                 */
+                notTags?: Array<string>;
+                /**
+                 * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+                 */
+                linkHosts?: Array<string>;
+                /**
+                 * Never posts linking to these hosts.
+                 */
+                notLinkHosts?: Array<string>;
+                /**
+                 * Only authors with at least this many followers; unknown reach never passes.
+                 */
+                minFollowers?: number;
+                /**
+                 * Only authors with at most this many followers; unknown reach never passes.
+                 */
+                maxFollowers?: number;
+                /**
+                 * true: only replies and comments; false: only top-level posts.
+                 */
+                isReply?: boolean;
+                /**
+                 * Never these authors: display names, handles or profile URLs.
+                 */
+                excludeAuthors?: Array<string>;
+            };
+            /**
+             * ISO 8601 timestamp, UTC.
+             */
+            createdAt: string;
+            /**
+             * ISO 8601 timestamp, UTC.
+             */
+            updatedAt: string;
+        }>;
+    };
+};
+
+export type ListViewsResponse = ListViewsResponses[keyof ListViewsResponses];
+
+export type CreateViewData = {
+    body: {
+        /**
+         * Unique per workspace, case-insensitive.
+         */
+        name: string;
+        /**
+         * What the view is for, shown under its name.
+         */
+        description?: string;
+        /**
+         * The filter; empty selects every mention.
+         */
+        filter?: {
+            /**
+             * Substring in the post text or the author's name.
+             */
+            q?: string;
+            /**
+             * Only matches of any of these keywords.
+             */
+            keywordIds?: Array<string>;
+            /**
+             * Never matches of these keywords.
+             */
+            notKeywordIds?: Array<string>;
+            /**
+             * Only matches of keywords of any of these kinds: brand, competitor, topic.
+             */
+            keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Only posts from any of these platforms.
+             */
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+            /**
+             * Never posts from these platforms.
+             */
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+            /**
+             * Only mentions in this status: open, ignored, done.
+             */
+            status?: 'open' | 'ignored' | 'done';
+            /**
+             * true: only mentions the classifier scored relevant; false: only the rest.
+             */
+            relevant?: boolean;
+            /**
+             * Only mentions scored at least this.
+             */
+            minRelevance?: number;
+            /**
+             * Only mentions whose classifier confidence is at least this.
+             */
+            minConfidence?: number;
+            /**
+             * Only these sentiments.
+             */
+            sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Never these sentiments; an unscored mention still passes.
+             */
+            notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions carrying any of these intent or topic tags.
+             */
+            intents?: Array<string>;
+            /**
+             * Never mentions carrying these tags.
+             */
+            notIntents?: Array<string>;
+            /**
+             * true: only posts that read as machine-made; false: only the rest.
+             */
+            automated?: boolean;
+            /**
+             * Only posts in any of these languages (ISO 639-1).
+             */
+            languages?: Array<string>;
+            /**
+             * Never posts in these languages; an unknown language still passes.
+             */
+            notLanguages?: Array<string>;
+            /**
+             * Only authors your workspace tagged with any of these.
+             */
+            tags?: Array<string>;
+            /**
+             * Never authors tagged with any of these.
+             */
+            notTags?: Array<string>;
+            /**
+             * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+             */
+            linkHosts?: Array<string>;
+            /**
+             * Never posts linking to these hosts.
+             */
+            notLinkHosts?: Array<string>;
+            /**
+             * Only authors with at least this many followers; unknown reach never passes.
+             */
+            minFollowers?: number;
+            /**
+             * Only authors with at most this many followers; unknown reach never passes.
+             */
+            maxFollowers?: number;
+            /**
+             * true: only replies and comments; false: only top-level posts.
+             */
+            isReply?: boolean;
+            /**
+             * Never these authors: display names, handles or profile URLs.
+             */
+            excludeAuthors?: Array<string>;
+        };
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/views';
+};
+
+export type CreateViewErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * A view with that name already exists (duplicate_view)
+     */
+    409: ErrorResponse;
+};
+
+export type CreateViewError = CreateViewErrors[keyof CreateViewErrors];
+
+export type CreateViewResponses = {
+    /**
+     * The saved view
+     */
+    201: View;
+};
+
+export type CreateViewResponse = CreateViewResponses[keyof CreateViewResponses];
+
+export type DeleteViewData = {
+    body?: never;
+    path: {
+        /**
+         * View id (vw_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/views/{id}';
+};
+
+export type DeleteViewErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such view in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteViewError = DeleteViewErrors[keyof DeleteViewErrors];
+
+export type DeleteViewResponses = {
+    /**
+     * Deleted
+     */
+    204: void;
+};
+
+export type DeleteViewResponse = DeleteViewResponses[keyof DeleteViewResponses];
+
+export type GetViewData = {
+    body?: never;
+    path: {
+        /**
+         * View id (vw_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/views/{id}';
+};
+
+export type GetViewErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such view in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type GetViewError = GetViewErrors[keyof GetViewErrors];
+
+export type GetViewResponses = {
+    /**
+     * The view
+     */
+    200: View;
+};
+
+export type GetViewResponse = GetViewResponses[keyof GetViewResponses];
+
+export type UpdateViewData = {
+    body: {
+        name?: string;
+        description?: string;
+        /**
+         * Replaces the whole filter.
+         */
+        filter?: {
+            /**
+             * Substring in the post text or the author's name.
+             */
+            q?: string;
+            /**
+             * Only matches of any of these keywords.
+             */
+            keywordIds?: Array<string>;
+            /**
+             * Never matches of these keywords.
+             */
+            notKeywordIds?: Array<string>;
+            /**
+             * Only matches of keywords of any of these kinds: brand, competitor, topic.
+             */
+            keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Only posts from any of these platforms.
+             */
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+            /**
+             * Never posts from these platforms.
+             */
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
+            /**
+             * Only mentions in this status: open, ignored, done.
+             */
+            status?: 'open' | 'ignored' | 'done';
+            /**
+             * true: only mentions the classifier scored relevant; false: only the rest.
+             */
+            relevant?: boolean;
+            /**
+             * Only mentions scored at least this.
+             */
+            minRelevance?: number;
+            /**
+             * Only mentions whose classifier confidence is at least this.
+             */
+            minConfidence?: number;
+            /**
+             * Only these sentiments.
+             */
+            sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Never these sentiments; an unscored mention still passes.
+             */
+            notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions carrying any of these intent or topic tags.
+             */
+            intents?: Array<string>;
+            /**
+             * Never mentions carrying these tags.
+             */
+            notIntents?: Array<string>;
+            /**
+             * true: only posts that read as machine-made; false: only the rest.
+             */
+            automated?: boolean;
+            /**
+             * Only posts in any of these languages (ISO 639-1).
+             */
+            languages?: Array<string>;
+            /**
+             * Never posts in these languages; an unknown language still passes.
+             */
+            notLanguages?: Array<string>;
+            /**
+             * Only authors your workspace tagged with any of these.
+             */
+            tags?: Array<string>;
+            /**
+             * Never authors tagged with any of these.
+             */
+            notTags?: Array<string>;
+            /**
+             * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+             */
+            linkHosts?: Array<string>;
+            /**
+             * Never posts linking to these hosts.
+             */
+            notLinkHosts?: Array<string>;
+            /**
+             * Only authors with at least this many followers; unknown reach never passes.
+             */
+            minFollowers?: number;
+            /**
+             * Only authors with at most this many followers; unknown reach never passes.
+             */
+            maxFollowers?: number;
+            /**
+             * true: only replies and comments; false: only top-level posts.
+             */
+            isReply?: boolean;
+            /**
+             * Never these authors: display names, handles or profile URLs.
+             */
+            excludeAuthors?: Array<string>;
+        };
+    };
+    path: {
+        /**
+         * View id (vw_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/views/{id}';
+};
+
+export type UpdateViewErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such view in this workspace
+     */
+    404: ErrorResponse;
+    /**
+     * A view with that name already exists (duplicate_view)
+     */
+    409: ErrorResponse;
+};
+
+export type UpdateViewError = UpdateViewErrors[keyof UpdateViewErrors];
+
+export type UpdateViewResponses = {
+    /**
+     * The updated view
+     */
+    200: View;
+};
+
+export type UpdateViewResponse = UpdateViewResponses[keyof UpdateViewResponses];
 
 export type GetCompanyData = {
     body?: never;
