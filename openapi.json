@@ -169,6 +169,31 @@
                   "notRelevant"
                 ],
                 "description": "Your verdicts on this keyword's mentions (PATCH /v1/mentions/{id} relevant)."
+              },
+              "noise": {
+                "type": "object",
+                "properties": {
+                  "scored": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Matches of the last 14 days (by match time) the classifier has scored."
+                  },
+                  "relevant": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Of those, the ones scored relevant."
+                  },
+                  "noisy": {
+                    "type": "boolean",
+                    "description": "At least 20 scored matches in the last 14 days and under 30% of them relevant: tighten the keyword with required terms, excluded terms or context. Every match bills, relevant or not."
+                  }
+                },
+                "required": [
+                  "scored",
+                  "relevant",
+                  "noisy"
+                ],
+                "description": "Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks."
               }
             },
             "required": [
@@ -176,7 +201,8 @@
               "relevant",
               "last7d",
               "lastMentionAt",
-              "feedback"
+              "feedback",
+              "noise"
             ],
             "description": "Computed over this workspace's matches."
           },
@@ -4289,6 +4315,31 @@
                                   "notRelevant"
                                 ],
                                 "description": "Your verdicts on this keyword's mentions (PATCH /v1/mentions/{id} relevant)."
+                              },
+                              "noise": {
+                                "type": "object",
+                                "properties": {
+                                  "scored": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Matches of the last 14 days (by match time) the classifier has scored."
+                                  },
+                                  "relevant": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Of those, the ones scored relevant."
+                                  },
+                                  "noisy": {
+                                    "type": "boolean",
+                                    "description": "At least 20 scored matches in the last 14 days and under 30% of them relevant: tighten the keyword with required terms, excluded terms or context. Every match bills, relevant or not."
+                                  }
+                                },
+                                "required": [
+                                  "scored",
+                                  "relevant",
+                                  "noisy"
+                                ],
+                                "description": "Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks."
                               }
                             },
                             "required": [
@@ -4296,7 +4347,8 @@
                               "relevant",
                               "last7d",
                               "lastMentionAt",
-                              "feedback"
+                              "feedback",
+                              "noise"
                             ],
                             "description": "Computed over this workspace's matches."
                           },

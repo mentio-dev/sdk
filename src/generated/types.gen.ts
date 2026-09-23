@@ -85,6 +85,23 @@ export type Keyword = {
              */
             notRelevant: number;
         };
+        /**
+         * Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks.
+         */
+        noise: {
+            /**
+             * Matches of the last 14 days (by match time) the classifier has scored.
+             */
+            scored: number;
+            /**
+             * Of those, the ones scored relevant.
+             */
+            relevant: number;
+            /**
+             * At least 20 scored matches in the last 14 days and under 30% of them relevant: tighten the keyword with required terms, excluded terms or context. Every match bills, relevant or not.
+             */
+            noisy: boolean;
+        };
     };
     /**
      * Poll health per platform polled on a schedule. Live feeds (Bluesky) have no entry.
@@ -2084,6 +2101,23 @@ export type ListKeywordsResponses = {
                      * Mentions a person marked not relevant: the noise the classifier let through.
                      */
                     notRelevant: number;
+                };
+                /**
+                 * Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks.
+                 */
+                noise: {
+                    /**
+                     * Matches of the last 14 days (by match time) the classifier has scored.
+                     */
+                    scored: number;
+                    /**
+                     * Of those, the ones scored relevant.
+                     */
+                    relevant: number;
+                    /**
+                     * At least 20 scored matches in the last 14 days and under 30% of them relevant: tighten the keyword with required terms, excluded terms or context. Every match bills, relevant or not.
+                     */
+                    noisy: boolean;
                 };
             };
             /**
