@@ -1872,7 +1872,7 @@ export type WebhookChannel = {
             [key: string]: string;
         };
         /**
-         * Only on creation and rotation. Signs every body: X-Mentions-Signature is the hex HMAC-SHA256 of the raw bytes.
+         * Only on creation and rotation. Signs every request: X-Mentions-Signature-V2 is v2= plus the hex HMAC-SHA256 of "<X-Mentions-Timestamp>.<raw body>" (reject a timestamp older than a few minutes); X-Mentions-Signature, the hex HMAC-SHA256 of the raw body alone, stays for older verifiers.
          */
         secret?: string;
     };
