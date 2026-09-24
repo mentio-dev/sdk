@@ -1042,6 +1042,196 @@ export type UsageSummary = {
     lastTopUpAt: string | null;
 };
 
+export type Wallet = {
+    /**
+     * Ledger balance: every credit minus every settled debit.
+     */
+    balanceCents: number;
+    /**
+     * Mentions matched since the last daily settlement, priced but not yet debited.
+     */
+    pendingCents: number;
+    /**
+     * balanceCents minus pendingCents: what the stop sweep and the keyword gate look at.
+     */
+    effectiveBalanceCents: number;
+    /**
+     * Average daily debit over the last 7 days (or since the workspace was created).
+     */
+    burnPerDayCents: number;
+    /**
+     * effectiveBalanceCents divided by burnPerDayCents; null when nothing is burning.
+     */
+    daysLeft: number | null;
+    /**
+     * The wallet paused tracking; a top-up that covers a day of every keyword resumes it.
+     */
+    stopped: boolean;
+    /**
+     * Running, and the effective balance is at or under 20 percent of the last credit: the same rule as the low-balance email.
+     */
+    lowBalance: boolean;
+    /**
+     * Unmuted keywords.
+     */
+    activeKeywords: number;
+    /**
+     * Keywords the wallet paused; a top-up resumes them.
+     */
+    autoMutedKeywords: number;
+    /**
+     * What one more day of the running keywords costs; tracking stops when the effective balance drops under it.
+     */
+    nextDayCents: number;
+    /**
+     * What one day of every keyword (running and paused) costs; a stopped workspace resumes once the effective balance covers it.
+     */
+    resumeCostCents: number;
+    /**
+     * The welcome credit this workspace received, or null (a second workspace of the same user gets none).
+     */
+    signupCredit: {
+        /**
+         * Integer USD cents.
+         */
+        amountCents: number;
+        /**
+         * ISO 8601 timestamp, UTC.
+         */
+        grantedAt: string;
+    } | null;
+    /**
+     * Newest paid top-up; null before the first.
+     */
+    lastTopUpAt: string | null;
+    /**
+     * False when this deployment has no Polar credentials: the top-up button is hidden.
+     */
+    billingConfigured: boolean;
+    /**
+     * Smallest top-up the checkout accepts.
+     */
+    minTopUpCents: number;
+    /**
+     * Largest single top-up.
+     */
+    maxTopUpCents: number;
+    /**
+     * Amount prefilled in the checkout.
+     */
+    defaultTopUpCents: number;
+    /**
+     * Every amount on this page is in USD cents.
+     */
+    currency: 'USD';
+    autoRecharge: {
+        /**
+         * This deployment can charge saved cards; false hides the setting.
+         */
+        available: boolean;
+        /**
+         * Charge the saved card automatically when the balance runs low.
+         */
+        enabled: boolean;
+        /**
+         * Charge when the effective balance drops under this.
+         */
+        thresholdCents: number;
+        /**
+         * How much to add per automatic charge (same bounds as a manual top-up).
+         */
+        amountCents: number;
+        /**
+         * Newest successful automatic charge.
+         */
+        lastRunAt: string | null;
+        /**
+         * Why the last automatic charge failed; null after a success.
+         */
+        lastError: string | null;
+    };
+};
+
+export type LedgerList = {
+    /**
+     * Ledger entries, newest first.
+     */
+    data: Array<{
+        /**
+         * Ledger entry id (led_...).
+         */
+        id: string;
+        /**
+         * signup_credit, topup, refund, debit_keyword_days, debit_mentions or adjustment.
+         */
+        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'adjustment';
+        /**
+         * Integer USD cents; credits positive, debits negative.
+         */
+        amountCents: number;
+        /**
+         * Debit rows: the last UTC day the row settled (YYYY-MM-DD).
+         */
+        day: string | null;
+        /**
+         * Debit rows: cumulative units (mentions or keyword-days) settled up to this row.
+         */
+        units: number | null;
+        /**
+         * Free text on credits and adjustments.
+         */
+        note: string | null;
+        /**
+         * Top-ups and refunds: the Polar order.
+         */
+        polarOrderId: string | null;
+        /**
+         * ISO 8601 timestamp, UTC.
+         */
+        createdAt: string;
+    }>;
+    /**
+     * Pass it back as `cursor` for the next page; null on the last.
+     */
+    nextCursor: string | null;
+};
+
+export type InvoiceList = {
+    /**
+     * Paid orders, newest first; empty before the first top-up.
+     */
+    data: Array<{
+        /**
+         * The Polar order id; what GET /v1/billing/invoices/{id}/url takes.
+         */
+        id: string;
+        /**
+         * When the order was placed (ISO 8601).
+         */
+        createdAt: string;
+        /**
+         * The order status as Polar reports it (paid, refunded, ...).
+         */
+        status: string;
+        /**
+         * Whether the order was paid.
+         */
+        paid: boolean;
+        /**
+         * What was charged, in minor units of `currency`, tax included.
+         */
+        totalAmount: number;
+        /**
+         * ISO 4217 currency of the order (usd).
+         */
+        currency: string;
+        /**
+         * Why the order exists, as Polar reports it (purchase, subscription_cycle, ...); null when it does not say.
+         */
+        billingReason: string | null;
+    }>;
+};
+
 export type Alert = {
     /**
      * Alert id (feed_...).
@@ -5228,6 +5418,192 @@ export type GetUsageResponses = {
 };
 
 export type GetUsageResponse = GetUsageResponses[keyof GetUsageResponses];
+
+export type CreateTopUpData = {
+    body: {
+        /**
+         * Amount to add, in USD cents (2000 to 500000). Prefilled at checkout, editable there.
+         */
+        amountCents: number;
+        /**
+         * Where the customer lands after paying: a page on an origin this deployment trusts (the dashboard). Omit it and the dashboard's billing page is used.
+         */
+        successUrl?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/billing/top-ups';
+};
+
+export type CreateTopUpErrors = {
+    /**
+     * Invalid amount or disallowed successUrl
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid credentials
+     */
+    401: ErrorResponse;
+    /**
+     * Workspace has no owner to bill
+     */
+    404: ErrorResponse;
+    /**
+     * More than a few checkouts a minute for one workspace
+     */
+    429: ErrorResponse;
+    /**
+     * Billing is not configured on this deployment
+     */
+    503: ErrorResponse;
+};
+
+export type CreateTopUpError = CreateTopUpErrors[keyof CreateTopUpErrors];
+
+export type CreateTopUpResponses = {
+    /**
+     * Hosted checkout URL with the amount prefilled
+     */
+    200: {
+        /**
+         * Hosted Polar checkout URL.
+         */
+        url: string;
+    };
+};
+
+export type CreateTopUpResponse = CreateTopUpResponses[keyof CreateTopUpResponses];
+
+export type GetWalletData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/billing/wallet';
+};
+
+export type GetWalletErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: ErrorResponse;
+};
+
+export type GetWalletError = GetWalletErrors[keyof GetWalletErrors];
+
+export type GetWalletResponses = {
+    /**
+     * Balance, burn, and whether tracking is paused
+     */
+    200: Wallet;
+};
+
+export type GetWalletResponse = GetWalletResponses[keyof GetWalletResponses];
+
+export type ListLedgerData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Opaque cursor from a previous page (`nextCursor`).
+         */
+        cursor?: string;
+        /**
+         * Page size, 1 to 100 (default 25).
+         */
+        limit?: number;
+    };
+    url: '/v1/billing/ledger';
+};
+
+export type ListLedgerErrors = {
+    /**
+     * Invalid cursor
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid credentials
+     */
+    401: ErrorResponse;
+};
+
+export type ListLedgerError = ListLedgerErrors[keyof ListLedgerErrors];
+
+export type ListLedgerResponses = {
+    /**
+     * Ledger entries, newest first
+     */
+    200: LedgerList;
+};
+
+export type ListLedgerResponse = ListLedgerResponses[keyof ListLedgerResponses];
+
+export type ListInvoicesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/billing/invoices';
+};
+
+export type ListInvoicesErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: ErrorResponse;
+};
+
+export type ListInvoicesError = ListInvoicesErrors[keyof ListInvoicesErrors];
+
+export type ListInvoicesResponses = {
+    /**
+     * Recent paid orders (receipts). Empty when the org has never paid
+     */
+    200: InvoiceList;
+};
+
+export type ListInvoicesResponse = ListInvoicesResponses[keyof ListInvoicesResponses];
+
+export type GetInvoiceUrlData = {
+    body?: never;
+    path: {
+        /**
+         * The order id from GET /v1/billing/invoices.
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/billing/invoices/{id}/url';
+};
+
+export type GetInvoiceUrlErrors = {
+    /**
+     * Missing or invalid credentials
+     */
+    401: ErrorResponse;
+    /**
+     * No such receipt, or its PDF is not ready yet
+     */
+    404: ErrorResponse;
+    /**
+     * Billing is not configured
+     */
+    503: ErrorResponse;
+};
+
+export type GetInvoiceUrlError = GetInvoiceUrlErrors[keyof GetInvoiceUrlErrors];
+
+export type GetInvoiceUrlResponses = {
+    /**
+     * A short-lived link to the receipt PDF
+     */
+    200: {
+        /**
+         * A short-lived link to the receipt PDF.
+         */
+        url: string;
+    };
+};
+
+export type GetInvoiceUrlResponse = GetInvoiceUrlResponses[keyof GetInvoiceUrlResponses];
 
 export type DeleteAlertData = {
     body?: never;
