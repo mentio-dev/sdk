@@ -1253,7 +1253,7 @@ export type Alert = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
         /**
-         * Only mentions scored at least this; unclassified ones never pass.
+         * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
          */
         minRelevance?: number;
         /**
@@ -5694,7 +5694,7 @@ export type UpdateAlertData = {
              */
             platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
             /**
-             * Only mentions scored at least this; unclassified ones never pass.
+             * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
              */
             minRelevance?: number;
             /**
@@ -5828,7 +5828,7 @@ export type ListAlertsResponses = {
                  */
                 platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
                 /**
-                 * Only mentions scored at least this; unclassified ones never pass.
+                 * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
                  */
                 minRelevance?: number;
                 /**
@@ -5935,7 +5935,7 @@ export type CreateAlertData = {
              */
             platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
             /**
-             * Only mentions scored at least this; unclassified ones never pass.
+             * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
              */
             minRelevance?: number;
             /**
