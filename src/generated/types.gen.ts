@@ -12,13 +12,26 @@ export type Keyword = {
     term: string;
     kind: 'brand' | 'competitor' | 'topic';
     /**
-     * Not polled or matched. Either paused by you or by the wallet (see pausedForBalance).
+     * Not polled or matched. Either paused by you or by the wallet (see pausedForBalance). A keyword at its mention cap is not muted (see pausedForCap).
      */
     muted: boolean;
     /**
      * Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too.
      */
     pausedForBalance: boolean;
+    /**
+     * At its monthly mention cap: not matched until the first of next month (UTC) or until the cap is raised. Not muted: it keeps its place and its daily keyword charge.
+     */
+    pausedForCap: boolean;
+    /**
+     * The monthly mention cap, or null for none.
+     */
+    cap: {
+        /**
+         * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+         */
+        mentions: number;
+    } | null;
     /**
      * Platforms this keyword is tracked on; null means every platform.
      */
@@ -68,6 +81,10 @@ export type Keyword = {
          * Matches published in the last 7 days.
          */
         last7d: number;
+        /**
+         * Matches recorded this calendar month (UTC), the count a cap compares against.
+         */
+        thisMonth: number;
         /**
          * Newest matched post; null until the first one.
          */
@@ -985,6 +1002,10 @@ export type UsageSummary = {
          * Keywords the wallet paused for lack of balance; a top-up resumes them.
          */
         paused: number;
+        /**
+         * Unmuted keywords at their monthly mention cap: still charged daily, not matched until the month turns or the cap is raised.
+         */
+        capped: number;
         /**
          * How many keywords the workspace may run right now: the self-serve ceiling when the balance covers one more keyword-day, else 0.
          */
@@ -1980,9 +2001,9 @@ export type ListKeywordsData = {
          */
         kind?: Array<'brand' | 'competitor' | 'topic'>;
         /**
-         * Only keywords in these states: active, muted, paused. Repeatable, or comma-separated.
+         * Only keywords in these states: active, muted, paused, capped. Repeatable, or comma-separated.
          */
-        status?: Array<'active' | 'muted' | 'paused'>;
+        status?: Array<'active' | 'muted' | 'paused' | 'capped'>;
         /**
          * Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated.
          */
@@ -2029,13 +2050,26 @@ export type ListKeywordsResponses = {
             term: string;
             kind: 'brand' | 'competitor' | 'topic';
             /**
-             * Not polled or matched. Either paused by you or by the wallet (see pausedForBalance).
+             * Not polled or matched. Either paused by you or by the wallet (see pausedForBalance). A keyword at its mention cap is not muted (see pausedForCap).
              */
             muted: boolean;
             /**
              * Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too.
              */
             pausedForBalance: boolean;
+            /**
+             * At its monthly mention cap: not matched until the first of next month (UTC) or until the cap is raised. Not muted: it keeps its place and its daily keyword charge.
+             */
+            pausedForCap: boolean;
+            /**
+             * The monthly mention cap, or null for none.
+             */
+            cap: {
+                /**
+                 * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+                 */
+                mentions: number;
+            } | null;
             /**
              * Platforms this keyword is tracked on; null means every platform.
              */
@@ -2085,6 +2119,10 @@ export type ListKeywordsResponses = {
                  * Matches published in the last 7 days.
                  */
                 last7d: number;
+                /**
+                 * Matches recorded this calendar month (UTC), the count a cap compares against.
+                 */
+                thisMonth: number;
                 /**
                  * Newest matched post; null until the first one.
                  */
@@ -2194,6 +2232,15 @@ export type CreateKeywordData = {
              */
             caseSensitive?: boolean;
         };
+        /**
+         * A monthly mention cap; omit or null for none.
+         */
+        cap?: {
+            /**
+             * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             */
+            mentions: number;
+        } | null;
     };
     path?: never;
     query?: never;
@@ -2340,6 +2387,15 @@ export type UpdateKeywordData = {
              */
             caseSensitive?: boolean;
         };
+        /**
+         * Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it.
+         */
+        cap?: {
+            /**
+             * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             */
+            mentions: number;
+        } | null;
     };
     path: {
         /**

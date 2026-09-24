@@ -39,11 +39,31 @@
           },
           "muted": {
             "type": "boolean",
-            "description": "Not polled or matched. Either paused by you or by the wallet (see pausedForBalance)."
+            "description": "Not polled or matched. Either paused by you or by the wallet (see pausedForBalance). A keyword at its mention cap is not muted (see pausedForCap)."
           },
           "pausedForBalance": {
             "type": "boolean",
             "description": "Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too."
+          },
+          "pausedForCap": {
+            "type": "boolean",
+            "description": "At its monthly mention cap: not matched until the first of next month (UTC) or until the cap is raised. Not muted: it keeps its place and its daily keyword charge."
+          },
+          "cap": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "mentions": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000000,
+                "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+              }
+            },
+            "required": [
+              "mentions"
+            ],
+            "description": "The monthly mention cap, or null for none."
           },
           "platforms": {
             "type": "array",
@@ -145,6 +165,11 @@
                 "minimum": 0,
                 "description": "Matches published in the last 7 days."
               },
+              "thisMonth": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Matches recorded this calendar month (UTC), the count a cap compares against."
+              },
               "lastMentionAt": {
                 "type": "string",
                 "nullable": true,
@@ -200,6 +225,7 @@
               "mentions",
               "relevant",
               "last7d",
+              "thisMonth",
               "lastMentionAt",
               "feedback",
               "noise"
@@ -256,6 +282,8 @@
           "kind",
           "muted",
           "pausedForBalance",
+          "pausedForCap",
+          "cap",
           "platforms",
           "context",
           "matching",
@@ -2045,6 +2073,11 @@
                 "minimum": 0,
                 "description": "Keywords the wallet paused for lack of balance; a top-up resumes them."
               },
+              "capped": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Unmuted keywords at their monthly mention cap: still charged daily, not matched until the month turns or the cap is raised."
+              },
               "limit": {
                 "type": "integer",
                 "minimum": 0,
@@ -2058,6 +2091,7 @@
             "required": [
               "active",
               "paused",
+              "capped",
               "limit",
               "dayCents"
             ],
@@ -3860,7 +3894,7 @@
       "post": {
         "operationId": "createKeyword",
         "summary": "Track a keyword",
-        "description": "Start tracking a word or phrase. Matching, classification and delivery begin on the next poll. A funded workspace tracks up to 500 keywords; each costs $5 per month, deducted daily from the balance. `matching` narrows what the term matches (required and excluded terms, excluded authors, case) before a mention is stored, so a rejected post is never billed; `context` is a sentence the classifier reads for this keyword only.",
+        "description": "Start tracking a word or phrase. Matching, classification and delivery begin on the next poll. A funded workspace tracks up to 500 keywords; each costs $5 per month, deducted daily from the balance. `matching` narrows what the term matches (required and excluded terms, excluded authors, case) before a mention is stored, so a rejected post is never billed; `context` is a sentence the classifier reads for this keyword only. `cap` puts a monthly ceiling on its matched mentions: at the cap it stops matching until the first of the next month (UTC) or until the cap is raised, while its daily keyword charge continues.",
         "tags": [
           "Keywords"
         ],
@@ -3966,6 +4000,22 @@
                       }
                     },
                     "description": "Omitted fields are untouched; an empty list clears one."
+                  },
+                  "cap": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "mentions": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 1000000,
+                        "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                      }
+                    },
+                    "required": [
+                      "mentions"
+                    ],
+                    "description": "A monthly mention cap; omit or null for none."
                   }
                 },
                 "required": [
@@ -4070,15 +4120,16 @@
                 "enum": [
                   "active",
                   "muted",
-                  "paused"
+                  "paused",
+                  "capped"
                 ],
-                "description": "active: tracking. muted: switched off by a person. paused: switched off by the wallet for lack of balance."
+                "description": "active: tracking. muted: switched off by a person. paused: switched off by the wallet for lack of balance. capped: at its monthly mention cap until the month turns."
               },
-              "maxItems": 3,
-              "description": "Only keywords in these states: active, muted, paused. Repeatable, or comma-separated."
+              "maxItems": 4,
+              "description": "Only keywords in these states: active, muted, paused, capped. Repeatable, or comma-separated."
             },
             "required": false,
-            "description": "Only keywords in these states: active, muted, paused. Repeatable, or comma-separated.",
+            "description": "Only keywords in these states: active, muted, paused, capped. Repeatable, or comma-separated.",
             "name": "status",
             "in": "query"
           },
@@ -4185,11 +4236,31 @@
                           },
                           "muted": {
                             "type": "boolean",
-                            "description": "Not polled or matched. Either paused by you or by the wallet (see pausedForBalance)."
+                            "description": "Not polled or matched. Either paused by you or by the wallet (see pausedForBalance). A keyword at its mention cap is not muted (see pausedForCap)."
                           },
                           "pausedForBalance": {
                             "type": "boolean",
                             "description": "Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too."
+                          },
+                          "pausedForCap": {
+                            "type": "boolean",
+                            "description": "At its monthly mention cap: not matched until the first of next month (UTC) or until the cap is raised. Not muted: it keeps its place and its daily keyword charge."
+                          },
+                          "cap": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "mentions": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 1000000,
+                                "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                              }
+                            },
+                            "required": [
+                              "mentions"
+                            ],
+                            "description": "The monthly mention cap, or null for none."
                           },
                           "platforms": {
                             "type": "array",
@@ -4291,6 +4362,11 @@
                                 "minimum": 0,
                                 "description": "Matches published in the last 7 days."
                               },
+                              "thisMonth": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Matches recorded this calendar month (UTC), the count a cap compares against."
+                              },
                               "lastMentionAt": {
                                 "type": "string",
                                 "nullable": true,
@@ -4346,6 +4422,7 @@
                               "mentions",
                               "relevant",
                               "last7d",
+                              "thisMonth",
                               "lastMentionAt",
                               "feedback",
                               "noise"
@@ -4402,6 +4479,8 @@
                           "kind",
                           "muted",
                           "pausedForBalance",
+                          "pausedForCap",
+                          "cap",
                           "platforms",
                           "context",
                           "matching",
@@ -4510,7 +4589,7 @@
       "patch": {
         "operationId": "updateKeyword",
         "summary": "Update a keyword",
-        "description": "Mute or unmute it, reclassify it (`kind`), change the platforms it is tracked on, its classifier `context`, or its `matching` rules (each rule field optional; an empty list clears one). Rules apply to new mentions from the next poll; stored mentions are untouched.",
+        "description": "Mute or unmute it, reclassify it (`kind`), change the platforms it is tracked on, its classifier `context`, its `matching` rules (each rule field optional; an empty list clears one), or its monthly mention `cap` (null removes it; a cap above this month's count resumes a capped keyword at once). Rules apply to new mentions from the next poll; stored mentions are untouched.",
         "tags": [
           "Keywords"
         ],
@@ -4627,6 +4706,22 @@
                       }
                     },
                     "description": "Omitted fields are untouched; an empty list clears one."
+                  },
+                  "cap": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "mentions": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 1000000,
+                        "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                      }
+                    },
+                    "required": [
+                      "mentions"
+                    ],
+                    "description": "Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it."
                   }
                 },
                 "description": "Omitted fields are untouched."
