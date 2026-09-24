@@ -119,6 +119,31 @@ export type Keyword = {
              */
             noisy: boolean;
         };
+        /**
+         * What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding.
+         */
+        cost: {
+            /**
+             * Days this month the keyword was charged for: unmuted at the daily tick. A keyword created today reads 0 until tomorrow's tick.
+             */
+            keywordDays: number;
+            /**
+             * Those days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total.
+             */
+            keywordCents: number;
+            /**
+             * Matches billed this month, counted when they were scored (the clock the ledger settles by), so it can trail thisMonth by the matches still being scored and never counts one that failed to score.
+             */
+            billableMentions: number;
+            /**
+             * Those matches at $0.008 each, rounded once on the total.
+             */
+            mentionCents: number;
+            /**
+             * keywordCents plus mentionCents: what this keyword has cost this month, in USD cents.
+             */
+            totalCents: number;
+        };
     };
     /**
      * Poll health per platform polled on a schedule. Live feeds (Bluesky) have no entry.
@@ -1040,6 +1065,137 @@ export type UsageSummary = {
      * Newest paid top-up; null before the first.
      */
     lastTopUpAt: string | null;
+};
+
+export type UsageBreakdown = {
+    /**
+     * The window the report covers, in UTC days.
+     */
+    window: {
+        /**
+         * First day, YYYY-MM-DD, inclusive, UTC.
+         */
+        from: string;
+        /**
+         * Last day, inclusive: today for a trailing window or the running month.
+         */
+        to: string;
+        /**
+         * Length of the window in days.
+         */
+        days: number;
+        /**
+         * The first day of the window with a recorded keyword count, or null when there is none. Earlier days carry keywordDays: null.
+         */
+        keywordDaysFrom: string | null;
+    };
+    /**
+     * The dimension the rows are grouped by.
+     */
+    by: 'day' | 'platform' | 'keyword';
+    /**
+     * Every amount is in USD cents.
+     */
+    currency: 'USD';
+    /**
+     * The whole window as one line, the same for every dimension.
+     */
+    totals: {
+        /**
+         * Keyword-days metered in the window.
+         */
+        keywordDays: number;
+        /**
+         * The keyword-days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total.
+         */
+        keywordCents: number;
+        /**
+         * Matches recorded in the window, relevant or not.
+         */
+        matchedMentions: number;
+        /**
+         * Of the matches billed in the window (every scored match, relevant or not), the ones in this group.
+         */
+        billableMentions: number;
+        /**
+         * The billed mentions at $0.008 each, rounded once on the total.
+         */
+        mentionCents: number;
+        /**
+         * keywordCents plus mentionCents.
+         */
+        totalCents: number;
+        /**
+         * Matched but never scored (classification failed): never charged.
+         */
+        unclassifiedMentions: number;
+        /**
+         * What the ledger has debited so far for the days of the window, each debit by the day it settled. Mentions settle the morning after their day, so a window ending today lags totalCents by today's mentions (and yesterday's before the tick at 00:05 UTC); a closed month differs from totalCents only by cumulative rounding.
+         */
+        ledgerDebitCents: number;
+        /**
+         * Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row can claim them. Charged all the same.
+         */
+        unattributedBillable: number;
+    };
+    /**
+     * by=day: chronological. by=platform and by=keyword: most expensive first, then most matched, deleted keywords included.
+     */
+    data: Array<{
+        /**
+         * The group: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword.
+         */
+        key: string;
+        /**
+         * Readable name: the keyword term, otherwise the key.
+         */
+        label: string;
+        /**
+         * by=keyword only; null otherwise.
+         */
+        keyword: {
+            /**
+             * Keyword id (kw_...); a deleted keyword keeps its id here.
+             */
+            id: string;
+            /**
+             * The term as it was last metered, or as the keyword reads now.
+             */
+            term: string;
+            /**
+             * The keyword has since been deleted. Its charges stay on the record; its mentions went with it, so its mention counts read 0.
+             */
+            removed: boolean;
+        } | null;
+        /**
+         * Keyword-days metered in this group: the days the daily tick charged for. Null for by=platform (a keyword-day belongs to no platform) and for a day before the first recorded tick (unknown, not zero); a keyword row counts only the days on record, so before window.keywordDaysFrom it is a floor, not a zero.
+         */
+        keywordDays: number | null;
+        /**
+         * The keyword-days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total.
+         */
+        keywordCents: number;
+        /**
+         * Matches recorded in the window, relevant or not.
+         */
+        matchedMentions: number;
+        /**
+         * Of the matches billed in the window (every scored match, relevant or not), the ones in this group.
+         */
+        billableMentions: number;
+        /**
+         * The billed mentions at $0.008 each, rounded once on the total.
+         */
+        mentionCents: number;
+        /**
+         * keywordCents plus mentionCents.
+         */
+        totalCents: number;
+    }>;
+    /**
+     * Rows in the dimension before `limit` and `offset`.
+     */
+    total: number;
 };
 
 export type Wallet = {
@@ -2346,6 +2502,31 @@ export type ListKeywordsResponses = {
                      * At least 20 scored matches in the last 14 days and under 30% of them relevant: tighten the keyword with required terms, excluded terms or context. Every match bills, relevant or not.
                      */
                     noisy: boolean;
+                };
+                /**
+                 * What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding.
+                 */
+                cost: {
+                    /**
+                     * Days this month the keyword was charged for: unmuted at the daily tick. A keyword created today reads 0 until tomorrow's tick.
+                     */
+                    keywordDays: number;
+                    /**
+                     * Those days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total.
+                     */
+                    keywordCents: number;
+                    /**
+                     * Matches billed this month, counted when they were scored (the clock the ledger settles by), so it can trail thisMonth by the matches still being scored and never counts one that failed to score.
+                     */
+                    billableMentions: number;
+                    /**
+                     * Those matches at $0.008 each, rounded once on the total.
+                     */
+                    mentionCents: number;
+                    /**
+                     * keywordCents plus mentionCents: what this keyword has cost this month, in USD cents.
+                     */
+                    totalCents: number;
                 };
             };
             /**
@@ -5418,6 +5599,60 @@ export type GetUsageResponses = {
 };
 
 export type GetUsageResponse = GetUsageResponses[keyof GetUsageResponses];
+
+export type GetUsageBreakdownData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * The dimension to group by: day (one row per UTC day of the window), platform, or keyword (default: the row a margin is computed from).
+         */
+        by?: 'day' | 'platform' | 'keyword';
+        /**
+         * Trailing window of UTC days ending today: 7d, 30d, 90d (default 30d). Ignored when `month` is given.
+         */
+        range?: '7d' | '30d' | '90d';
+        /**
+         * A calendar month (YYYY-MM, UTC) instead of a trailing window: from its first day to its last, or to today for the running month. A future month is a 400.
+         */
+        month?: string;
+        /**
+         * Rows per page, 1 to 500 (default 100). Only by=keyword can outgrow a page; a window has at most 90 days and a dozen platforms.
+         */
+        limit?: number;
+        /**
+         * Skip this many rows.
+         */
+        offset?: number | null;
+    };
+    url: '/v1/usage/breakdown';
+};
+
+export type GetUsageBreakdownErrors = {
+    /**
+     * Unknown dimension or range, month malformed or in the future, limit out of range
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * More than 30 breakdown reads this minute for the workspace
+     */
+    429: ErrorResponse;
+};
+
+export type GetUsageBreakdownError = GetUsageBreakdownErrors[keyof GetUsageBreakdownErrors];
+
+export type GetUsageBreakdownResponses = {
+    /**
+     * The window's totals and one page of rows for the dimension
+     */
+    200: UsageBreakdown;
+};
+
+export type GetUsageBreakdownResponse = GetUsageBreakdownResponses[keyof GetUsageBreakdownResponses];
 
 export type CreateTopUpData = {
     body: {

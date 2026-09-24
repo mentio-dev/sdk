@@ -219,6 +219,41 @@
                   "noisy"
                 ],
                 "description": "Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks."
+              },
+              "cost": {
+                "type": "object",
+                "properties": {
+                  "keywordDays": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Days this month the keyword was charged for: unmuted at the daily tick. A keyword created today reads 0 until tomorrow's tick."
+                  },
+                  "keywordCents": {
+                    "type": "integer",
+                    "description": "Those days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total."
+                  },
+                  "billableMentions": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Matches billed this month, counted when they were scored (the clock the ledger settles by), so it can trail thisMonth by the matches still being scored and never counts one that failed to score."
+                  },
+                  "mentionCents": {
+                    "type": "integer",
+                    "description": "Those matches at $0.008 each, rounded once on the total."
+                  },
+                  "totalCents": {
+                    "type": "integer",
+                    "description": "keywordCents plus mentionCents: what this keyword has cost this month, in USD cents."
+                  }
+                },
+                "required": [
+                  "keywordDays",
+                  "keywordCents",
+                  "billableMentions",
+                  "mentionCents",
+                  "totalCents"
+                ],
+                "description": "What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding."
               }
             },
             "required": [
@@ -228,7 +263,8 @@
               "thisMonth",
               "lastMentionAt",
               "feedback",
-              "noise"
+              "noise",
+              "cost"
             ],
             "description": "Computed over this workspace's matches."
           },
@@ -2139,6 +2175,208 @@
           "stopped",
           "lowBalance",
           "lastTopUpAt"
+        ]
+      },
+      "UsageBreakdown": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "description": "First day, YYYY-MM-DD, inclusive, UTC."
+              },
+              "to": {
+                "type": "string",
+                "description": "Last day, inclusive: today for a trailing window or the running month."
+              },
+              "days": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Length of the window in days."
+              },
+              "keywordDaysFrom": {
+                "type": "string",
+                "nullable": true,
+                "description": "The first day of the window with a recorded keyword count, or null when there is none. Earlier days carry keywordDays: null."
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "days",
+              "keywordDaysFrom"
+            ],
+            "description": "The window the report covers, in UTC days."
+          },
+          "by": {
+            "type": "string",
+            "enum": [
+              "day",
+              "platform",
+              "keyword"
+            ],
+            "description": "The dimension the rows are grouped by."
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ],
+            "description": "Every amount is in USD cents."
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "keywordDays": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Keyword-days metered in the window."
+              },
+              "keywordCents": {
+                "type": "integer",
+                "description": "The keyword-days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total."
+              },
+              "matchedMentions": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Matches recorded in the window, relevant or not."
+              },
+              "billableMentions": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Of the matches billed in the window (every scored match, relevant or not), the ones in this group."
+              },
+              "mentionCents": {
+                "type": "integer",
+                "description": "The billed mentions at $0.008 each, rounded once on the total."
+              },
+              "totalCents": {
+                "type": "integer",
+                "description": "keywordCents plus mentionCents."
+              },
+              "unclassifiedMentions": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Matched but never scored (classification failed): never charged."
+              },
+              "ledgerDebitCents": {
+                "type": "integer",
+                "description": "What the ledger has debited so far for the days of the window, each debit by the day it settled. Mentions settle the morning after their day, so a window ending today lags totalCents by today's mentions (and yesterday's before the tick at 00:05 UTC); a closed month differs from totalCents only by cumulative rounding."
+              },
+              "unattributedBillable": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row can claim them. Charged all the same."
+              }
+            },
+            "required": [
+              "keywordDays",
+              "keywordCents",
+              "matchedMentions",
+              "billableMentions",
+              "mentionCents",
+              "totalCents",
+              "unclassifiedMentions",
+              "ledgerDebitCents",
+              "unattributedBillable"
+            ],
+            "description": "The whole window as one line, the same for every dimension."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "description": "The group: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword."
+                },
+                "label": {
+                  "type": "string",
+                  "description": "Readable name: the keyword term, otherwise the key."
+                },
+                "keyword": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Keyword id (kw_...); a deleted keyword keeps its id here."
+                    },
+                    "term": {
+                      "type": "string",
+                      "description": "The term as it was last metered, or as the keyword reads now."
+                    },
+                    "removed": {
+                      "type": "boolean",
+                      "description": "The keyword has since been deleted. Its charges stay on the record; its mentions went with it, so its mention counts read 0."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "term",
+                    "removed"
+                  ],
+                  "description": "by=keyword only; null otherwise."
+                },
+                "keywordDays": {
+                  "type": "integer",
+                  "nullable": true,
+                  "minimum": 0,
+                  "description": "Keyword-days metered in this group: the days the daily tick charged for. Null for by=platform (a keyword-day belongs to no platform) and for a day before the first recorded tick (unknown, not zero); a keyword row counts only the days on record, so before window.keywordDaysFrom it is a floor, not a zero."
+                },
+                "keywordCents": {
+                  "type": "integer",
+                  "description": "The keyword-days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total."
+                },
+                "matchedMentions": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Matches recorded in the window, relevant or not."
+                },
+                "billableMentions": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Of the matches billed in the window (every scored match, relevant or not), the ones in this group."
+                },
+                "mentionCents": {
+                  "type": "integer",
+                  "description": "The billed mentions at $0.008 each, rounded once on the total."
+                },
+                "totalCents": {
+                  "type": "integer",
+                  "description": "keywordCents plus mentionCents."
+                }
+              },
+              "required": [
+                "key",
+                "label",
+                "keyword",
+                "keywordDays",
+                "keywordCents",
+                "matchedMentions",
+                "billableMentions",
+                "mentionCents",
+                "totalCents"
+              ]
+            },
+            "description": "by=day: chronological. by=platform and by=keyword: most expensive first, then most matched, deleted keywords included."
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows in the dimension before `limit` and `offset`."
+          }
+        },
+        "required": [
+          "window",
+          "by",
+          "currency",
+          "totals",
+          "data",
+          "total"
         ]
       },
       "Wallet": {
@@ -4708,6 +4946,41 @@
                                   "noisy"
                                 ],
                                 "description": "Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks."
+                              },
+                              "cost": {
+                                "type": "object",
+                                "properties": {
+                                  "keywordDays": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Days this month the keyword was charged for: unmuted at the daily tick. A keyword created today reads 0 until tomorrow's tick."
+                                  },
+                                  "keywordCents": {
+                                    "type": "integer",
+                                    "description": "Those days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total."
+                                  },
+                                  "billableMentions": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Matches billed this month, counted when they were scored (the clock the ledger settles by), so it can trail thisMonth by the matches still being scored and never counts one that failed to score."
+                                  },
+                                  "mentionCents": {
+                                    "type": "integer",
+                                    "description": "Those matches at $0.008 each, rounded once on the total."
+                                  },
+                                  "totalCents": {
+                                    "type": "integer",
+                                    "description": "keywordCents plus mentionCents: what this keyword has cost this month, in USD cents."
+                                  }
+                                },
+                                "required": [
+                                  "keywordDays",
+                                  "keywordCents",
+                                  "billableMentions",
+                                  "mentionCents",
+                                  "totalCents"
+                                ],
+                                "description": "What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding."
                               }
                             },
                             "required": [
@@ -4717,7 +4990,8 @@
                               "thisMonth",
                               "lastMentionAt",
                               "feedback",
-                              "noise"
+                              "noise",
+                              "cost"
                             ],
                             "description": "Computed over this workspace's matches."
                           },
@@ -11647,6 +11921,133 @@
           },
           "401": {
             "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/usage/breakdown": {
+      "get": {
+        "operationId": "getUsageBreakdown",
+        "summary": "Get the usage breakdown",
+        "description": "What the workspace consumed and was charged over a window, grouped by one dimension per call (`by`: day, platform or keyword), in USD cents at list price, with the window's totals on every call. `range` reads a trailing window of UTC days ending today (default 30d); `month` reads one calendar month (YYYY-MM), the shape a bill or a per-customer margin is reconciled against. Keyword-days come from the daily tick and mention charges from the matches that billed, so a deleted keyword keeps its charges in the keyword rows (`keyword.removed`) while its mention counts read 0; the same numbers ride on each keyword as `stats.cost` for the running month. `totals.ledgerDebitCents` is what the wallet has debited so far for the window's days: mentions settle the morning after their day, so a window ending today lags `totals.totalCents` by the unsettled ones, and a closed month differs from it only by cumulative rounding. Rows are paged (`limit`, `offset`, `total`); a workspace may read this at most 30 times a minute through its keys and tokens together.",
+        "tags": [
+          "Usage"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "day",
+                "platform",
+                "keyword"
+              ],
+              "default": "keyword",
+              "description": "The dimension to group by: day (one row per UTC day of the window), platform, or keyword (default: the row a margin is computed from)."
+            },
+            "required": false,
+            "description": "The dimension to group by: day (one row per UTC day of the window), platform, or keyword (default: the row a margin is computed from).",
+            "name": "by",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "7d",
+                "30d",
+                "90d"
+              ],
+              "description": "Trailing window of UTC days ending today: 7d, 30d, 90d (default 30d). Ignored when `month` is given."
+            },
+            "required": false,
+            "description": "Trailing window of UTC days ending today: 7d, 30d, 90d (default 30d). Ignored when `month` is given.",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+              "description": "A calendar month (YYYY-MM, UTC) instead of a trailing window: from its first day to its last, or to today for the running month. A future month is a 400."
+            },
+            "required": false,
+            "description": "A calendar month (YYYY-MM, UTC) instead of a trailing window: from its first day to its last, or to today for the running month. A future month is a 400.",
+            "name": "month",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100,
+              "description": "Rows per page, 1 to 500 (default 100). Only by=keyword can outgrow a page; a window has at most 90 days and a dozen platforms."
+            },
+            "required": false,
+            "description": "Rows per page, 1 to 500 (default 100). Only by=keyword can outgrow a page; a window has at most 90 days and a dozen platforms.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Skip this many rows."
+            },
+            "required": false,
+            "description": "Skip this many rows.",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The window's totals and one page of rows for the dimension",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageBreakdown"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown dimension or range, month malformed or in the future, limit out of range",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than 30 breakdown reads this minute for the workspace",
             "content": {
               "application/json": {
                 "schema": {
