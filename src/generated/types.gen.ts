@@ -2218,6 +2218,10 @@ export type WebhookChannel = {
             [key: string]: string;
         };
         /**
+         * The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes. Empty when it receives none; mention and digest deliveries come through rules as before.
+         */
+        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed'>;
+        /**
          * Only on creation and rotation. Signs every request: X-Mentions-Signature-V2 is v2= plus the hex HMAC-SHA256 of "<X-Mentions-Timestamp>.<raw body>" (reject a timestamp older than a few minutes); X-Mentions-Signature, the hex HMAC-SHA256 of the raw body alone, stays for older verifiers.
          */
         secret?: string;
@@ -2314,6 +2318,10 @@ export type CreateWebhookChannel = {
     headers?: {
         [key: string]: string;
     };
+    /**
+     * Account events to receive at this endpoint (keyword and wallet state changes), on top of whatever rules send here. Omit for none.
+     */
+    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed'>;
 };
 
 export type GetHealthData = {
@@ -6765,6 +6773,10 @@ export type UpdateChannelData = {
         headers?: {
             [key: string]: string;
         };
+        /**
+         * Webhooks only; replaces the whole set of account events the endpoint receives. An empty list unsubscribes it from all of them.
+         */
+        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed'>;
     };
     path: {
         /**
@@ -6909,7 +6921,14 @@ export type ListChannelDeliveriesResponses = {
              * Delivery id (dlv_...), also the webhook payload id.
              */
             id: string;
-            kind: 'mention' | 'digest';
+            /**
+             * mention: an instant rule's delivery. digest: a daily or weekly summary. event: an account event the channel subscribed to.
+             */
+            kind: 'mention' | 'digest' | 'event';
+            /**
+             * The event name the payload carried: the rule's (mention.matched unless it set one, digest for a summary) or the account event's.
+             */
+            event: string;
             status: 'pending' | 'delivered' | 'failed';
             attempts: number;
             /**
@@ -6925,7 +6944,7 @@ export type ListChannelDeliveriesResponses = {
              */
             createdAt: string;
             /**
-             * The alert that produced it; name only, since alerts can be deleted.
+             * The alert that produced it; name only, since alerts can be deleted. name is null for an account event, which no rule produces.
              */
             alert: {
                 name: string | null;

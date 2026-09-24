@@ -4160,6 +4160,22 @@
                 },
                 "description": "Extra request headers you configured."
               },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "keyword.capped",
+                    "keyword.paused_for_balance",
+                    "keyword.resumed",
+                    "wallet.low",
+                    "wallet.paused",
+                    "wallet.resumed"
+                  ],
+                  "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back."
+                },
+                "description": "The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes. Empty when it receives none; mention and digest deliveries come through rules as before."
+              },
               "secret": {
                 "type": "string",
                 "description": "Only on creation and rotation. Signs every request: X-Mentions-Signature-V2 is v2= plus the hex HMAC-SHA256 of \"<X-Mentions-Timestamp>.<raw body>\" (reject a timestamp older than a few minutes); X-Mentions-Signature, the hex HMAC-SHA256 of the raw body alone, stays for older verifiers."
@@ -4167,7 +4183,8 @@
             },
             "required": [
               "url",
-              "headers"
+              "headers",
+              "events"
             ]
           }
         },
@@ -4381,6 +4398,23 @@
               "maxLength": 1024
             },
             "description": "Extra request headers to send, for your own auth."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "keyword.capped",
+                "keyword.paused_for_balance",
+                "keyword.resumed",
+                "wallet.low",
+                "wallet.paused",
+                "wallet.resumed"
+              ],
+              "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back."
+            },
+            "maxItems": 6,
+            "description": "Account events to receive at this endpoint (keyword and wallet state changes), on top of whatever rules send here. Omit for none."
           }
         },
         "required": [
@@ -14458,6 +14492,23 @@
                       "maxLength": 1024
                     },
                     "description": "Webhooks only; replaces the whole set."
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "keyword.capped",
+                        "keyword.paused_for_balance",
+                        "keyword.resumed",
+                        "wallet.low",
+                        "wallet.paused",
+                        "wallet.resumed"
+                      ],
+                      "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back."
+                    },
+                    "maxItems": 6,
+                    "description": "Webhooks only; replaces the whole set of account events the endpoint receives. An empty list unsubscribes it from all of them."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -14755,8 +14806,14 @@
                             "type": "string",
                             "enum": [
                               "mention",
-                              "digest"
-                            ]
+                              "digest",
+                              "event"
+                            ],
+                            "description": "mention: an instant rule's delivery. digest: a daily or weekly summary. event: an account event the channel subscribed to."
+                          },
+                          "event": {
+                            "type": "string",
+                            "description": "The event name the payload carried: the rule's (mention.matched unless it set one, digest for a summary) or the account event's."
                           },
                           "status": {
                             "type": "string",
@@ -14794,7 +14851,7 @@
                             "required": [
                               "name"
                             ],
-                            "description": "The alert that produced it; name only, since alerts can be deleted."
+                            "description": "The alert that produced it; name only, since alerts can be deleted. name is null for an account event, which no rule produces."
                           },
                           "mention": {
                             "type": "object",
@@ -14821,6 +14878,7 @@
                         "required": [
                           "id",
                           "kind",
+                          "event",
                           "status",
                           "attempts",
                           "error",
