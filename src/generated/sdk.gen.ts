@@ -398,7 +398,7 @@ export const listGroups = <ThrowOnError extends boolean = false>(options?: Optio
 /**
  * Create a group
  *
- * Create a keyword group. `name` is unique per workspace; `externalId` (optional, unique too) is your own id for it, a customer id say, so you can find it again without storing ours. Then pass the group id as `groupId` when creating a keyword.
+ * Create a keyword group. `name` is unique per workspace; `externalId` (optional, unique too) is your own id for it, a customer id say, so you can find it again without storing ours; `context` (optional) is the group's own company description, which the classifier reads in place of the whole workspace profile for the group's keywords. Then pass the group id as `groupId` when creating a keyword.
  */
 export const createGroup = <ThrowOnError extends boolean = false>(options: Options<CreateGroupData, ThrowOnError>): RequestResult<CreateGroupResponses, CreateGroupErrors, ThrowOnError> => (options.client ?? client).post<CreateGroupResponses, CreateGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -433,7 +433,7 @@ export const getGroup = <ThrowOnError extends boolean = false>(options: Options<
 /**
  * Update a group
  *
- * Rename a group or change your id for it (`externalId`, null clears). The default group can be renamed like any other.
+ * Rename a group, change your id for it (`externalId`, null clears) or its company description (`context`, null clears: the workspace profile applies again; new mentions are judged with it at once, old ones are not rescored). The default group can be renamed like any other but takes no description: it is the workspace itself and reads the company profile.
  */
 export const updateGroup = <ThrowOnError extends boolean = false>(options: Options<UpdateGroupData, ThrowOnError>): RequestResult<UpdateGroupResponses, UpdateGroupErrors, ThrowOnError> => (options.client ?? client).patch<UpdateGroupResponses, UpdateGroupErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

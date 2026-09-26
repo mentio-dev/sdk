@@ -122,7 +122,7 @@
             "type": "string",
             "nullable": true,
             "maxLength": 300,
-            "description": "A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+            "description": "A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
           },
           "matching": {
             "type": "object",
@@ -399,6 +399,7 @@
                   "duplicate_view",
                   "duplicate_group",
                   "default_group",
+                  "default_group_context",
                   "group_changed",
                   "invalid_signature",
                   "webhook_not_configured",
@@ -1845,6 +1846,11 @@
           {
             "type": "object",
             "properties": {
+              "context": {
+                "type": "string",
+                "nullable": true,
+                "description": "The group's own company description for the classifier, or null for the workspace profile."
+              },
               "stats": {
                 "type": "object",
                 "properties": {
@@ -1875,6 +1881,7 @@
               }
             },
             "required": [
+              "context",
               "stats",
               "createdAt",
               "updatedAt"
@@ -4698,7 +4705,7 @@
                     "type": "string",
                     "nullable": true,
                     "maxLength": 300,
-                    "description": "A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+                    "description": "A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
                   },
                   "matching": {
                     "type": "object",
@@ -5059,7 +5066,7 @@
                             "type": "string",
                             "nullable": true,
                             "maxLength": 300,
-                            "description": "A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+                            "description": "A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
                           },
                           "matching": {
                             "type": "object",
@@ -5466,7 +5473,7 @@
                     "type": "string",
                     "nullable": true,
                     "maxLength": 300,
-                    "description": "A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+                    "description": "A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
                   },
                   "matching": {
                     "type": "object",
@@ -11506,6 +11513,11 @@
                           {
                             "type": "object",
                             "properties": {
+                              "context": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "The group's own company description for the classifier, or null for the workspace profile."
+                              },
                               "stats": {
                                 "type": "object",
                                 "properties": {
@@ -11536,6 +11548,7 @@
                               }
                             },
                             "required": [
+                              "context",
                               "stats",
                               "createdAt",
                               "updatedAt"
@@ -11569,7 +11582,7 @@
       "post": {
         "operationId": "createGroup",
         "summary": "Create a group",
-        "description": "Create a keyword group. `name` is unique per workspace; `externalId` (optional, unique too) is your own id for it, a customer id say, so you can find it again without storing ours. Then pass the group id as `groupId` when creating a keyword.",
+        "description": "Create a keyword group. `name` is unique per workspace; `externalId` (optional, unique too) is your own id for it, a customer id say, so you can find it again without storing ours; `context` (optional) is the group's own company description, which the classifier reads in place of the whole workspace profile for the group's keywords. Then pass the group id as `groupId` when creating a keyword.",
         "tags": [
           "Groups"
         ],
@@ -11597,6 +11610,12 @@
                     "minLength": 1,
                     "maxLength": 128,
                     "description": "Your own id for the group (a customer id, say). Unique per workspace; find the group by it with GET /v1/groups?externalId=."
+                  },
+                  "context": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 4000,
+                    "description": "What the classifier reads as \"the company\" for this group's keywords, in place of the WHOLE workspace profile, its relevance guidelines and competitor list included (at most 4000 characters): who the business is, what it sells, for whom, what is not it, and any rule that should apply to this group (\"ignore job posts\"). For a group per customer, the customer's description. Null: the workspace profile, as for every keyword before groups."
                   }
                 },
                 "required": [
@@ -11702,7 +11721,7 @@
       "patch": {
         "operationId": "updateGroup",
         "summary": "Update a group",
-        "description": "Rename a group or change your id for it (`externalId`, null clears). The default group can be renamed like any other.",
+        "description": "Rename a group, change your id for it (`externalId`, null clears) or its company description (`context`, null clears: the workspace profile applies again; new mentions are judged with it at once, old ones are not rescored). The default group can be renamed like any other but takes no description: it is the workspace itself and reads the company profile.",
         "tags": [
           "Groups"
         ],
@@ -11744,6 +11763,12 @@
                     "minLength": 1,
                     "maxLength": 128,
                     "description": "Replaces your id for the group; null clears it."
+                  },
+                  "context": {
+                    "type": "string",
+                    "nullable": true,
+                    "maxLength": 4000,
+                    "description": "Replaces the group's company description; null clears it (the workspace profile applies again). New mentions are judged with it at once; old ones are not rescored. Not on the default group (400 default_group_context): that one is the workspace itself and reads the profile."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -11758,6 +11783,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A company description on the default group (default_group_context)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -16016,6 +16051,13 @@
       "source": "user",
       "retryable": false,
       "description": "Every workspace keeps one default group, where a keyword lands when no group is named."
+    },
+    {
+      "code": "default_group_context",
+      "status": 400,
+      "source": "user",
+      "retryable": false,
+      "description": "The default group is the workspace itself: its company is the profile (PATCH /v1/company). A company description goes on any other group."
     },
     {
       "code": "group_changed",

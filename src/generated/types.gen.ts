@@ -60,7 +60,7 @@ export type Keyword = {
      */
     platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'> | null;
     /**
-     * A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+     * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
      */
     context: string | null;
     /**
@@ -199,7 +199,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -869,6 +869,10 @@ export type View = {
  * The group the keyword belongs to.
  */
 export type Group = GroupRef & {
+    /**
+     * The group's own company description for the classifier, or null for the workspace profile.
+     */
+    context: string | null;
     /**
      * Computed over the group's keywords.
      */
@@ -2524,7 +2528,7 @@ export type ListKeywordsResponses = {
              */
             platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'> | null;
             /**
-             * A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+             * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
              */
             context: string | null;
             /**
@@ -2678,7 +2682,7 @@ export type CreateKeywordData = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'> | null;
         /**
-         * A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+         * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
          */
         context?: string | null;
         /**
@@ -2837,7 +2841,7 @@ export type UpdateKeywordData = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'> | null;
         /**
-         * A sentence the classifier reads for this keyword only, on top of the company profile (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+         * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
          */
         context?: string | null;
         /**
@@ -5305,6 +5309,10 @@ export type ListGroupsResponses = {
          */
         data: Array<GroupRef & {
             /**
+             * The group's own company description for the classifier, or null for the workspace profile.
+             */
+            context: string | null;
+            /**
              * Computed over the group's keywords.
              */
             stats: {
@@ -5341,6 +5349,10 @@ export type CreateGroupData = {
          * Your own id for the group (a customer id, say). Unique per workspace; find the group by it with GET /v1/groups?externalId=.
          */
         externalId?: string | null;
+        /**
+         * What the classifier reads as "the company" for this group's keywords, in place of the WHOLE workspace profile, its relevance guidelines and competitor list included (at most 4000 characters): who the business is, what it sells, for whom, what is not it, and any rule that should apply to this group ("ignore job posts"). For a group per customer, the customer's description. Null: the workspace profile, as for every keyword before groups.
+         */
+        context?: string | null;
     };
     path?: never;
     query?: never;
@@ -5454,6 +5466,10 @@ export type UpdateGroupData = {
          * Replaces your id for the group; null clears it.
          */
         externalId?: string | null;
+        /**
+         * Replaces the group's company description; null clears it (the workspace profile applies again). New mentions are judged with it at once; old ones are not rescored. Not on the default group (400 default_group_context): that one is the workspace itself and reads the profile.
+         */
+        context?: string | null;
     };
     path: {
         /**
@@ -5466,6 +5482,10 @@ export type UpdateGroupData = {
 };
 
 export type UpdateGroupErrors = {
+    /**
+     * A company description on the default group (default_group_context)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
