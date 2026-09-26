@@ -1,6 +1,6 @@
 {
   "name": "@mentio-dev/sdk",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "TypeScript SDK for the Mentio API, generated from its OpenAPI document.",
   "license": "MIT",
   "homepage": "https://docs.mentio.dev/sdks",
