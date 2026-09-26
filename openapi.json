@@ -112,7 +112,8 @@
                 "x",
                 "youtube",
                 "news",
-                "linkedin"
+                "linkedin",
+                "tiktok"
               ]
             },
             "minItems": 1,
@@ -317,9 +318,10 @@
                     "x",
                     "youtube",
                     "news",
-                    "linkedin"
+                    "linkedin",
+                    "tiktok"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                 },
                 "lastPolledAt": {
                   "type": "string",
@@ -577,9 +579,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "url": {
                 "type": "string",
@@ -948,7 +951,8 @@
               "x",
               "youtube",
               "news",
-              "linkedin"
+              "linkedin",
+              "tiktok"
             ],
             "description": "Platform of the canonical account; `accounts` lists every account."
           },
@@ -992,9 +996,10 @@
                     "x",
                     "youtube",
                     "news",
-                    "linkedin"
+                    "linkedin",
+                    "tiktok"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                 },
                 "name": {
                   "type": "string",
@@ -1355,9 +1360,10 @@
                     "x",
                     "youtube",
                     "news",
-                    "linkedin"
+                    "linkedin",
+                    "tiktok"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                 },
                 "maxItems": 20,
                 "description": "People with an account on any of these platforms."
@@ -1442,9 +1448,10 @@
                     "x",
                     "youtube",
                     "news",
-                    "linkedin"
+                    "linkedin",
+                    "tiktok"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                 },
                 "maxItems": 20,
                 "description": "Nobody with an account on these platforms."
@@ -1631,9 +1638,10 @@
                     "x",
                     "youtube",
                     "news",
-                    "linkedin"
+                    "linkedin",
+                    "tiktok"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -1652,9 +1660,10 @@
                     "x",
                     "youtube",
                     "news",
-                    "linkedin"
+                    "linkedin",
+                    "tiktok"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -2863,9 +2872,10 @@
                     "x",
                     "youtube",
                     "news",
-                    "linkedin"
+                    "linkedin",
+                    "tiktok"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                 },
                 "description": "Only posts from these platforms."
               },
@@ -3794,9 +3804,10 @@
                         "x",
                         "youtube",
                         "news",
-                        "linkedin"
+                        "linkedin",
+                        "tiktok"
                       ],
-                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                     },
                     "url": {
                       "type": "string",
@@ -4695,7 +4706,8 @@
                         "x",
                         "youtube",
                         "news",
-                        "linkedin"
+                        "linkedin",
+                        "tiktok"
                       ]
                     },
                     "minItems": 1,
@@ -4924,9 +4936,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated."
@@ -5056,7 +5069,8 @@
                                 "x",
                                 "youtube",
                                 "news",
-                                "linkedin"
+                                "linkedin",
+                                "tiktok"
                               ]
                             },
                             "minItems": 1,
@@ -5261,9 +5275,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "lastPolledAt": {
                                   "type": "string",
@@ -5463,7 +5478,8 @@
                         "x",
                         "youtube",
                         "news",
-                        "linkedin"
+                        "linkedin",
+                        "tiktok"
                       ]
                     },
                     "minItems": 1,
@@ -6028,7 +6044,8 @@
                 "x",
                 "youtube",
                 "news",
-                "linkedin"
+                "linkedin",
+                "tiktok"
               ],
               "description": "Only posts from this platform."
             },
@@ -6306,9 +6323,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -6333,9 +6351,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -6710,7 +6729,8 @@
                 "x",
                 "youtube",
                 "news",
-                "linkedin"
+                "linkedin",
+                "tiktok"
               ],
               "description": "Only posts from this platform."
             },
@@ -6988,9 +7008,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -7015,9 +7036,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -7337,7 +7359,8 @@
                 "x",
                 "youtube",
                 "news",
-                "linkedin"
+                "linkedin",
+                "tiktok"
               ],
               "description": "People with an account on this platform."
             },
@@ -7417,9 +7440,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -7524,9 +7548,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -7786,7 +7811,8 @@
                 "x",
                 "youtube",
                 "news",
-                "linkedin"
+                "linkedin",
+                "tiktok"
               ],
               "description": "People with an account on this platform."
             },
@@ -7866,9 +7892,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -7973,9 +8000,10 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -8209,7 +8237,8 @@
                               "x",
                               "youtube",
                               "news",
-                              "linkedin"
+                              "linkedin",
+                              "tiktok"
                             ],
                             "description": "Platform of the canonical account; `accounts` lists every account."
                           },
@@ -8253,9 +8282,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "name": {
                                   "type": "string",
@@ -9258,9 +9288,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -9345,9 +9376,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -9481,9 +9513,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -9568,9 +9601,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -9724,9 +9758,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -9811,9 +9846,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -10061,9 +10097,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -10148,9 +10185,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -10439,9 +10477,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts from any of these platforms."
@@ -10460,9 +10499,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "maxItems": 20,
                                 "description": "Never posts from these platforms."
@@ -10771,9 +10811,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -10792,9 +10833,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -11177,9 +11219,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -11198,9 +11241,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -13337,9 +13381,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -13653,9 +13698,10 @@
                                     "x",
                                     "youtube",
                                     "news",
-                                    "linkedin"
+                                    "linkedin",
+                                    "tiktok"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                                 },
                                 "description": "Only posts from these platforms."
                               },
@@ -13944,9 +13990,10 @@
                             "x",
                             "youtube",
                             "news",
-                            "linkedin"
+                            "linkedin",
+                            "tiktok"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok."
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -14602,7 +14649,8 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ]
               },
               "maxItems": 20,
@@ -14753,7 +14801,8 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ]
               },
               "maxItems": 20,
@@ -14935,7 +14984,8 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ]
               },
               "maxItems": 20,
@@ -15106,7 +15156,8 @@
                   "x",
                   "youtube",
                   "news",
-                  "linkedin"
+                  "linkedin",
+                  "tiktok"
                 ]
               },
               "maxItems": 20,
