@@ -58,7 +58,7 @@ export type Keyword = {
     /**
      * Platforms this keyword is tracked on; null means every platform.
      */
-    platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'> | null;
+    platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
     /**
      * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
      */
@@ -173,9 +173,9 @@ export type Keyword = {
      */
     polling: Array<{
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok.
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
         /**
          * Newest poll of this platform for the term; null until the first one.
          */
@@ -287,9 +287,9 @@ export type Mention = {
     };
     post: {
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok.
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
         /**
          * Permalink of the post.
          */
@@ -471,7 +471,7 @@ export type Person = {
     /**
      * Platform of the canonical account; `accounts` lists every account.
      */
-    platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+    platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
     /**
      * Display name as of their newest post; null when the platform has none.
      */
@@ -494,9 +494,9 @@ export type Person = {
          */
         id: string;
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok.
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
         /**
          * Display name as the platform reports it.
          */
@@ -654,7 +654,7 @@ export type Segment = {
         /**
          * People with an account on any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * People carrying any of these tags.
          */
@@ -690,7 +690,7 @@ export type Segment = {
         /**
          * Nobody with an account on these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Nobody carrying any of these tags.
          */
@@ -773,11 +773,11 @@ export type View = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Only mentions in this status: open, ignored, done.
          */
@@ -1497,7 +1497,7 @@ export type Alert = {
         /**
          * Only posts from these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
          */
@@ -2015,9 +2015,9 @@ export type AnalyticsBreakdown = {
              */
             name: string | null;
             /**
-             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok.
+             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
              */
-            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
             /**
              * Profile URL.
              */
@@ -2459,7 +2459,7 @@ export type ListKeywordsData = {
         /**
          * Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated.
          */
-        platform?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platform?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * newest: created most recently first. oldest: the reverse. term: A to Z. mentions: most matches first. relevant: most relevant matches first. recent: most matches in the last 7 days first. lastMention: newest matched post first, keywords with none last.
          */
@@ -2526,7 +2526,7 @@ export type ListKeywordsResponses = {
             /**
              * Platforms this keyword is tracked on; null means every platform.
              */
-            platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'> | null;
+            platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
             /**
              * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
              */
@@ -2641,9 +2641,9 @@ export type ListKeywordsResponses = {
              */
             polling: Array<{
                 /**
-                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok.
+                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
                  */
-                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
                 /**
                  * Newest poll of this platform for the term; null until the first one.
                  */
@@ -2680,7 +2680,7 @@ export type CreateKeywordData = {
         /**
          * Platforms to track it on; omit or null for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'> | null;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
         /**
          * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
          */
@@ -2839,7 +2839,7 @@ export type UpdateKeywordData = {
         /**
          * Replaces the platform list; null means every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'> | null;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
         /**
          * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
          */
@@ -3117,7 +3117,7 @@ export type SearchMentionsData = {
         /**
          * Only posts from this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
         /**
          * Only mentions in this status. Omit for every status.
          */
@@ -3201,11 +3201,11 @@ export type SearchMentionsData = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Only matches of any of these keywords.
          */
@@ -3321,7 +3321,7 @@ export type ExportMentionsCsvData = {
         /**
          * Only posts from this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
         /**
          * Only mentions in this status. Omit for every status.
          */
@@ -3405,11 +3405,11 @@ export type ExportMentionsCsvData = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Only matches of any of these keywords.
          */
@@ -3507,7 +3507,7 @@ export type ExportPeopleCsvData = {
         /**
          * People with an account on this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
         /**
          * Matches the display name or the profile handle or URL, case-insensitively.
          */
@@ -3531,7 +3531,7 @@ export type ExportPeopleCsvData = {
         /**
          * People with an account on any of these platforms. Repeatable, or comma-separated.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * People carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -3559,7 +3559,7 @@ export type ExportPeopleCsvData = {
         /**
          * Nobody with an account on these platforms. Repeatable, or comma-separated.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Nobody carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -3641,7 +3641,7 @@ export type ListPeopleData = {
         /**
          * People with an account on this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
         /**
          * Matches the display name or the profile handle or URL, case-insensitively.
          */
@@ -3665,7 +3665,7 @@ export type ListPeopleData = {
         /**
          * People with an account on any of these platforms. Repeatable, or comma-separated.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * People carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -3693,7 +3693,7 @@ export type ListPeopleData = {
         /**
          * Nobody with an account on these platforms. Repeatable, or comma-separated.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * Nobody carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -3776,7 +3776,7 @@ export type ListPeopleResponses = {
             /**
              * Platform of the canonical account; `accounts` lists every account.
              */
-            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
             /**
              * Display name as of their newest post; null when the platform has none.
              */
@@ -3799,9 +3799,9 @@ export type ListPeopleResponses = {
                  */
                 id: string;
                 /**
-                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok.
+                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
                  */
-                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok';
+                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
                 /**
                  * Display name as the platform reports it.
                  */
@@ -4281,7 +4281,7 @@ export type ListSegmentsResponses = {
                 /**
                  * People with an account on any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
                 /**
                  * People carrying any of these tags.
                  */
@@ -4317,7 +4317,7 @@ export type ListSegmentsResponses = {
                 /**
                  * Nobody with an account on these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
                 /**
                  * Nobody carrying any of these tags.
                  */
@@ -4375,7 +4375,7 @@ export type ListSegmentsResponses = {
                 /**
                  * People with an account on any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
                 /**
                  * People carrying any of these tags.
                  */
@@ -4411,7 +4411,7 @@ export type ListSegmentsResponses = {
                 /**
                  * Nobody with an account on these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
                 /**
                  * Nobody carrying any of these tags.
                  */
@@ -4459,7 +4459,7 @@ export type CreateSegmentData = {
             /**
              * People with an account on any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * People carrying any of these tags.
              */
@@ -4495,7 +4495,7 @@ export type CreateSegmentData = {
             /**
              * Nobody with an account on these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * Nobody carrying any of these tags.
              */
@@ -4643,7 +4643,7 @@ export type UpdateSegmentData = {
             /**
              * People with an account on any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * People carrying any of these tags.
              */
@@ -4679,7 +4679,7 @@ export type UpdateSegmentData = {
             /**
              * Nobody with an account on these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * Nobody carrying any of these tags.
              */
@@ -4809,11 +4809,11 @@ export type ListViewsResponses = {
                 /**
                  * Only posts from any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
                 /**
                  * Never posts from these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
                 /**
                  * Only mentions in this status: open, ignored, done.
                  */
@@ -4946,11 +4946,11 @@ export type CreateViewData = {
             /**
              * Only posts from any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * Never posts from these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * Only mentions in this status: open, ignored, done.
              */
@@ -5159,11 +5159,11 @@ export type UpdateViewData = {
             /**
              * Only posts from any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * Never posts from these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * Only mentions in this status: open, ignored, done.
              */
@@ -6319,7 +6319,7 @@ export type UpdateAlertData = {
             /**
              * Only posts from these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
              */
@@ -6457,7 +6457,7 @@ export type ListAlertsResponses = {
                 /**
                  * Only posts from these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
                 /**
                  * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
                  */
@@ -6568,7 +6568,7 @@ export type CreateAlertData = {
             /**
              * Only posts from these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
             /**
              * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
              */
@@ -6860,7 +6860,7 @@ export type GetAnalyticsSummaryData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -6918,7 +6918,7 @@ export type GetAnalyticsSeriesData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -6984,7 +6984,7 @@ export type GetAnalyticsBreakdownData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -7046,7 +7046,7 @@ export type GetShareOfVoiceData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
