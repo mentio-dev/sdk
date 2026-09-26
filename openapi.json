@@ -19,6 +19,35 @@
       }
     },
     "schemas": {
+      "GroupRef": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Group id (grp_...)."
+          },
+          "name": {
+            "type": "string",
+            "description": "The group's name."
+          },
+          "externalId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Your own id for the group, or null."
+          },
+          "isDefault": {
+            "type": "boolean",
+            "description": "The workspace's default group, where a keyword lands when no group is named."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "externalId",
+          "isDefault"
+        ],
+        "description": "The group the keyword belongs to."
+      },
       "Keyword": {
         "type": "object",
         "properties": {
@@ -64,6 +93,9 @@
               "mentions"
             ],
             "description": "The monthly mention cap, or null for none."
+          },
+          "group": {
+            "$ref": "#/components/schemas/GroupRef"
           },
           "platforms": {
             "type": "array",
@@ -320,6 +352,7 @@
           "pausedForBalance",
           "pausedForCap",
           "cap",
+          "group",
           "platforms",
           "context",
           "matching",
@@ -364,6 +397,9 @@
                   "last_owner",
                   "duplicate_segment",
                   "duplicate_view",
+                  "duplicate_group",
+                  "default_group",
+                  "group_changed",
                   "invalid_signature",
                   "webhook_not_configured",
                   "invalid_token",
@@ -507,17 +543,23 @@
             "type": "object",
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "description": "Keyword id (kw_...)."
               },
               "term": {
-                "type": "string"
+                "type": "string",
+                "description": "The tracked term."
+              },
+              "group": {
+                "$ref": "#/components/schemas/GroupRef"
               }
             },
             "required": [
               "id",
-              "term"
+              "term",
+              "group"
             ],
-            "description": "The keyword this post matched."
+            "description": "The keyword this post matched, and the group it is in."
           },
           "post": {
             "type": "object",
@@ -1556,6 +1598,24 @@
                 "maxItems": 3,
                 "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
               },
+              "groupIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "description": "Only matches of keywords in any of these groups (grp_...)."
+              },
+              "notGroupIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "description": "Never matches of keywords in these groups."
+              },
               "platforms": {
                 "type": "array",
                 "items": {
@@ -1776,6 +1836,52 @@
           "createdAt",
           "updatedAt"
         ]
+      },
+      "Group": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GroupRef"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stats": {
+                "type": "object",
+                "properties": {
+                  "keywords": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Keywords in the group, muted ones included."
+                  },
+                  "active": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Keywords in the group that are tracking (not muted)."
+                  }
+                },
+                "required": [
+                  "keywords",
+                  "active"
+                ],
+                "description": "Computed over the group's keywords."
+              },
+              "createdAt": {
+                "type": "string",
+                "description": "ISO 8601 timestamp, UTC."
+              },
+              "updatedAt": {
+                "type": "string",
+                "description": "ISO 8601 timestamp, UTC."
+              }
+            },
+            "required": [
+              "stats",
+              "createdAt",
+              "updatedAt"
+            ]
+          }
+        ],
+        "description": "The group the keyword belongs to."
       },
       "Company": {
         "type": "object",
@@ -2215,7 +2321,8 @@
             "enum": [
               "day",
               "platform",
-              "keyword"
+              "keyword",
+              "group"
             ],
             "description": "The dimension the rows are grouped by."
           },
@@ -2291,11 +2398,11 @@
               "properties": {
                 "key": {
                   "type": "string",
-                  "description": "The group: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword."
+                  "description": "The row's key: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword, the group id for by=group."
                 },
                 "label": {
                   "type": "string",
-                  "description": "Readable name: the keyword term, otherwise the key."
+                  "description": "Readable name: the keyword term or the group name, otherwise the key."
                 },
                 "keyword": {
                   "type": "object",
@@ -2320,6 +2427,30 @@
                     "removed"
                   ],
                   "description": "by=keyword only; null otherwise."
+                },
+                "group": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Group id, or \"none\" for keyword-days metered before groups existed whose keyword is gone."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The group's name as it reads now, or \"Deleted group\" / \"No group\"."
+                    },
+                    "removed": {
+                      "type": "boolean",
+                      "description": "The group has since been deleted."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "removed"
+                  ],
+                  "description": "by=group only; null otherwise."
                 },
                 "keywordDays": {
                   "type": "integer",
@@ -2354,6 +2485,7 @@
                 "key",
                 "label",
                 "keyword",
+                "group",
                 "keywordDays",
                 "keywordCents",
                 "matchedMentions",
@@ -2702,6 +2834,13 @@
                   "type": "string"
                 },
                 "description": "Only these keywords."
+              },
+              "groupIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Only keywords in these groups (grp_...): one rule per customer, say."
               },
               "platforms": {
                 "type": "array",
@@ -3316,12 +3455,23 @@
                         "topic"
                       ],
                       "description": "brand, competitor or topic."
+                    },
+                    "group": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/GroupRef"
+                        },
+                        {
+                          "description": "The group the keyword is in."
+                        }
+                      ]
                     }
                   },
                   "required": [
                     "id",
                     "term",
-                    "kind"
+                    "kind",
+                    "group"
                   ],
                   "description": "Set when split by keyword; null otherwise."
                 },
@@ -3421,12 +3571,23 @@
                         "topic"
                       ],
                       "description": "brand, competitor or topic."
+                    },
+                    "group": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/GroupRef"
+                        },
+                        {
+                          "description": "The group the keyword is in."
+                        }
+                      ]
                     }
                   },
                   "required": [
                     "id",
                     "term",
-                    "kind"
+                    "kind",
+                    "group"
                   ],
                   "description": "Set when split by keyword; null otherwise."
                 },
@@ -3580,12 +3741,23 @@
                         "topic"
                       ],
                       "description": "brand, competitor or topic."
+                    },
+                    "group": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/GroupRef"
+                        },
+                        {
+                          "description": "The group the keyword is in."
+                        }
+                      ]
                     }
                   },
                   "required": [
                     "id",
                     "term",
-                    "kind"
+                    "kind",
+                    "group"
                   ],
                   "description": "by=keyword only; null otherwise."
                 },
@@ -3817,12 +3989,23 @@
                         "topic"
                       ],
                       "description": "brand, competitor or topic."
+                    },
+                    "group": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/GroupRef"
+                        },
+                        {
+                          "description": "The group the keyword is in."
+                        }
+                      ]
                     }
                   },
                   "required": [
                     "id",
                     "term",
-                    "kind"
+                    "kind",
+                    "group"
                   ],
                   "description": "The keyword this row is about."
                 },
@@ -4580,6 +4763,11 @@
                       "mentions"
                     ],
                     "description": "A monthly mention cap; omit or null for none."
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The group to track it in (grp_...); omit for the workspace's default group. A term may be tracked once per group."
                   }
                 },
                 "required": [
@@ -4655,6 +4843,23 @@
             "required": false,
             "description": "Text to find in the term or in the keyword's context, case-insensitive.",
             "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only keywords in any of these groups (grp_...). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only keywords in any of these groups (grp_...). Repeatable, or comma-separated.",
+            "name": "groupId",
             "in": "query"
           },
           {
@@ -4825,6 +5030,9 @@
                               "mentions"
                             ],
                             "description": "The monthly mention cap, or null for none."
+                          },
+                          "group": {
+                            "$ref": "#/components/schemas/GroupRef"
                           },
                           "platforms": {
                             "type": "array",
@@ -5081,6 +5289,7 @@
                           "pausedForBalance",
                           "pausedForCap",
                           "cap",
+                          "group",
                           "platforms",
                           "context",
                           "matching",
@@ -5322,6 +5531,11 @@
                       "mentions"
                     ],
                     "description": "Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it."
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "Moves the keyword to this group (grp_...). A 409 when that group already tracks the term."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -6151,6 +6365,40 @@
                 "maxLength": 200
               },
               "maxItems": 50,
+              "description": "Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated.",
+            "name": "groupIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never matches of keywords in these groups."
+            },
+            "required": false,
+            "description": "Never matches of keywords in these groups.",
+            "name": "notGroupIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
               "description": "Never matches of these keywords."
             },
             "required": false,
@@ -6787,6 +7035,40 @@
             "required": false,
             "description": "Only matches of any of these keywords.",
             "name": "keywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated.",
+            "name": "groupIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never matches of keywords in these groups."
+            },
+            "required": false,
+            "description": "Never matches of keywords in these groups.",
+            "name": "notGroupIds",
             "in": "query"
           },
           {
@@ -10118,6 +10400,24 @@
                                 "maxItems": 3,
                                 "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
                               },
+                              "groupIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "maxItems": 50,
+                                "description": "Only matches of keywords in any of these groups (grp_...)."
+                              },
+                              "notGroupIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "maxItems": 50,
+                                "description": "Never matches of keywords in these groups."
+                              },
                               "platforms": {
                                 "type": "array",
                                 "items": {
@@ -10431,6 +10731,24 @@
                         },
                         "maxItems": 3,
                         "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                      },
+                      "groupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Only matches of keywords in any of these groups (grp_...)."
+                      },
+                      "notGroupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Never matches of keywords in these groups."
                       },
                       "platforms": {
                         "type": "array",
@@ -10820,6 +11138,24 @@
                         "maxItems": 3,
                         "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
                       },
+                      "groupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Only matches of keywords in any of these groups (grp_...)."
+                      },
+                      "notGroupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Never matches of keywords in these groups."
+                      },
                       "platforms": {
                         "type": "array",
                         "items": {
@@ -11114,6 +11450,402 @@
           },
           "404": {
             "description": "No such view in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groups": {
+      "get": {
+        "operationId": "listGroups",
+        "summary": "List groups",
+        "description": "The keyword groups of the workspace, the default group first, then oldest first. A group is how keywords are grouped (a customer, a campaign, a product): a term may be tracked once per group, every keyword belongs to one, and GET /v1/usage/breakdown?by=group says what each group cost. Pass `externalId` to find the group carrying your own id.",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128,
+              "description": "Only the group carrying exactly this externalId."
+            },
+            "required": false,
+            "description": "Only the group carrying exactly this externalId.",
+            "name": "externalId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The groups",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/GroupRef"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "stats": {
+                                "type": "object",
+                                "properties": {
+                                  "keywords": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Keywords in the group, muted ones included."
+                                  },
+                                  "active": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Keywords in the group that are tracking (not muted)."
+                                  }
+                                },
+                                "required": [
+                                  "keywords",
+                                  "active"
+                                ],
+                                "description": "Computed over the group's keywords."
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "description": "ISO 8601 timestamp, UTC."
+                              },
+                              "updatedAt": {
+                                "type": "string",
+                                "description": "ISO 8601 timestamp, UTC."
+                              }
+                            },
+                            "required": [
+                              "stats",
+                              "createdAt",
+                              "updatedAt"
+                            ]
+                          }
+                        ],
+                        "description": "The group the keyword belongs to."
+                      },
+                      "description": "The workspace's groups, the default first, then oldest first."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createGroup",
+        "summary": "Create a group",
+        "description": "Create a keyword group. `name` is unique per workspace; `externalId` (optional, unique too) is your own id for it, a customer id say, so you can find it again without storing ours. Then pass the group id as `groupId` when creating a keyword.",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "description": "The group's name: a customer, a campaign, a product. Unique per workspace."
+                  },
+                  "externalId": {
+                    "type": "string",
+                    "nullable": true,
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Your own id for the group (a customer id, say). Unique per workspace; find the group by it with GET /v1/groups?externalId=."
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A group with that name or externalId already exists (duplicate_group)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/groups/{id}": {
+      "get": {
+        "operationId": "getGroup",
+        "summary": "Get a group",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Group id (grp_...).",
+              "example": "grp_abc123"
+            },
+            "required": true,
+            "description": "Group id (grp_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such group in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateGroup",
+        "summary": "Update a group",
+        "description": "Rename a group or change your id for it (`externalId`, null clears). The default group can be renamed like any other.",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Group id (grp_...).",
+              "example": "grp_abc123"
+            },
+            "required": true,
+            "description": "Group id (grp_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "description": "The group's name: a customer, a campaign, a product. Unique per workspace."
+                  },
+                  "externalId": {
+                    "type": "string",
+                    "nullable": true,
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Replaces your id for the group; null clears it."
+                  }
+                },
+                "description": "Omitted fields are untouched."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated group",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such group in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "A group with that name or externalId already exists (duplicate_group)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteGroup",
+        "summary": "Delete a group and its keywords",
+        "description": "Deletes the group and EVERY keyword in it, each the way DELETE /v1/keywords/{id} does (its mentions go with it, alert rules that named it are adjusted; charges already made stay on the usage record). Read the group first: `stats.keywords` says how many go. The default group cannot be deleted: move or delete its keywords instead.",
+        "tags": [
+          "Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Group id (grp_...).",
+              "example": "grp_abc123"
+            },
+            "required": true,
+            "description": "Group id (grp_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted, with its keywords"
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such group in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The default group cannot be deleted (default_group)",
             "content": {
               "application/json": {
                 "schema": {
@@ -11986,13 +12718,14 @@
               "enum": [
                 "day",
                 "platform",
-                "keyword"
+                "keyword",
+                "group"
               ],
               "default": "keyword",
-              "description": "The dimension to group by: day (one row per UTC day of the window), platform, or keyword (default: the row a margin is computed from)."
+              "description": "The dimension to group by: day (one row per UTC day of the window), platform, keyword (default: the row a margin is computed from), or group (what a customer or a campaign cost)."
             },
             "required": false,
-            "description": "The dimension to group by: day (one row per UTC day of the window), platform, or keyword (default: the row a margin is computed from).",
+            "description": "The dimension to group by: day (one row per UTC day of the window), platform, keyword (default: the row a margin is computed from), or group (what a customer or a campaign cost).",
             "name": "by",
             "in": "query"
           },
@@ -12548,6 +13281,13 @@
                         },
                         "description": "Only these keywords."
                       },
+                      "groupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Only keywords in these groups (grp_...): one rule per customer, say."
+                      },
                       "platforms": {
                         "type": "array",
                         "items": {
@@ -12857,6 +13597,13 @@
                                 },
                                 "description": "Only these keywords."
                               },
+                              "groupIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Only keywords in these groups (grp_...): one rule per customer, say."
+                              },
                               "platforms": {
                                 "type": "array",
                                 "items": {
@@ -13140,6 +13887,13 @@
                           "type": "string"
                         },
                         "description": "Only these keywords."
+                      },
+                      "groupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Only keywords in these groups (grp_...): one rule per customer, say."
                       },
                       "platforms": {
                         "type": "array",
@@ -15127,7 +15881,7 @@
       "status": 409,
       "source": "user",
       "retryable": false,
-      "description": "The workspace already tracks this term."
+      "description": "The group already tracks this term. A term may be tracked once per group; another group may track it too."
     },
     {
       "code": "insufficient_balance",
@@ -15248,6 +16002,27 @@
       "source": "user",
       "retryable": false,
       "description": "View names are unique per workspace."
+    },
+    {
+      "code": "duplicate_group",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "Group names and externalIds are unique per workspace."
+    },
+    {
+      "code": "default_group",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "Every workspace keeps one default group, where a keyword lands when no group is named."
+    },
+    {
+      "code": "group_changed",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "A keyword was created in or moved into the group while its keywords were being deleted. Its other keywords are gone; retry the delete."
     },
     {
       "code": "invalid_signature",

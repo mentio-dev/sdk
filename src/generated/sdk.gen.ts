@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateTopUpData, CreateTopUpErrors, CreateTopUpResponses, CreateViewData, CreateViewErrors, CreateViewResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetHealthData, GetHealthResponses, GetInvoiceUrlData, GetInvoiceUrlErrors, GetInvoiceUrlResponses, GetKeywordData, GetKeywordErrors, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageBreakdownData, GetUsageBreakdownErrors, GetUsageBreakdownResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, GetWalletData, GetWalletErrors, GetWalletResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListInvoicesData, ListInvoicesErrors, ListInvoicesResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListLedgerData, ListLedgerErrors, ListLedgerResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListViewsData, ListViewsErrors, ListViewsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
+import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateGroupData, CreateGroupErrors, CreateGroupResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateTopUpData, CreateTopUpErrors, CreateTopUpResponses, CreateViewData, CreateViewErrors, CreateViewResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteGroupData, DeleteGroupErrors, DeleteGroupResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetGroupData, GetGroupErrors, GetGroupResponses, GetHealthData, GetHealthResponses, GetInvoiceUrlData, GetInvoiceUrlErrors, GetInvoiceUrlResponses, GetKeywordData, GetKeywordErrors, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageBreakdownData, GetUsageBreakdownErrors, GetUsageBreakdownResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, GetWalletData, GetWalletErrors, GetWalletResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListGroupsData, ListGroupsErrors, ListGroupsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListInvoicesData, ListInvoicesErrors, ListInvoicesResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListLedgerData, ListLedgerErrors, ListLedgerResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListViewsData, ListViewsErrors, ListViewsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateGroupData, UpdateGroupErrors, UpdateGroupResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -377,6 +377,67 @@ export const getView = <ThrowOnError extends boolean = false>(options: Options<G
 export const updateView = <ThrowOnError extends boolean = false>(options: Options<UpdateViewData, ThrowOnError>): RequestResult<UpdateViewResponses, UpdateViewErrors, ThrowOnError> => (options.client ?? client).patch<UpdateViewResponses, UpdateViewErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/views/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List groups
+ *
+ * The keyword groups of the workspace, the default group first, then oldest first. A group is how keywords are grouped (a customer, a campaign, a product): a term may be tracked once per group, every keyword belongs to one, and GET /v1/usage/breakdown?by=group says what each group cost. Pass `externalId` to find the group carrying your own id.
+ */
+export const listGroups = <ThrowOnError extends boolean = false>(options?: Options<ListGroupsData, ThrowOnError>): RequestResult<ListGroupsResponses, ListGroupsErrors, ThrowOnError> => (options?.client ?? client).get<ListGroupsResponses, ListGroupsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/groups',
+    ...options
+});
+
+/**
+ * Create a group
+ *
+ * Create a keyword group. `name` is unique per workspace; `externalId` (optional, unique too) is your own id for it, a customer id say, so you can find it again without storing ours. Then pass the group id as `groupId` when creating a keyword.
+ */
+export const createGroup = <ThrowOnError extends boolean = false>(options: Options<CreateGroupData, ThrowOnError>): RequestResult<CreateGroupResponses, CreateGroupErrors, ThrowOnError> => (options.client ?? client).post<CreateGroupResponses, CreateGroupErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/groups',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete a group and its keywords
+ *
+ * Deletes the group and EVERY keyword in it, each the way DELETE /v1/keywords/{id} does (its mentions go with it, alert rules that named it are adjusted; charges already made stay on the usage record). Read the group first: `stats.keywords` says how many go. The default group cannot be deleted: move or delete its keywords instead.
+ */
+export const deleteGroup = <ThrowOnError extends boolean = false>(options: Options<DeleteGroupData, ThrowOnError>): RequestResult<DeleteGroupResponses, DeleteGroupErrors, ThrowOnError> => (options.client ?? client).delete<DeleteGroupResponses, DeleteGroupErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/groups/{id}',
+    ...options
+});
+
+/**
+ * Get a group
+ */
+export const getGroup = <ThrowOnError extends boolean = false>(options: Options<GetGroupData, ThrowOnError>): RequestResult<GetGroupResponses, GetGroupErrors, ThrowOnError> => (options.client ?? client).get<GetGroupResponses, GetGroupErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/groups/{id}',
+    ...options
+});
+
+/**
+ * Update a group
+ *
+ * Rename a group or change your id for it (`externalId`, null clears). The default group can be renamed like any other.
+ */
+export const updateGroup = <ThrowOnError extends boolean = false>(options: Options<UpdateGroupData, ThrowOnError>): RequestResult<UpdateGroupResponses, UpdateGroupErrors, ThrowOnError> => (options.client ?? client).patch<UpdateGroupResponses, UpdateGroupErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/groups/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',

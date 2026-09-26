@@ -4,6 +4,28 @@ export type ClientOptions = {
     baseUrl: 'https://api.mentio.dev' | (string & {});
 };
 
+/**
+ * The group the keyword belongs to.
+ */
+export type GroupRef = {
+    /**
+     * Group id (grp_...).
+     */
+    id: string;
+    /**
+     * The group's name.
+     */
+    name: string;
+    /**
+     * Your own id for the group, or null.
+     */
+    externalId: string | null;
+    /**
+     * The workspace's default group, where a keyword lands when no group is named.
+     */
+    isDefault: boolean;
+};
+
 export type Keyword = {
     /**
      * Keyword id (kw_...).
@@ -32,6 +54,7 @@ export type Keyword = {
          */
         mentions: number;
     } | null;
+    group: GroupRef;
     /**
      * Platforms this keyword is tracked on; null means every platform.
      */
@@ -176,7 +199,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'duplicate_view' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -249,11 +272,18 @@ export type Mention = {
      */
     priority: number;
     /**
-     * The keyword this post matched.
+     * The keyword this post matched, and the group it is in.
      */
     keyword: {
+        /**
+         * Keyword id (kw_...).
+         */
         id: string;
+        /**
+         * The tracked term.
+         */
         term: string;
+        group: GroupRef;
     };
     post: {
         /**
@@ -733,6 +763,14 @@ export type View = {
          */
         keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
+         * Only matches of keywords in any of these groups (grp_...).
+         */
+        groupIds?: Array<string>;
+        /**
+         * Never matches of keywords in these groups.
+         */
+        notGroupIds?: Array<string>;
+        /**
          * Only posts from any of these platforms.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
@@ -816,6 +854,33 @@ export type View = {
          * Never these authors: display names, handles or profile URLs.
          */
         excludeAuthors?: Array<string>;
+    };
+    /**
+     * ISO 8601 timestamp, UTC.
+     */
+    createdAt: string;
+    /**
+     * ISO 8601 timestamp, UTC.
+     */
+    updatedAt: string;
+};
+
+/**
+ * The group the keyword belongs to.
+ */
+export type Group = GroupRef & {
+    /**
+     * Computed over the group's keywords.
+     */
+    stats: {
+        /**
+         * Keywords in the group, muted ones included.
+         */
+        keywords: number;
+        /**
+         * Keywords in the group that are tracking (not muted).
+         */
+        active: number;
     };
     /**
      * ISO 8601 timestamp, UTC.
@@ -1092,7 +1157,7 @@ export type UsageBreakdown = {
     /**
      * The dimension the rows are grouped by.
      */
-    by: 'day' | 'platform' | 'keyword';
+    by: 'day' | 'platform' | 'keyword' | 'group';
     /**
      * Every amount is in USD cents.
      */
@@ -1143,11 +1208,11 @@ export type UsageBreakdown = {
      */
     data: Array<{
         /**
-         * The group: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword.
+         * The row's key: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword, the group id for by=group.
          */
         key: string;
         /**
-         * Readable name: the keyword term, otherwise the key.
+         * Readable name: the keyword term or the group name, otherwise the key.
          */
         label: string;
         /**
@@ -1164,6 +1229,23 @@ export type UsageBreakdown = {
             term: string;
             /**
              * The keyword has since been deleted. Its charges stay on the record; its mentions went with it, so its mention counts read 0.
+             */
+            removed: boolean;
+        } | null;
+        /**
+         * by=group only; null otherwise.
+         */
+        group: {
+            /**
+             * Group id, or "none" for keyword-days metered before groups existed whose keyword is gone.
+             */
+            id: string;
+            /**
+             * The group's name as it reads now, or "Deleted group" / "No group".
+             */
+            name: string;
+            /**
+             * The group has since been deleted.
              */
             removed: boolean;
         } | null;
@@ -1404,6 +1486,10 @@ export type Alert = {
          * Only these keywords.
          */
         keywordIds?: Array<string>;
+        /**
+         * Only keywords in these groups (grp_...): one rule per customer, say.
+         */
+        groupIds?: Array<string>;
         /**
          * Only posts from these platforms.
          */
@@ -1754,6 +1840,7 @@ export type AnalyticsSeries = {
              * brand, competitor or topic.
              */
             kind: 'brand' | 'competitor' | 'topic';
+            group: GroupRef & unknown;
         } | null;
         /**
          * One point per bucket across the window, oldest first, zero-filled.
@@ -1817,6 +1904,7 @@ export type AnalyticsSeries = {
              * brand, competitor or topic.
              */
             kind: 'brand' | 'competitor' | 'topic';
+            group: GroupRef & unknown;
         } | null;
         /**
          * One point per bucket across the window, oldest first, zero-filled.
@@ -1908,6 +1996,7 @@ export type AnalyticsBreakdown = {
              * brand, competitor or topic.
              */
             kind: 'brand' | 'competitor' | 'topic';
+            group: GroupRef & unknown;
         } | null;
         /**
          * by=person only; null otherwise.
@@ -2042,6 +2131,7 @@ export type ShareOfVoice = {
              * brand, competitor or topic.
              */
             kind: 'brand' | 'competitor' | 'topic';
+            group: GroupRef & unknown;
         };
         /**
          * Matches of this keyword in the window.
@@ -2351,6 +2441,10 @@ export type ListKeywordsData = {
          */
         q?: string;
         /**
+         * Only keywords in any of these groups (grp_...). Repeatable, or comma-separated.
+         */
+        groupId?: Array<string> | null;
+        /**
          * Only these kinds: brand, competitor, topic. Repeatable, or comma-separated.
          */
         kind?: Array<'brand' | 'competitor' | 'topic'>;
@@ -2424,6 +2518,7 @@ export type ListKeywordsResponses = {
                  */
                 mentions: number;
             } | null;
+            group: GroupRef;
             /**
              * Platforms this keyword is tracked on; null means every platform.
              */
@@ -2620,6 +2715,10 @@ export type CreateKeywordData = {
              */
             mentions: number;
         } | null;
+        /**
+         * The group to track it in (grp_...); omit for the workspace's default group. A term may be tracked once per group.
+         */
+        groupId?: string;
     };
     path?: never;
     query?: never;
@@ -2775,6 +2874,10 @@ export type UpdateKeywordData = {
              */
             mentions: number;
         } | null;
+        /**
+         * Moves the keyword to this group (grp_...). A 409 when that group already tracks the term.
+         */
+        groupId?: string;
     };
     path: {
         /**
@@ -3104,6 +3207,14 @@ export type SearchMentionsData = {
          */
         keywordIds?: Array<string> | null;
         /**
+         * Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated.
+         */
+        groupIds?: Array<string> | null;
+        /**
+         * Never matches of keywords in these groups.
+         */
+        notGroupIds?: Array<string> | null;
+        /**
          * Never matches of these keywords.
          */
         notKeywordIds?: Array<string> | null;
@@ -3299,6 +3410,14 @@ export type ExportMentionsCsvData = {
          * Only matches of any of these keywords.
          */
         keywordIds?: Array<string> | null;
+        /**
+         * Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated.
+         */
+        groupIds?: Array<string> | null;
+        /**
+         * Never matches of keywords in these groups.
+         */
+        notGroupIds?: Array<string> | null;
         /**
          * Never matches of these keywords.
          */
@@ -4676,6 +4795,14 @@ export type ListViewsResponses = {
                  */
                 keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
                 /**
+                 * Only matches of keywords in any of these groups (grp_...).
+                 */
+                groupIds?: Array<string>;
+                /**
+                 * Never matches of keywords in these groups.
+                 */
+                notGroupIds?: Array<string>;
+                /**
                  * Only posts from any of these platforms.
                  */
                 platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
@@ -4804,6 +4931,14 @@ export type CreateViewData = {
              * Only matches of keywords of any of these kinds: brand, competitor, topic.
              */
             keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Only matches of keywords in any of these groups (grp_...).
+             */
+            groupIds?: Array<string>;
+            /**
+             * Never matches of keywords in these groups.
+             */
+            notGroupIds?: Array<string>;
             /**
              * Only posts from any of these platforms.
              */
@@ -5010,6 +5145,14 @@ export type UpdateViewData = {
              */
             keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
             /**
+             * Only matches of keywords in any of these groups (grp_...).
+             */
+            groupIds?: Array<string>;
+            /**
+             * Never matches of keywords in these groups.
+             */
+            notGroupIds?: Array<string>;
+            /**
              * Only posts from any of these platforms.
              */
             platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
@@ -5130,6 +5273,223 @@ export type UpdateViewResponses = {
 };
 
 export type UpdateViewResponse = UpdateViewResponses[keyof UpdateViewResponses];
+
+export type ListGroupsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Only the group carrying exactly this externalId.
+         */
+        externalId?: string;
+    };
+    url: '/v1/groups';
+};
+
+export type ListGroupsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListGroupsError = ListGroupsErrors[keyof ListGroupsErrors];
+
+export type ListGroupsResponses = {
+    /**
+     * The groups
+     */
+    200: {
+        /**
+         * The group the keyword belongs to.
+         */
+        data: Array<GroupRef & {
+            /**
+             * Computed over the group's keywords.
+             */
+            stats: {
+                /**
+                 * Keywords in the group, muted ones included.
+                 */
+                keywords: number;
+                /**
+                 * Keywords in the group that are tracking (not muted).
+                 */
+                active: number;
+            };
+            /**
+             * ISO 8601 timestamp, UTC.
+             */
+            createdAt: string;
+            /**
+             * ISO 8601 timestamp, UTC.
+             */
+            updatedAt: string;
+        }>;
+    };
+};
+
+export type ListGroupsResponse = ListGroupsResponses[keyof ListGroupsResponses];
+
+export type CreateGroupData = {
+    body: {
+        /**
+         * The group's name: a customer, a campaign, a product. Unique per workspace.
+         */
+        name: string;
+        /**
+         * Your own id for the group (a customer id, say). Unique per workspace; find the group by it with GET /v1/groups?externalId=.
+         */
+        externalId?: string | null;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/groups';
+};
+
+export type CreateGroupErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * A group with that name or externalId already exists (duplicate_group)
+     */
+    409: ErrorResponse;
+};
+
+export type CreateGroupError = CreateGroupErrors[keyof CreateGroupErrors];
+
+export type CreateGroupResponses = {
+    /**
+     * The new group
+     */
+    201: Group;
+};
+
+export type CreateGroupResponse = CreateGroupResponses[keyof CreateGroupResponses];
+
+export type DeleteGroupData = {
+    body?: never;
+    path: {
+        /**
+         * Group id (grp_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/groups/{id}';
+};
+
+export type DeleteGroupErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such group in this workspace
+     */
+    404: ErrorResponse;
+    /**
+     * The default group cannot be deleted (default_group)
+     */
+    409: ErrorResponse;
+};
+
+export type DeleteGroupError = DeleteGroupErrors[keyof DeleteGroupErrors];
+
+export type DeleteGroupResponses = {
+    /**
+     * Deleted, with its keywords
+     */
+    204: void;
+};
+
+export type DeleteGroupResponse = DeleteGroupResponses[keyof DeleteGroupResponses];
+
+export type GetGroupData = {
+    body?: never;
+    path: {
+        /**
+         * Group id (grp_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/groups/{id}';
+};
+
+export type GetGroupErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such group in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type GetGroupError = GetGroupErrors[keyof GetGroupErrors];
+
+export type GetGroupResponses = {
+    /**
+     * The group
+     */
+    200: Group;
+};
+
+export type GetGroupResponse = GetGroupResponses[keyof GetGroupResponses];
+
+export type UpdateGroupData = {
+    /**
+     * Omitted fields are untouched.
+     */
+    body: {
+        /**
+         * The group's name: a customer, a campaign, a product. Unique per workspace.
+         */
+        name?: string;
+        /**
+         * Replaces your id for the group; null clears it.
+         */
+        externalId?: string | null;
+    };
+    path: {
+        /**
+         * Group id (grp_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/groups/{id}';
+};
+
+export type UpdateGroupErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such group in this workspace
+     */
+    404: ErrorResponse;
+    /**
+     * A group with that name or externalId already exists (duplicate_group)
+     */
+    409: ErrorResponse;
+};
+
+export type UpdateGroupError = UpdateGroupErrors[keyof UpdateGroupErrors];
+
+export type UpdateGroupResponses = {
+    /**
+     * The updated group
+     */
+    200: Group;
+};
+
+export type UpdateGroupResponse = UpdateGroupResponses[keyof UpdateGroupResponses];
 
 export type GetCompanyData = {
     body?: never;
@@ -5613,9 +5973,9 @@ export type GetUsageBreakdownData = {
     path?: never;
     query?: {
         /**
-         * The dimension to group by: day (one row per UTC day of the window), platform, or keyword (default: the row a margin is computed from).
+         * The dimension to group by: day (one row per UTC day of the window), platform, keyword (default: the row a margin is computed from), or group (what a customer or a campaign cost).
          */
-        by?: 'day' | 'platform' | 'keyword';
+        by?: 'day' | 'platform' | 'keyword' | 'group';
         /**
          * Trailing window of UTC days ending today: 7d, 30d, 90d (default 30d). Ignored when `month` is given.
          */
@@ -5933,6 +6293,10 @@ export type UpdateAlertData = {
              */
             keywordIds?: Array<string>;
             /**
+             * Only keywords in these groups (grp_...): one rule per customer, say.
+             */
+            groupIds?: Array<string>;
+            /**
              * Only posts from these platforms.
              */
             platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
@@ -6067,6 +6431,10 @@ export type ListAlertsResponses = {
                  */
                 keywordIds?: Array<string>;
                 /**
+                 * Only keywords in these groups (grp_...): one rule per customer, say.
+                 */
+                groupIds?: Array<string>;
+                /**
                  * Only posts from these platforms.
                  */
                 platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin'>;
@@ -6173,6 +6541,10 @@ export type CreateAlertData = {
              * Only these keywords.
              */
             keywordIds?: Array<string>;
+            /**
+             * Only keywords in these groups (grp_...): one rule per customer, say.
+             */
+            groupIds?: Array<string>;
             /**
              * Only posts from these platforms.
              */
