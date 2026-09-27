@@ -115,11 +115,15 @@
           },
           "muted": {
             "type": "boolean",
-            "description": "Not polled or matched. Either paused by you or by the wallet (see pausedForBalance). A keyword at its mention cap is not muted (see pausedForCap)."
+            "description": "Not polled or matched. Paused by you, by the wallet (see pausedForBalance) or by the noise brake (see pausedForNoise). A keyword at its mention cap is not muted (see pausedForCap)."
           },
           "pausedForBalance": {
             "type": "boolean",
             "description": "Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too."
+          },
+          "pausedForNoise": {
+            "type": "boolean",
+            "description": "Muted by the noise brake: on a workspace running on its welcome credit, at least 20 of its matches were scored and under 30% were relevant. A change of its required or excluded terms, platforms or context resumes it (when the balance covers another day), and so does unmuting; a top-up does not."
           },
           "pausedForCap": {
             "type": "boolean",
@@ -134,10 +138,21 @@
                 "minimum": 1,
                 "maximum": 1000000,
                 "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+              },
+              "welcome": {
+                "type": "boolean",
+                "description": "Set by Mentio, not you: a workspace on its welcome credit collects at most 200 mentions a keyword a month. The first top-up removes it."
+              },
+              "own": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing."
               }
             },
             "required": [
-              "mentions"
+              "mentions",
+              "welcome",
+              "own"
             ],
             "description": "The monthly mention cap, or null for none."
           },
@@ -411,6 +426,7 @@
           "kind",
           "muted",
           "pausedForBalance",
+          "pausedForNoise",
           "pausedForCap",
           "cap",
           "group",
@@ -5524,9 +5540,10 @@
                   "active",
                   "muted",
                   "paused",
+                  "noisy",
                   "capped"
                 ],
-                "description": "active: tracking. muted: switched off by a person. paused: switched off by the wallet for lack of balance. capped: at its monthly mention cap until the month turns."
+                "description": "active: tracking. muted: switched off by a person. paused: switched off by the wallet for lack of balance. noisy: switched off by the noise brake, mostly irrelevant matches on a workspace running on its welcome credit. capped: at its monthly mention cap until the month turns."
               },
               "maxItems": 4,
               "description": "Only keywords in these states: active, muted, paused, capped. Repeatable, or comma-separated."
@@ -5645,11 +5662,15 @@
                           },
                           "muted": {
                             "type": "boolean",
-                            "description": "Not polled or matched. Either paused by you or by the wallet (see pausedForBalance). A keyword at its mention cap is not muted (see pausedForCap)."
+                            "description": "Not polled or matched. Paused by you, by the wallet (see pausedForBalance) or by the noise brake (see pausedForNoise). A keyword at its mention cap is not muted (see pausedForCap)."
                           },
                           "pausedForBalance": {
                             "type": "boolean",
                             "description": "Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too."
+                          },
+                          "pausedForNoise": {
+                            "type": "boolean",
+                            "description": "Muted by the noise brake: on a workspace running on its welcome credit, at least 20 of its matches were scored and under 30% were relevant. A change of its required or excluded terms, platforms or context resumes it (when the balance covers another day), and so does unmuting; a top-up does not."
                           },
                           "pausedForCap": {
                             "type": "boolean",
@@ -5664,10 +5685,21 @@
                                 "minimum": 1,
                                 "maximum": 1000000,
                                 "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                              },
+                              "welcome": {
+                                "type": "boolean",
+                                "description": "Set by Mentio, not you: a workspace on its welcome credit collects at most 200 mentions a keyword a month. The first top-up removes it."
+                              },
+                              "own": {
+                                "type": "integer",
+                                "nullable": true,
+                                "description": "Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing."
                               }
                             },
                             "required": [
-                              "mentions"
+                              "mentions",
+                              "welcome",
+                              "own"
                             ],
                             "description": "The monthly mention cap, or null for none."
                           },
@@ -5941,6 +5973,7 @@
                           "kind",
                           "muted",
                           "pausedForBalance",
+                          "pausedForNoise",
                           "pausedForCap",
                           "cap",
                           "group",

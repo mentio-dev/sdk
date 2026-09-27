@@ -61,13 +61,17 @@ export type Keyword = {
     term: string;
     kind: 'brand' | 'competitor' | 'topic';
     /**
-     * Not polled or matched. Either paused by you or by the wallet (see pausedForBalance). A keyword at its mention cap is not muted (see pausedForCap).
+     * Not polled or matched. Paused by you, by the wallet (see pausedForBalance) or by the noise brake (see pausedForNoise). A keyword at its mention cap is not muted (see pausedForCap).
      */
     muted: boolean;
     /**
      * Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too.
      */
     pausedForBalance: boolean;
+    /**
+     * Muted by the noise brake: on a workspace running on its welcome credit, at least 20 of its matches were scored and under 30% were relevant. A change of its required or excluded terms, platforms or context resumes it (when the balance covers another day), and so does unmuting; a top-up does not.
+     */
+    pausedForNoise: boolean;
     /**
      * At its monthly mention cap: not matched until the first of next month (UTC) or until the cap is raised. Not muted: it keeps its place and its daily keyword charge.
      */
@@ -80,6 +84,14 @@ export type Keyword = {
          * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
          */
         mentions: number;
+        /**
+         * Set by Mentio, not you: a workspace on its welcome credit collects at most 200 mentions a keyword a month. The first top-up removes it.
+         */
+        welcome: boolean;
+        /**
+         * Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing.
+         */
+        own: number | null;
     } | null;
     group: GroupRef;
     /**
@@ -2709,7 +2721,7 @@ export type ListKeywordsData = {
         /**
          * Only keywords in these states: active, muted, paused, capped. Repeatable, or comma-separated.
          */
-        status?: Array<'active' | 'muted' | 'paused' | 'capped'>;
+        status?: Array<'active' | 'muted' | 'paused' | 'noisy' | 'capped'>;
         /**
          * Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated.
          */
@@ -2756,13 +2768,17 @@ export type ListKeywordsResponses = {
             term: string;
             kind: 'brand' | 'competitor' | 'topic';
             /**
-             * Not polled or matched. Either paused by you or by the wallet (see pausedForBalance). A keyword at its mention cap is not muted (see pausedForCap).
+             * Not polled or matched. Paused by you, by the wallet (see pausedForBalance) or by the noise brake (see pausedForNoise). A keyword at its mention cap is not muted (see pausedForCap).
              */
             muted: boolean;
             /**
              * Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too.
              */
             pausedForBalance: boolean;
+            /**
+             * Muted by the noise brake: on a workspace running on its welcome credit, at least 20 of its matches were scored and under 30% were relevant. A change of its required or excluded terms, platforms or context resumes it (when the balance covers another day), and so does unmuting; a top-up does not.
+             */
+            pausedForNoise: boolean;
             /**
              * At its monthly mention cap: not matched until the first of next month (UTC) or until the cap is raised. Not muted: it keeps its place and its daily keyword charge.
              */
@@ -2775,6 +2791,14 @@ export type ListKeywordsResponses = {
                  * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
                  */
                 mentions: number;
+                /**
+                 * Set by Mentio, not you: a workspace on its welcome credit collects at most 200 mentions a keyword a month. The first top-up removes it.
+                 */
+                welcome: boolean;
+                /**
+                 * Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing.
+                 */
+                own: number | null;
             } | null;
             group: GroupRef;
             /**
