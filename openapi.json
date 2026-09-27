@@ -55,33 +55,35 @@
             "type": "string",
             "enum": [
               "appstore",
-              "googleplay"
+              "googleplay",
+              "trustpilot",
+              "googlemaps"
             ],
-            "description": "appstore (Apple App Store) or googleplay (Google Play)."
+            "description": "appstore (Apple App Store), googleplay (Google Play), trustpilot (a company's Trustpilot page) or googlemaps (a place's Google reviews)."
           },
           "id": {
             "type": "string",
-            "description": "The store's app id."
+            "description": "The id on the platform: app id, package name, Trustpilot domain, Google Place ID or cid."
           },
           "url": {
             "type": "string",
-            "description": "The app's store listing."
+            "description": "The review page: the store listing, the Trustpilot page or the Google Maps place."
           },
           "countries": {
             "type": "array",
             "items": {
               "type": "string"
             },
-            "description": "Storefronts read, lowercase two-letter codes."
+            "description": "Storefronts read, lowercase two-letter codes; empty on Trustpilot and Google Maps."
           },
           "language": {
             "type": "string",
             "nullable": true,
-            "description": "Google Play's review language; null on the App Store, which answers every language."
+            "description": "Google Play's review language; null elsewhere."
           },
           "connectedAt": {
             "type": "string",
-            "description": "When this keyword started collecting the app's reviews."
+            "description": "When this keyword started collecting the page's reviews."
           }
         },
         "required": [
@@ -169,7 +171,7 @@
             "items": {
               "$ref": "#/components/schemas/ReviewSource"
             },
-            "description": "Where this keyword collects reviews from (App Store and Google Play apps); empty for none."
+            "description": "Where this keyword collects reviews from (App Store and Google Play apps, Trustpilot pages, Google Maps places); empty for none."
           },
           "context": {
             "type": "string",
@@ -374,9 +376,11 @@
                     "tiktok",
                     "instagram",
                     "appstore",
-                    "googleplay"
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                 },
                 "lastPolledAt": {
                   "type": "string",
@@ -639,9 +643,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "url": {
                 "type": "string",
@@ -825,7 +831,12 @@
               "country": {
                 "type": "string",
                 "nullable": true,
-                "description": "The storefront it was read in, a lowercase two-letter code."
+                "description": "The storefront it was read in (App Store, Google Play) or the reviewer's country (Trustpilot), a lowercase two-letter code; null where the platform gives none."
+              },
+              "verified": {
+                "type": "boolean",
+                "nullable": true,
+                "description": "The platform marks the review as verified (Trustpilot); null where the platform has no such mark."
               },
               "response": {
                 "type": "string",
@@ -844,9 +855,11 @@
                     "type": "string",
                     "enum": [
                       "appstore",
-                      "googleplay"
+                      "googleplay",
+                      "trustpilot",
+                      "googlemaps"
                     ],
-                    "description": "appstore (Apple App Store) or googleplay (Google Play)."
+                    "description": "appstore (Apple App Store), googleplay (Google Play), trustpilot (a company's Trustpilot page) or googlemaps (a place's Google reviews)."
                   },
                   "id": {
                     "type": "string",
@@ -871,6 +884,7 @@
               "title",
               "version",
               "country",
+              "verified",
               "response",
               "responseAt",
               "app"
@@ -1094,7 +1108,9 @@
               "tiktok",
               "instagram",
               "appstore",
-              "googleplay"
+              "googleplay",
+              "trustpilot",
+              "googlemaps"
             ],
             "description": "Platform of the canonical account; `accounts` lists every account."
           },
@@ -1142,9 +1158,11 @@
                     "tiktok",
                     "instagram",
                     "appstore",
-                    "googleplay"
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                 },
                 "name": {
                   "type": "string",
@@ -1509,9 +1527,11 @@
                     "tiktok",
                     "instagram",
                     "appstore",
-                    "googleplay"
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                 },
                 "maxItems": 20,
                 "description": "People with an account on any of these platforms."
@@ -1600,9 +1620,11 @@
                     "tiktok",
                     "instagram",
                     "appstore",
-                    "googleplay"
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                 },
                 "maxItems": 20,
                 "description": "Nobody with an account on these platforms."
@@ -1793,9 +1815,11 @@
                     "tiktok",
                     "instagram",
                     "appstore",
-                    "googleplay"
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -1818,9 +1842,11 @@
                     "tiktok",
                     "instagram",
                     "appstore",
-                    "googleplay"
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -3043,9 +3069,11 @@
                     "tiktok",
                     "instagram",
                     "appstore",
-                    "googleplay"
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                 },
                 "description": "Only posts from these platforms."
               },
@@ -3988,9 +4016,11 @@
                         "tiktok",
                         "instagram",
                         "appstore",
-                        "googleplay"
+                        "googleplay",
+                        "trustpilot",
+                        "googlemaps"
                       ],
-                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                     },
                     "url": {
                       "type": "string",
@@ -4267,6 +4297,359 @@
         "required": [
           "window",
           "data"
+        ]
+      },
+      "ReviewsReport": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "First day, inclusive."
+              },
+              "to": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                "description": "Last day, inclusive."
+              },
+              "days": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Length of the window in days."
+              },
+              "timezone": {
+                "type": "string",
+                "description": "IANA zone the days were cut in."
+              },
+              "bucket": {
+                "type": "string",
+                "enum": [
+                  "day",
+                  "week"
+                ],
+                "description": "How the page series are cut: day up to 90 days, else week, unless asked."
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "days",
+              "timezone",
+              "bucket"
+            ],
+            "description": "The window the report covers."
+          },
+          "totals": {
+            "type": "object",
+            "properties": {
+              "reviews": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Reviews published in the window; a review matched by two keywords counts once."
+              },
+              "averageRating": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 1,
+                "maximum": 5,
+                "description": "Average stars, one decimal; null with no reviews."
+              },
+              "distribution": {
+                "type": "object",
+                "properties": {
+                  "1": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "2": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "3": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "4": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "5": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5"
+                ],
+                "description": "Reviews per star rating."
+              },
+              "responded": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Reviews carrying the owner's or developer's reply (the App Store's feed has none)."
+              },
+              "openNegative": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "1 and 2 star reviews nobody has marked done or ignored yet."
+              }
+            },
+            "required": [
+              "reviews",
+              "averageRating",
+              "distribution",
+              "responded",
+              "openNegative"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "tag": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "tag",
+                "count"
+              ]
+            },
+            "description": "Intent and topic tags on the 1 and 2 star reviews, most frequent first: what the unhappy ones are about."
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "reviews": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Reviews published in the window; a review matched by two keywords counts once."
+                },
+                "averageRating": {
+                  "type": "number",
+                  "nullable": true,
+                  "minimum": 1,
+                  "maximum": 5,
+                  "description": "Average stars, one decimal; null with no reviews."
+                },
+                "distribution": {
+                  "type": "object",
+                  "properties": {
+                    "1": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "2": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "3": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "4": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "5": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5"
+                  ],
+                  "description": "Reviews per star rating."
+                },
+                "responded": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Reviews carrying the owner's or developer's reply (the App Store's feed has none)."
+                },
+                "openNegative": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "1 and 2 star reviews nobody has marked done or ignored yet."
+                },
+                "platform": {
+                  "type": "string",
+                  "enum": [
+                    "appstore",
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps"
+                  ],
+                  "description": "appstore (Apple App Store), googleplay (Google Play), trustpilot (a company's Trustpilot page) or googlemaps (a place's Google reviews)."
+                },
+                "id": {
+                  "type": "string",
+                  "description": "The page's id: app id, package name, Trustpilot domain, Place ID or cid."
+                },
+                "url": {
+                  "type": "string",
+                  "description": "The review page."
+                },
+                "series": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "type": "string",
+                        "description": "Bucket start, YYYY-MM-DD."
+                      },
+                      "reviews": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "averageRating": {
+                        "type": "number",
+                        "nullable": true,
+                        "minimum": 1,
+                        "maximum": 5,
+                        "description": "Average stars, one decimal; null with no reviews."
+                      }
+                    },
+                    "required": [
+                      "date",
+                      "reviews",
+                      "averageRating"
+                    ]
+                  },
+                  "description": "Reviews and average stars per bucket, oldest first, every bucket present."
+                },
+                "previous": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "reviews": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "averageRating": {
+                      "type": "number",
+                      "nullable": true,
+                      "minimum": 1,
+                      "maximum": 5,
+                      "description": "Average stars, one decimal; null with no reviews."
+                    }
+                  },
+                  "required": [
+                    "reviews",
+                    "averageRating"
+                  ],
+                  "description": "The period of the same length right before the window, with compare=true; else null."
+                }
+              },
+              "required": [
+                "reviews",
+                "averageRating",
+                "distribution",
+                "responded",
+                "openNegative",
+                "platform",
+                "id",
+                "url",
+                "series",
+                "previous"
+              ]
+            },
+            "description": "One row per review page with reviews in the window, most reviewed first."
+          },
+          "previous": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "reviews": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Reviews published in the window; a review matched by two keywords counts once."
+              },
+              "averageRating": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 1,
+                "maximum": 5,
+                "description": "Average stars, one decimal; null with no reviews."
+              },
+              "distribution": {
+                "type": "object",
+                "properties": {
+                  "1": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "2": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "3": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "4": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "5": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "1",
+                  "2",
+                  "3",
+                  "4",
+                  "5"
+                ],
+                "description": "Reviews per star rating."
+              },
+              "responded": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Reviews carrying the owner's or developer's reply (the App Store's feed has none)."
+              },
+              "openNegative": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "1 and 2 star reviews nobody has marked done or ignored yet."
+              }
+            },
+            "required": [
+              "reviews",
+              "averageRating",
+              "distribution",
+              "responded",
+              "openNegative"
+            ],
+            "description": "Totals for the period right before the window, with compare=true; else null."
+          }
+        },
+        "required": [
+          "window",
+          "totals",
+          "tags",
+          "pages",
+          "previous"
         ]
       },
       "SlackChannel": {
@@ -4980,21 +5363,23 @@
                           "type": "string",
                           "minLength": 1,
                           "maxLength": 500,
-                          "description": "The app's store link: https://apps.apple.com/us/app/notion/id1232780281 or https://play.google.com/store/apps/details?id=notion.id. Or give platform and id."
+                          "description": "The review page's link: an App Store or Google Play app (https://apps.apple.com/us/app/notion/id1232780281, https://play.google.com/store/apps/details?id=notion.id), a Trustpilot page (https://www.trustpilot.com/review/notion.so) or a Google Maps place (its full link, or a maps.app.goo.gl share link). Or give platform and id."
                         },
                         "platform": {
                           "type": "string",
                           "enum": [
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "appstore (Apple App Store) or googleplay (Google Play)."
+                          "description": "appstore (Apple App Store), googleplay (Google Play), trustpilot (a company's Trustpilot page) or googlemaps (a place's Google reviews)."
                         },
                         "id": {
                           "type": "string",
                           "minLength": 1,
                           "maxLength": 200,
-                          "description": "The store's app id: the digits after \"id\" on the App Store, the package name on Google Play."
+                          "description": "The id on the platform: the digits after \"id\" on the App Store, the package name on Google Play, the company's domain on Trustpilot (notion.so), a Place ID (ChIJ...) on Google Maps."
                         },
                         "countries": {
                           "type": "array",
@@ -5004,7 +5389,7 @@
                           },
                           "minItems": 1,
                           "maxItems": 20,
-                          "description": "Storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention."
+                          "description": "App Store and Google Play only: storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention. Trustpilot and Google Maps have one page for everyone and take none."
                         },
                         "language": {
                           "type": "string",
@@ -5013,10 +5398,10 @@
                           "description": "Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en."
                         }
                       },
-                      "description": "An app whose reviews become this keyword's mentions: a store link, or the platform and the app id."
+                      "description": "A review page whose reviews become this keyword's mentions: its link, or the platform and the id."
                     },
                     "maxItems": 10,
-                    "description": "Apps whose reviews this keyword collects, at most 10: every new review of one of them is a mention of the keyword, whatever its text says. Polled once a day per country. A newly added app brings its last 30 days, the newest 100 reviews per country, free and never sent as instant alerts; after that each review bills like any mention."
+                    "description": "Review pages this keyword collects, at most 10: App Store and Google Play apps, Trustpilot pages, Google Maps places. Every new review of one is a mention of the keyword, whatever its text says. Polled once a day (per country on the app stores). A newly connected page brings its last 30 days, the newest 100 reviews (per country), free and never sent as instant alerts; after that each review bills like any mention."
                   }
                 },
                 "required": [
@@ -5170,9 +5555,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated."
@@ -5314,7 +5701,7 @@
                             "items": {
                               "$ref": "#/components/schemas/ReviewSource"
                             },
-                            "description": "Where this keyword collects reviews from (App Store and Google Play apps); empty for none."
+                            "description": "Where this keyword collects reviews from (App Store and Google Play apps, Trustpilot pages, Google Maps places); empty for none."
                           },
                           "context": {
                             "type": "string",
@@ -5519,9 +5906,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "lastPolledAt": {
                                   "type": "string",
@@ -5813,21 +6202,23 @@
                           "type": "string",
                           "minLength": 1,
                           "maxLength": 500,
-                          "description": "The app's store link: https://apps.apple.com/us/app/notion/id1232780281 or https://play.google.com/store/apps/details?id=notion.id. Or give platform and id."
+                          "description": "The review page's link: an App Store or Google Play app (https://apps.apple.com/us/app/notion/id1232780281, https://play.google.com/store/apps/details?id=notion.id), a Trustpilot page (https://www.trustpilot.com/review/notion.so) or a Google Maps place (its full link, or a maps.app.goo.gl share link). Or give platform and id."
                         },
                         "platform": {
                           "type": "string",
                           "enum": [
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "appstore (Apple App Store) or googleplay (Google Play)."
+                          "description": "appstore (Apple App Store), googleplay (Google Play), trustpilot (a company's Trustpilot page) or googlemaps (a place's Google reviews)."
                         },
                         "id": {
                           "type": "string",
                           "minLength": 1,
                           "maxLength": 200,
-                          "description": "The store's app id: the digits after \"id\" on the App Store, the package name on Google Play."
+                          "description": "The id on the platform: the digits after \"id\" on the App Store, the package name on Google Play, the company's domain on Trustpilot (notion.so), a Place ID (ChIJ...) on Google Maps."
                         },
                         "countries": {
                           "type": "array",
@@ -5837,7 +6228,7 @@
                           },
                           "minItems": 1,
                           "maxItems": 20,
-                          "description": "Storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention."
+                          "description": "App Store and Google Play only: storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention. Trustpilot and Google Maps have one page for everyone and take none."
                         },
                         "language": {
                           "type": "string",
@@ -5846,7 +6237,7 @@
                           "description": "Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en."
                         }
                       },
-                      "description": "An app whose reviews become this keyword's mentions: a store link, or the platform and the app id."
+                      "description": "A review page whose reviews become this keyword's mentions: its link, or the platform and the id."
                     },
                     "maxItems": 10,
                     "description": "Replaces the list of apps whose reviews this keyword collects; [] disconnects them all (their reviews stay). An app or country added here gets the free 30-day look-back; one already listed keeps its place."
@@ -6339,7 +6730,9 @@
                 "tiktok",
                 "instagram",
                 "appstore",
-                "googleplay"
+                "googleplay",
+                "trustpilot",
+                "googlemaps"
               ],
               "description": "Only posts from this platform."
             },
@@ -6621,9 +7014,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -6652,9 +7047,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -7049,7 +7446,9 @@
                 "tiktok",
                 "instagram",
                 "appstore",
-                "googleplay"
+                "googleplay",
+                "trustpilot",
+                "googlemaps"
               ],
               "description": "Only posts from this platform."
             },
@@ -7331,9 +7730,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -7362,9 +7763,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -7704,7 +8107,9 @@
                 "tiktok",
                 "instagram",
                 "appstore",
-                "googleplay"
+                "googleplay",
+                "trustpilot",
+                "googlemaps"
               ],
               "description": "People with an account on this platform."
             },
@@ -7788,9 +8193,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -7899,9 +8306,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -8165,7 +8574,9 @@
                 "tiktok",
                 "instagram",
                 "appstore",
-                "googleplay"
+                "googleplay",
+                "trustpilot",
+                "googlemaps"
               ],
               "description": "People with an account on this platform."
             },
@@ -8249,9 +8660,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -8360,9 +8773,11 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -8600,7 +9015,9 @@
                               "tiktok",
                               "instagram",
                               "appstore",
-                              "googleplay"
+                              "googleplay",
+                              "trustpilot",
+                              "googlemaps"
                             ],
                             "description": "Platform of the canonical account; `accounts` lists every account."
                           },
@@ -8648,9 +9065,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "name": {
                                   "type": "string",
@@ -9657,9 +10076,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -9748,9 +10169,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -9888,9 +10311,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -9979,9 +10404,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -10139,9 +10566,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -10230,9 +10659,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -10484,9 +10915,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -10575,9 +11008,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -10870,9 +11305,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts from any of these platforms."
@@ -10895,9 +11332,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "maxItems": 20,
                                 "description": "Never posts from these platforms."
@@ -11220,9 +11659,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -11245,9 +11686,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -11644,9 +12087,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -11669,9 +12114,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -13822,9 +14269,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -14152,9 +14601,11 @@
                                     "tiktok",
                                     "instagram",
                                     "appstore",
-                                    "googleplay"
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                                 },
                                 "description": "Only posts from these platforms."
                               },
@@ -14457,9 +14908,11 @@
                             "tiktok",
                             "instagram",
                             "appstore",
-                            "googleplay"
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -15129,7 +15582,9 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ]
               },
               "maxItems": 20,
@@ -15284,7 +15739,9 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ]
               },
               "maxItems": 20,
@@ -15470,7 +15927,9 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ]
               },
               "maxItems": 20,
@@ -15645,7 +16104,9 @@
                   "tiktok",
                   "instagram",
                   "appstore",
-                  "googleplay"
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
                 ]
               },
               "maxItems": 20,
@@ -15685,6 +16146,177 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ShareOfVoice"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/analytics/reviews": {
+      "get": {
+        "operationId": "getReviewsReport",
+        "summary": "Reviews: stars over a window, per review page",
+        "description": "The reviews a keyword collects (App Store, Google Play, Trustpilot, Google Maps): count, average stars, distribution, replies and open 1-2 star reviews, for the workspace and per review page with a series of average stars per `bucket`, plus the tags the unhappy reviews carry. A review matched by two keywords counts once. The window is `range` (7d, 30d, 90d, 365d, ending today) or `from` and `to`, cut into days in `timezone` (UTC by default); `keywordIds` and `platforms` narrow it; `compare=true` adds the period of the same length right before it. Time axis is the publish date.",
+        "tags": [
+          "Analytics"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "365d"
+              ],
+              "description": "Preset window ending today. Ignored when from or to is given. Default 30d."
+            },
+            "required": false,
+            "description": "Preset window ending today. Ignored when from or to is given. Default 30d.",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "First day, YYYY-MM-DD, inclusive, in `timezone`."
+            },
+            "required": false,
+            "description": "First day, YYYY-MM-DD, inclusive, in `timezone`.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "Last day, YYYY-MM-DD, inclusive, in `timezone`. Default today."
+            },
+            "required": false,
+            "description": "Last day, YYYY-MM-DD, inclusive, in `timezone`. Default today.",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only these keyword ids. Repeatable, or comma-separated; omit for every keyword."
+            },
+            "required": false,
+            "description": "Only these keyword ids. Repeatable, or comma-separated; omit for every keyword.",
+            "name": "keywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
+                ]
+              },
+              "maxItems": 20,
+              "description": "Only these platforms. Repeatable, or comma-separated; omit for every platform."
+            },
+            "required": false,
+            "description": "Only these platforms. Repeatable, or comma-separated; omit for every platform.",
+            "name": "platforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true adds the period of the same length right before the window as `previous`."
+            },
+            "required": false,
+            "description": "true adds the period of the same length right before the window as `previous`.",
+            "name": "compare",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "IANA zone the days are cut in (Europe/Madrid). Default UTC. One offset, the zone's at the end of the window, applies to the whole window."
+            },
+            "required": false,
+            "description": "IANA zone the days are cut in (Europe/Madrid). Default UTC. One offset, the zone's at the end of the window, applies to the whole window.",
+            "name": "timezone",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "day",
+                "week"
+              ],
+              "description": "Series bucket: day (default up to 90 days) or week."
+            },
+            "required": false,
+            "description": "Series bucket: day (default up to 90 days) or week.",
+            "name": "bucket",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The report, with `previous` when comparing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewsReport"
                 }
               }
             }
