@@ -48,6 +48,51 @@
         ],
         "description": "The group the keyword belongs to."
       },
+      "ReviewSource": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "appstore",
+              "googleplay"
+            ],
+            "description": "appstore (Apple App Store) or googleplay (Google Play)."
+          },
+          "id": {
+            "type": "string",
+            "description": "The store's app id."
+          },
+          "url": {
+            "type": "string",
+            "description": "The app's store listing."
+          },
+          "countries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Storefronts read, lowercase two-letter codes."
+          },
+          "language": {
+            "type": "string",
+            "nullable": true,
+            "description": "Google Play's review language; null on the App Store, which answers every language."
+          },
+          "connectedAt": {
+            "type": "string",
+            "description": "When this keyword started collecting the app's reviews."
+          }
+        },
+        "required": [
+          "platform",
+          "id",
+          "url",
+          "countries",
+          "language",
+          "connectedAt"
+        ]
+      },
       "Keyword": {
         "type": "object",
         "properties": {
@@ -117,8 +162,14 @@
                 "instagram"
               ]
             },
-            "minItems": 1,
-            "description": "Platforms this keyword is tracked on; null means every platform."
+            "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
+          },
+          "reviewSources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewSource"
+            },
+            "description": "Where this keyword collects reviews from (App Store and Google Play apps); empty for none."
           },
           "context": {
             "type": "string",
@@ -321,9 +372,11 @@
                     "news",
                     "linkedin",
                     "tiktok",
-                    "instagram"
+                    "instagram",
+                    "appstore",
+                    "googleplay"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                 },
                 "lastPolledAt": {
                   "type": "string",
@@ -358,6 +411,7 @@
           "cap",
           "group",
           "platforms",
+          "reviewSources",
           "context",
           "matching",
           "stats",
@@ -583,9 +637,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "url": {
                 "type": "string",
@@ -741,6 +797,85 @@
               "tags"
             ],
             "description": "Who posted it; null when the platform gave no author at all."
+          },
+          "review": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "rating": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5,
+                "description": "Stars the reviewer gave."
+              },
+              "ratingMax": {
+                "type": "integer",
+                "description": "The top of the scale: 5 on both stores."
+              },
+              "title": {
+                "type": "string",
+                "nullable": true,
+                "description": "The review's headline; null where the store has none (Google Play)."
+              },
+              "version": {
+                "type": "string",
+                "nullable": true,
+                "description": "The app version the reviewer ran, when the store says."
+              },
+              "country": {
+                "type": "string",
+                "nullable": true,
+                "description": "The storefront it was read in, a lowercase two-letter code."
+              },
+              "response": {
+                "type": "string",
+                "nullable": true,
+                "description": "The developer's reply as it stood when the review was collected; null for none."
+              },
+              "responseAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "When the developer replied."
+              },
+              "app": {
+                "type": "object",
+                "properties": {
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "appstore",
+                      "googleplay"
+                    ],
+                    "description": "appstore (Apple App Store) or googleplay (Google Play)."
+                  },
+                  "id": {
+                    "type": "string",
+                    "description": "The store's app id."
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "The app's store listing."
+                  }
+                },
+                "required": [
+                  "platform",
+                  "id",
+                  "url"
+                ],
+                "description": "The app reviewed."
+              }
+            },
+            "required": [
+              "rating",
+              "ratingMax",
+              "title",
+              "version",
+              "country",
+              "response",
+              "responseAt",
+              "app"
+            ],
+            "description": "An app store review's facts; null for every other post. Its sentiment comes from the stars (4 and 5 positive, 3 neutral, 1 and 2 negative) and it always counts as relevant, since you chose the app."
           },
           "classification": {
             "type": "object",
@@ -930,6 +1065,7 @@
           "keyword",
           "post",
           "author",
+          "review",
           "classification",
           "triage",
           "createdAt"
@@ -956,7 +1092,9 @@
               "news",
               "linkedin",
               "tiktok",
-              "instagram"
+              "instagram",
+              "appstore",
+              "googleplay"
             ],
             "description": "Platform of the canonical account; `accounts` lists every account."
           },
@@ -1002,9 +1140,11 @@
                     "news",
                     "linkedin",
                     "tiktok",
-                    "instagram"
+                    "instagram",
+                    "appstore",
+                    "googleplay"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                 },
                 "name": {
                   "type": "string",
@@ -1367,9 +1507,11 @@
                     "news",
                     "linkedin",
                     "tiktok",
-                    "instagram"
+                    "instagram",
+                    "appstore",
+                    "googleplay"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                 },
                 "maxItems": 20,
                 "description": "People with an account on any of these platforms."
@@ -1456,9 +1598,11 @@
                     "news",
                     "linkedin",
                     "tiktok",
-                    "instagram"
+                    "instagram",
+                    "appstore",
+                    "googleplay"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                 },
                 "maxItems": 20,
                 "description": "Nobody with an account on these platforms."
@@ -1647,9 +1791,11 @@
                     "news",
                     "linkedin",
                     "tiktok",
-                    "instagram"
+                    "instagram",
+                    "appstore",
+                    "googleplay"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -1670,9 +1816,11 @@
                     "news",
                     "linkedin",
                     "tiktok",
-                    "instagram"
+                    "instagram",
+                    "appstore",
+                    "googleplay"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -1835,6 +1983,16 @@
                 },
                 "maxItems": 200,
                 "description": "Never these authors: display names, handles or profile URLs."
+              },
+              "ratings": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "maxItems": 5,
+                "description": "Only app store reviews with any of these star ratings; every other post fails it."
               }
             }
           },
@@ -2883,9 +3041,11 @@
                     "news",
                     "linkedin",
                     "tiktok",
-                    "instagram"
+                    "instagram",
+                    "appstore",
+                    "googleplay"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                 },
                 "description": "Only posts from these platforms."
               },
@@ -2968,6 +3128,16 @@
               "automated": {
                 "type": "boolean",
                 "description": "true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both."
+              },
+              "ratings": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "maxItems": 5,
+                "description": "Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it."
               }
             }
           },
@@ -3816,9 +3986,11 @@
                         "news",
                         "linkedin",
                         "tiktok",
-                        "instagram"
+                        "instagram",
+                        "appstore",
+                        "googleplay"
                       ],
-                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                     },
                     "url": {
                       "type": "string",
@@ -4722,8 +4894,7 @@
                         "instagram"
                       ]
                     },
-                    "minItems": 1,
-                    "description": "Platforms to track it on; omit or null for every platform."
+                    "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews, which then needs reviewSources."
                   },
                   "context": {
                     "type": "string",
@@ -4799,6 +4970,53 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "The group to track it in (grp_...); omit for the workspace's default group. A term may be tracked once per group."
+                  },
+                  "reviewSources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500,
+                          "description": "The app's store link: https://apps.apple.com/us/app/notion/id1232780281 or https://play.google.com/store/apps/details?id=notion.id. Or give platform and id."
+                        },
+                        "platform": {
+                          "type": "string",
+                          "enum": [
+                            "appstore",
+                            "googleplay"
+                          ],
+                          "description": "appstore (Apple App Store) or googleplay (Google Play)."
+                        },
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200,
+                          "description": "The store's app id: the digits after \"id\" on the App Store, the package name on Google Play."
+                        },
+                        "countries": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z]{2}$"
+                          },
+                          "minItems": 1,
+                          "maxItems": 20,
+                          "description": "Storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention."
+                        },
+                        "language": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 10,
+                          "description": "Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en."
+                        }
+                      },
+                      "description": "An app whose reviews become this keyword's mentions: a store link, or the platform and the app id."
+                    },
+                    "maxItems": 10,
+                    "description": "Apps whose reviews this keyword collects, at most 10: every new review of one of them is a mention of the keyword, whatever its text says. Polled once a day per country. A newly added app brings its last 30 days, the newest 100 reviews per country, free and never sent as instant alerts; after that each review bills like any mention."
                   }
                 },
                 "required": [
@@ -4950,15 +5168,17 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
-              "description": "Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated."
+              "description": "Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated."
             },
             "required": false,
-            "description": "Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated.",
+            "description": "Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated.",
             "name": "platform",
             "in": "query"
           },
@@ -5087,8 +5307,14 @@
                                 "instagram"
                               ]
                             },
-                            "minItems": 1,
-                            "description": "Platforms this keyword is tracked on; null means every platform."
+                            "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
+                          },
+                          "reviewSources": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/ReviewSource"
+                            },
+                            "description": "Where this keyword collects reviews from (App Store and Google Play apps); empty for none."
                           },
                           "context": {
                             "type": "string",
@@ -5291,9 +5517,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "lastPolledAt": {
                                   "type": "string",
@@ -5328,6 +5556,7 @@
                           "cap",
                           "group",
                           "platforms",
+                          "reviewSources",
                           "context",
                           "matching",
                           "stats",
@@ -5498,8 +5727,7 @@
                         "instagram"
                       ]
                     },
-                    "minItems": 1,
-                    "description": "Replaces the platform list; null means every platform."
+                    "description": "Replaces the platform list; null means every platform, [] none (reviews only, when the keyword has reviewSources)."
                   },
                   "context": {
                     "type": "string",
@@ -5575,6 +5803,53 @@
                     "type": "string",
                     "minLength": 1,
                     "description": "Moves the keyword to this group (grp_...). A 409 when that group already tracks the term."
+                  },
+                  "reviewSources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500,
+                          "description": "The app's store link: https://apps.apple.com/us/app/notion/id1232780281 or https://play.google.com/store/apps/details?id=notion.id. Or give platform and id."
+                        },
+                        "platform": {
+                          "type": "string",
+                          "enum": [
+                            "appstore",
+                            "googleplay"
+                          ],
+                          "description": "appstore (Apple App Store) or googleplay (Google Play)."
+                        },
+                        "id": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200,
+                          "description": "The store's app id: the digits after \"id\" on the App Store, the package name on Google Play."
+                        },
+                        "countries": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z]{2}$"
+                          },
+                          "minItems": 1,
+                          "maxItems": 20,
+                          "description": "Storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention."
+                        },
+                        "language": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 10,
+                          "description": "Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en."
+                        }
+                      },
+                      "description": "An app whose reviews become this keyword's mentions: a store link, or the platform and the app id."
+                    },
+                    "maxItems": 10,
+                    "description": "Replaces the list of apps whose reviews this keyword collects; [] disconnects them all (their reviews stay). An app or country added here gets the free 30-day look-back; one already listed keeps its place."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -6062,7 +6337,9 @@
                 "news",
                 "linkedin",
                 "tiktok",
-                "instagram"
+                "instagram",
+                "appstore",
+                "googleplay"
               ],
               "description": "Only posts from this platform."
             },
@@ -6342,9 +6619,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -6371,9 +6650,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -6587,6 +6868,22 @@
             "required": false,
             "description": "Never posts in these languages. A post whose language is unknown still passes.",
             "name": "notLanguages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "maxItems": 5,
+              "description": "Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it."
+            },
+            "required": false,
+            "description": "Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.",
+            "name": "ratings",
             "in": "query"
           },
           {
@@ -6715,7 +7012,7 @@
       "get": {
         "operationId": "exportMentionsCsv",
         "summary": "Export mentions as CSV",
-        "description": "The same mentions GET /v1/mentions would list for these filters, as CSV, newest matched first (the order they entered your feed, which can differ from the post date): id, published_at, platform, keyword, author, author_url, author_followers, relevance, sentiment, intents (pipe-separated), language, confidence, status, relevant, delivered, url, links (pipe-separated), text (first 1,000 characters). Capped at 10,000 rows; the X-Mentions-Truncated header says when the cap cut the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.",
+        "description": "The same mentions GET /v1/mentions would list for these filters, as CSV, newest matched first (the order they entered your feed, which can differ from the post date): id, published_at, platform, keyword, author, author_url, author_followers, relevance, sentiment, intents (pipe-separated), language, confidence, status, relevant, delivered, url, links (pipe-separated), text (first 1,000 characters), group, group_external_id, rating and app_id (app store reviews only). Capped at 10,000 rows; the X-Mentions-Truncated header says when the cap cut the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.",
         "tags": [
           "Mentions"
         ],
@@ -6750,7 +7047,9 @@
                 "news",
                 "linkedin",
                 "tiktok",
-                "instagram"
+                "instagram",
+                "appstore",
+                "googleplay"
               ],
               "description": "Only posts from this platform."
             },
@@ -7030,9 +7329,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -7059,9 +7360,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -7279,6 +7582,22 @@
           },
           {
             "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "maxItems": 5,
+              "description": "Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it."
+            },
+            "required": false,
+            "description": "Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.",
+            "name": "ratings",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "description": "Substring search in the post text or the author's name."
             },
@@ -7383,7 +7702,9 @@
                 "news",
                 "linkedin",
                 "tiktok",
-                "instagram"
+                "instagram",
+                "appstore",
+                "googleplay"
               ],
               "description": "People with an account on this platform."
             },
@@ -7465,9 +7786,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -7574,9 +7897,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -7838,7 +8163,9 @@
                 "news",
                 "linkedin",
                 "tiktok",
-                "instagram"
+                "instagram",
+                "appstore",
+                "googleplay"
               ],
               "description": "People with an account on this platform."
             },
@@ -7920,9 +8247,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -8029,9 +8358,11 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -8267,7 +8598,9 @@
                               "news",
                               "linkedin",
                               "tiktok",
-                              "instagram"
+                              "instagram",
+                              "appstore",
+                              "googleplay"
                             ],
                             "description": "Platform of the canonical account; `accounts` lists every account."
                           },
@@ -8313,9 +8646,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "name": {
                                   "type": "string",
@@ -9320,9 +9655,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -9409,9 +9746,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -9547,9 +9886,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -9636,9 +9977,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -9794,9 +10137,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -9883,9 +10228,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -10135,9 +10482,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -10224,9 +10573,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -10517,9 +10868,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts from any of these platforms."
@@ -10540,9 +10893,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "maxItems": 20,
                                 "description": "Never posts from these platforms."
@@ -10705,6 +11060,16 @@
                                 },
                                 "maxItems": 200,
                                 "description": "Never these authors: display names, handles or profile URLs."
+                              },
+                              "ratings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 5
+                                },
+                                "maxItems": 5,
+                                "description": "Only app store reviews with any of these star ratings; every other post fails it."
                               }
                             }
                           },
@@ -10853,9 +11218,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -10876,9 +11243,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -11041,6 +11410,16 @@
                         },
                         "maxItems": 200,
                         "description": "Never these authors: display names, handles or profile URLs."
+                      },
+                      "ratings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Only app store reviews with any of these star ratings; every other post fails it."
                       }
                     },
                     "default": {},
@@ -11263,9 +11642,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -11286,9 +11667,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -11451,6 +11834,16 @@
                         },
                         "maxItems": 200,
                         "description": "Never these authors: display names, handles or profile URLs."
+                      },
+                      "ratings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Only app store reviews with any of these star ratings; every other post fails it."
                       }
                     },
                     "description": "Replaces the whole filter."
@@ -13427,9 +13820,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -13512,6 +13907,16 @@
                       "automated": {
                         "type": "boolean",
                         "description": "true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both."
+                      },
+                      "ratings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it."
                       }
                     },
                     "description": "Replaces the whole filter."
@@ -13745,9 +14150,11 @@
                                     "news",
                                     "linkedin",
                                     "tiktok",
-                                    "instagram"
+                                    "instagram",
+                                    "appstore",
+                                    "googleplay"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                                 },
                                 "description": "Only posts from these platforms."
                               },
@@ -13830,6 +14237,16 @@
                               "automated": {
                                 "type": "boolean",
                                 "description": "true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both."
+                              },
+                              "ratings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 5
+                                },
+                                "maxItems": 5,
+                                "description": "Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it."
                               }
                             }
                           },
@@ -14038,9 +14455,11 @@
                             "news",
                             "linkedin",
                             "tiktok",
-                            "instagram"
+                            "instagram",
+                            "appstore",
+                            "googleplay"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews)."
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -14123,6 +14542,16 @@
                       "automated": {
                         "type": "boolean",
                         "description": "true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both."
+                      },
+                      "ratings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it."
                       }
                     },
                     "default": {}
@@ -14698,7 +15127,9 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ]
               },
               "maxItems": 20,
@@ -14851,7 +15282,9 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ]
               },
               "maxItems": 20,
@@ -15035,7 +15468,9 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ]
               },
               "maxItems": 20,
@@ -15208,7 +15643,9 @@
                   "news",
                   "linkedin",
                   "tiktok",
-                  "instagram"
+                  "instagram",
+                  "appstore",
+                  "googleplay"
                 ]
               },
               "maxItems": 20,

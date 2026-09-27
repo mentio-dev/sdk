@@ -26,6 +26,33 @@ export type GroupRef = {
     isDefault: boolean;
 };
 
+export type ReviewSource = {
+    /**
+     * appstore (Apple App Store) or googleplay (Google Play).
+     */
+    platform: 'appstore' | 'googleplay';
+    /**
+     * The store's app id.
+     */
+    id: string;
+    /**
+     * The app's store listing.
+     */
+    url: string;
+    /**
+     * Storefronts read, lowercase two-letter codes.
+     */
+    countries: Array<string>;
+    /**
+     * Google Play's review language; null on the App Store, which answers every language.
+     */
+    language: string | null;
+    /**
+     * When this keyword started collecting the app's reviews.
+     */
+    connectedAt: string;
+};
+
 export type Keyword = {
     /**
      * Keyword id (kw_...).
@@ -56,9 +83,13 @@ export type Keyword = {
     } | null;
     group: GroupRef;
     /**
-     * Platforms this keyword is tracked on; null means every platform.
+     * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
      */
     platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
+    /**
+     * Where this keyword collects reviews from (App Store and Google Play apps); empty for none.
+     */
+    reviewSources: Array<ReviewSource>;
     /**
      * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
      */
@@ -173,9 +204,9 @@ export type Keyword = {
      */
     polling: Array<{
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews).
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
         /**
          * Newest poll of this platform for the term; null until the first one.
          */
@@ -287,9 +318,9 @@ export type Mention = {
     };
     post: {
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews).
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
         /**
          * Permalink of the post.
          */
@@ -367,6 +398,56 @@ export type Mention = {
          * Your workspace tags on this person.
          */
         tags: Array<string>;
+    } | null;
+    /**
+     * An app store review's facts; null for every other post. Its sentiment comes from the stars (4 and 5 positive, 3 neutral, 1 and 2 negative) and it always counts as relevant, since you chose the app.
+     */
+    review: {
+        /**
+         * Stars the reviewer gave.
+         */
+        rating: number;
+        /**
+         * The top of the scale: 5 on both stores.
+         */
+        ratingMax: number;
+        /**
+         * The review's headline; null where the store has none (Google Play).
+         */
+        title: string | null;
+        /**
+         * The app version the reviewer ran, when the store says.
+         */
+        version: string | null;
+        /**
+         * The storefront it was read in, a lowercase two-letter code.
+         */
+        country: string | null;
+        /**
+         * The developer's reply as it stood when the review was collected; null for none.
+         */
+        response: string | null;
+        /**
+         * When the developer replied.
+         */
+        responseAt: string | null;
+        /**
+         * The app reviewed.
+         */
+        app: {
+            /**
+             * appstore (Apple App Store) or googleplay (Google Play).
+             */
+            platform: 'appstore' | 'googleplay';
+            /**
+             * The store's app id.
+             */
+            id: string;
+            /**
+             * The app's store listing.
+             */
+            url: string;
+        };
     } | null;
     /**
      * The classifier verdict, as corrected by your feedback; null while the post is still queued for classification.
@@ -471,7 +552,7 @@ export type Person = {
     /**
      * Platform of the canonical account; `accounts` lists every account.
      */
-    platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+    platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
     /**
      * Display name as of their newest post; null when the platform has none.
      */
@@ -494,9 +575,9 @@ export type Person = {
          */
         id: string;
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews).
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
         /**
          * Display name as the platform reports it.
          */
@@ -654,7 +735,7 @@ export type Segment = {
         /**
          * People with an account on any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * People carrying any of these tags.
          */
@@ -690,7 +771,7 @@ export type Segment = {
         /**
          * Nobody with an account on these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Nobody carrying any of these tags.
          */
@@ -773,11 +854,11 @@ export type View = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Only mentions in this status: open, ignored, done.
          */
@@ -854,6 +935,10 @@ export type View = {
          * Never these authors: display names, handles or profile URLs.
          */
         excludeAuthors?: Array<string>;
+        /**
+         * Only app store reviews with any of these star ratings; every other post fails it.
+         */
+        ratings?: Array<number>;
     };
     /**
      * ISO 8601 timestamp, UTC.
@@ -1497,7 +1582,7 @@ export type Alert = {
         /**
          * Only posts from these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
          */
@@ -1538,6 +1623,10 @@ export type Alert = {
          * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
          */
         automated?: boolean;
+        /**
+         * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
+         */
+        ratings?: Array<number>;
     };
     /**
      * Daily and weekly alerts only.
@@ -2015,9 +2104,9 @@ export type AnalyticsBreakdown = {
              */
             name: string | null;
             /**
-             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
+             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews).
              */
-            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
             /**
              * Profile URL.
              */
@@ -2457,9 +2546,9 @@ export type ListKeywordsData = {
          */
         status?: Array<'active' | 'muted' | 'paused' | 'capped'>;
         /**
-         * Only keywords tracked on any of these platforms; a keyword tracked everywhere always passes. Repeatable, or comma-separated.
+         * Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated.
          */
-        platform?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platform?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * newest: created most recently first. oldest: the reverse. term: A to Z. mentions: most matches first. relevant: most relevant matches first. recent: most matches in the last 7 days first. lastMention: newest matched post first, keywords with none last.
          */
@@ -2524,9 +2613,13 @@ export type ListKeywordsResponses = {
             } | null;
             group: GroupRef;
             /**
-             * Platforms this keyword is tracked on; null means every platform.
+             * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
              */
             platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
+            /**
+             * Where this keyword collects reviews from (App Store and Google Play apps); empty for none.
+             */
+            reviewSources: Array<ReviewSource>;
             /**
              * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
              */
@@ -2641,9 +2734,9 @@ export type ListKeywordsResponses = {
              */
             polling: Array<{
                 /**
-                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
+                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews).
                  */
-                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
                 /**
                  * Newest poll of this platform for the term; null until the first one.
                  */
@@ -2678,7 +2771,7 @@ export type CreateKeywordData = {
          */
         kind?: 'brand' | 'competitor' | 'topic';
         /**
-         * Platforms to track it on; omit or null for every platform.
+         * Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews, which then needs reviewSources.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
         /**
@@ -2723,6 +2816,31 @@ export type CreateKeywordData = {
          * The group to track it in (grp_...); omit for the workspace's default group. A term may be tracked once per group.
          */
         groupId?: string;
+        /**
+         * Apps whose reviews this keyword collects, at most 10: every new review of one of them is a mention of the keyword, whatever its text says. Polled once a day per country. A newly added app brings its last 30 days, the newest 100 reviews per country, free and never sent as instant alerts; after that each review bills like any mention.
+         */
+        reviewSources?: Array<{
+            /**
+             * The app's store link: https://apps.apple.com/us/app/notion/id1232780281 or https://play.google.com/store/apps/details?id=notion.id. Or give platform and id.
+             */
+            url?: string;
+            /**
+             * appstore (Apple App Store) or googleplay (Google Play).
+             */
+            platform?: 'appstore' | 'googleplay';
+            /**
+             * The store's app id: the digits after "id" on the App Store, the package name on Google Play.
+             */
+            id?: string;
+            /**
+             * Storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention.
+             */
+            countries?: Array<string>;
+            /**
+             * Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en.
+             */
+            language?: string;
+        }>;
     };
     path?: never;
     query?: never;
@@ -2837,7 +2955,7 @@ export type UpdateKeywordData = {
          */
         muted?: boolean;
         /**
-         * Replaces the platform list; null means every platform.
+         * Replaces the platform list; null means every platform, [] none (reviews only, when the keyword has reviewSources).
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
         /**
@@ -2882,6 +3000,31 @@ export type UpdateKeywordData = {
          * Moves the keyword to this group (grp_...). A 409 when that group already tracks the term.
          */
         groupId?: string;
+        /**
+         * Replaces the list of apps whose reviews this keyword collects; [] disconnects them all (their reviews stay). An app or country added here gets the free 30-day look-back; one already listed keeps its place.
+         */
+        reviewSources?: Array<{
+            /**
+             * The app's store link: https://apps.apple.com/us/app/notion/id1232780281 or https://play.google.com/store/apps/details?id=notion.id. Or give platform and id.
+             */
+            url?: string;
+            /**
+             * appstore (Apple App Store) or googleplay (Google Play).
+             */
+            platform?: 'appstore' | 'googleplay';
+            /**
+             * The store's app id: the digits after "id" on the App Store, the package name on Google Play.
+             */
+            id?: string;
+            /**
+             * Storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention.
+             */
+            countries?: Array<string>;
+            /**
+             * Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en.
+             */
+            language?: string;
+        }>;
     };
     path: {
         /**
@@ -3117,7 +3260,7 @@ export type SearchMentionsData = {
         /**
          * Only posts from this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
         /**
          * Only mentions in this status. Omit for every status.
          */
@@ -3201,11 +3344,11 @@ export type SearchMentionsData = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Only matches of any of these keywords.
          */
@@ -3254,6 +3397,10 @@ export type SearchMentionsData = {
          * Never posts in these languages. A post whose language is unknown still passes.
          */
         notLanguages?: Array<string>;
+        /**
+         * Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.
+         */
+        ratings?: Array<number>;
         /**
          * Substring search in the post text or the author's name.
          */
@@ -3321,7 +3468,7 @@ export type ExportMentionsCsvData = {
         /**
          * Only posts from this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
         /**
          * Only mentions in this status. Omit for every status.
          */
@@ -3405,11 +3552,11 @@ export type ExportMentionsCsvData = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Only matches of any of these keywords.
          */
@@ -3459,6 +3606,10 @@ export type ExportMentionsCsvData = {
          */
         notLanguages?: Array<string>;
         /**
+         * Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.
+         */
+        ratings?: Array<number>;
+        /**
          * Substring search in the post text or the author's name.
          */
         q?: string;
@@ -3507,7 +3658,7 @@ export type ExportPeopleCsvData = {
         /**
          * People with an account on this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
         /**
          * Matches the display name or the profile handle or URL, case-insensitively.
          */
@@ -3531,7 +3682,7 @@ export type ExportPeopleCsvData = {
         /**
          * People with an account on any of these platforms. Repeatable, or comma-separated.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * People carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -3559,7 +3710,7 @@ export type ExportPeopleCsvData = {
         /**
          * Nobody with an account on these platforms. Repeatable, or comma-separated.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Nobody carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -3641,7 +3792,7 @@ export type ListPeopleData = {
         /**
          * People with an account on this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
         /**
          * Matches the display name or the profile handle or URL, case-insensitively.
          */
@@ -3665,7 +3816,7 @@ export type ListPeopleData = {
         /**
          * People with an account on any of these platforms. Repeatable, or comma-separated.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * People carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -3693,7 +3844,7 @@ export type ListPeopleData = {
         /**
          * Nobody with an account on these platforms. Repeatable, or comma-separated.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * Nobody carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -3776,7 +3927,7 @@ export type ListPeopleResponses = {
             /**
              * Platform of the canonical account; `accounts` lists every account.
              */
-            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
             /**
              * Display name as of their newest post; null when the platform has none.
              */
@@ -3799,9 +3950,9 @@ export type ListPeopleResponses = {
                  */
                 id: string;
                 /**
-                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram.
+                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews).
                  */
-                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram';
+                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay';
                 /**
                  * Display name as the platform reports it.
                  */
@@ -4281,7 +4432,7 @@ export type ListSegmentsResponses = {
                 /**
                  * People with an account on any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
                 /**
                  * People carrying any of these tags.
                  */
@@ -4317,7 +4468,7 @@ export type ListSegmentsResponses = {
                 /**
                  * Nobody with an account on these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
                 /**
                  * Nobody carrying any of these tags.
                  */
@@ -4375,7 +4526,7 @@ export type ListSegmentsResponses = {
                 /**
                  * People with an account on any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
                 /**
                  * People carrying any of these tags.
                  */
@@ -4411,7 +4562,7 @@ export type ListSegmentsResponses = {
                 /**
                  * Nobody with an account on these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
                 /**
                  * Nobody carrying any of these tags.
                  */
@@ -4459,7 +4610,7 @@ export type CreateSegmentData = {
             /**
              * People with an account on any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * People carrying any of these tags.
              */
@@ -4495,7 +4646,7 @@ export type CreateSegmentData = {
             /**
              * Nobody with an account on these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * Nobody carrying any of these tags.
              */
@@ -4643,7 +4794,7 @@ export type UpdateSegmentData = {
             /**
              * People with an account on any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * People carrying any of these tags.
              */
@@ -4679,7 +4830,7 @@ export type UpdateSegmentData = {
             /**
              * Nobody with an account on these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * Nobody carrying any of these tags.
              */
@@ -4809,11 +4960,11 @@ export type ListViewsResponses = {
                 /**
                  * Only posts from any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
                 /**
                  * Never posts from these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
                 /**
                  * Only mentions in this status: open, ignored, done.
                  */
@@ -4890,6 +5041,10 @@ export type ListViewsResponses = {
                  * Never these authors: display names, handles or profile URLs.
                  */
                 excludeAuthors?: Array<string>;
+                /**
+                 * Only app store reviews with any of these star ratings; every other post fails it.
+                 */
+                ratings?: Array<number>;
             };
             /**
              * ISO 8601 timestamp, UTC.
@@ -4946,11 +5101,11 @@ export type CreateViewData = {
             /**
              * Only posts from any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * Never posts from these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * Only mentions in this status: open, ignored, done.
              */
@@ -5027,6 +5182,10 @@ export type CreateViewData = {
              * Never these authors: display names, handles or profile URLs.
              */
             excludeAuthors?: Array<string>;
+            /**
+             * Only app store reviews with any of these star ratings; every other post fails it.
+             */
+            ratings?: Array<number>;
         };
     };
     path?: never;
@@ -5159,11 +5318,11 @@ export type UpdateViewData = {
             /**
              * Only posts from any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * Never posts from these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * Only mentions in this status: open, ignored, done.
              */
@@ -5240,6 +5399,10 @@ export type UpdateViewData = {
              * Never these authors: display names, handles or profile URLs.
              */
             excludeAuthors?: Array<string>;
+            /**
+             * Only app store reviews with any of these star ratings; every other post fails it.
+             */
+            ratings?: Array<number>;
         };
     };
     path: {
@@ -6319,7 +6482,7 @@ export type UpdateAlertData = {
             /**
              * Only posts from these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
              */
@@ -6360,6 +6523,10 @@ export type UpdateAlertData = {
              * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
              */
             automated?: boolean;
+            /**
+             * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
+             */
+            ratings?: Array<number>;
         };
         schedule?: {
             hour: number;
@@ -6457,7 +6624,7 @@ export type ListAlertsResponses = {
                 /**
                  * Only posts from these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
                 /**
                  * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
                  */
@@ -6498,6 +6665,10 @@ export type ListAlertsResponses = {
                  * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
                  */
                 automated?: boolean;
+                /**
+                 * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
+                 */
+                ratings?: Array<number>;
             };
             /**
              * Daily and weekly alerts only.
@@ -6568,7 +6739,7 @@ export type CreateAlertData = {
             /**
              * Only posts from these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
             /**
              * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
              */
@@ -6609,6 +6780,10 @@ export type CreateAlertData = {
              * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
              */
             automated?: boolean;
+            /**
+             * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
+             */
+            ratings?: Array<number>;
         };
         /**
          * Required for daily and weekly alerts (weekly ones also need schedule.weekday).
@@ -6860,7 +7035,7 @@ export type GetAnalyticsSummaryData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -6918,7 +7093,7 @@ export type GetAnalyticsSeriesData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -6984,7 +7159,7 @@ export type GetAnalyticsBreakdownData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -7046,7 +7221,7 @@ export type GetShareOfVoiceData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
