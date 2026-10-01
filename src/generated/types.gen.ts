@@ -186,6 +186,10 @@ export type Keyword = {
             noisy: boolean;
         };
         /**
+         * The keyword's health over the same 14 days as `noise`, by the rule GET /v1/keywords/{id}/health applies to its own window: paused (muted), capped (at its mention cap), noisy (20 or more scored matches, under 30% relevant), new (under 7 days old and not noisy, or changed in the last 7 days with under 20 scored matches since), quiet (7 days or older, nothing relevant), else healthy. Judged on the matches since the keyword's last change to its matching rules, platforms or context (or its unmute) when that is inside the 14 days, so a keyword tightened today is not flagged on the noise the change removed; `noise` itself keeps the whole 14 days. Always 14 days, while the endpoint reads 30 by default, so the two can differ for the same keyword. The health endpoint says why and what to change.
+         */
+        health: 'healthy' | 'noisy' | 'quiet' | 'capped' | 'paused' | 'new';
+        /**
          * What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding.
          */
         cost: {
@@ -242,7 +246,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -256,6 +260,365 @@ export type ErrorResponse = {
          */
         retryAfterSeconds?: number;
     };
+};
+
+export type KeywordSuggestion = {
+    /**
+     * excluded_terms and excluded_authors add to the matching rules; required_terms sets them; platforms drops the platforms that are almost all noise; context rewrites the sentence the classifier reads.
+     */
+    type: 'excluded_terms' | 'excluded_authors' | 'required_terms' | 'platforms' | 'context';
+    /**
+     * What it adds (terms, authors), drops (platforms) or writes (the context).
+     */
+    values: Array<string>;
+    /**
+     * The reason and the measured effect, in plain words.
+     */
+    why: string;
+    /**
+     * The body to send to PATCH /v1/keywords/{id} as is to apply it. A list holds the whole new list, current entries kept.
+     */
+    patch: {
+        /**
+         * Reclassify it as brand, competitor or topic.
+         */
+        kind?: 'brand' | 'competitor' | 'topic';
+        /**
+         * A muted keyword stops polling and matching; its mentions stay.
+         */
+        muted?: boolean;
+        /**
+         * Replaces the platform list; null means every platform, [] none (reviews only, when the keyword has reviewSources).
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
+        /**
+         * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+         */
+        context?: string | null;
+        /**
+         * Omitted fields are untouched; an empty list clears one.
+         */
+        matching?: {
+            /**
+             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+             */
+            requiredTerms?: Array<string>;
+            /**
+             * any: at least one required term must appear. all: every one must.
+             */
+            requiredMode?: 'any' | 'all';
+            /**
+             * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
+             */
+            excludedTerms?: Array<string>;
+            /**
+             * Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list.
+             */
+            excludedAuthors?: Array<string>;
+            /**
+             * true: the term must appear in the case it was typed (RAG, never rag). Default false.
+             */
+            caseSensitive?: boolean;
+        };
+        /**
+         * Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it.
+         */
+        cap?: {
+            /**
+             * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             */
+            mentions: number;
+        } | null;
+        /**
+         * Moves the keyword to this group (grp_...). A 409 when that group already tracks the term.
+         */
+        groupId?: string;
+        /**
+         * Replaces the list of apps whose reviews this keyword collects; [] disconnects them all (their reviews stay). An app or country added here gets the free 30-day look-back; one already listed keeps its place.
+         */
+        reviewSources?: Array<{
+            /**
+             * The review page's link: an App Store or Google Play app (https://apps.apple.com/us/app/notion/id1232780281, https://play.google.com/store/apps/details?id=notion.id), a Trustpilot page (https://www.trustpilot.com/review/notion.so) or a Google Maps place (its full link, or a maps.app.goo.gl share link). Or give platform and id.
+             */
+            url?: string;
+            /**
+             * appstore (Apple App Store), googleplay (Google Play), trustpilot (a company's Trustpilot page) or googlemaps (a place's Google reviews).
+             */
+            platform?: 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+            /**
+             * The id on the platform: the digits after "id" on the App Store, the package name on Google Play, the company's domain on Trustpilot (notion.so), a Place ID (ChIJ...) on Google Maps.
+             */
+            id?: string;
+            /**
+             * App Store and Google Play only: storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention. Trustpilot and Google Maps have one page for everyone and take none.
+             */
+            countries?: Array<string>;
+            /**
+             * Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en.
+             */
+            language?: string;
+        }>;
+    };
+    /**
+     * What the change would have done over the window, measured with the matcher's own rules. Null for a context, which changes scores, not matches.
+     */
+    effect: {
+        /**
+         * Noise matches of the window (since stats.judgedSince when set) the change would have removed (estimated from the sample unless exact).
+         */
+        noiseRemoved: number;
+        /**
+         * Relevant matches of the window it would have removed.
+         */
+        relevantRemoved: number;
+        /**
+         * What the removed matches cost at the mention rate: what the change would have saved over the window.
+         */
+        centsSaved: number;
+        /**
+         * The measurement behind the estimate: the matcher's own rules run over the sampled posts.
+         */
+        sample: {
+            /**
+             * Sampled noise posts the change rejects.
+             */
+            noiseRemoved: number;
+            /**
+             * Noise posts sampled.
+             */
+            noise: number;
+            /**
+             * Sampled relevant posts the change rejects.
+             */
+            relevantRemoved: number;
+            /**
+             * Relevant posts sampled.
+             */
+            relevant: number;
+        };
+        /**
+         * The sample was the whole window, so the counts are measured, not estimated.
+         */
+        exact: boolean;
+    } | null;
+    /**
+     * rules: computed from the window's posts. ai: written by a language model (ai=true).
+     */
+    source: 'rules' | 'ai';
+};
+
+export type KeywordHealth = {
+    /**
+     * The keyword the report is about.
+     */
+    keyword: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+        /**
+         * The term as typed.
+         */
+        term: string;
+        group: GroupRef;
+    };
+    /**
+     * The window the report reads, by match time, in UTC days.
+     */
+    window: {
+        /**
+         * First day, YYYY-MM-DD, inclusive, UTC.
+         */
+        from: string;
+        /**
+         * Last day, inclusive: today.
+         */
+        to: string;
+        /**
+         * Length of the window in days.
+         */
+        days: number;
+    };
+    /**
+     * healthy: nothing to fix. noisy: 20 or more scored matches in the window and under 30% of them relevant. quiet: 7 days or older with no relevant match in the window. capped: at its monthly mention cap. paused: muted (by you, the wallet or the noise brake). new: under 7 days old and not noisy yet, or changed in the last 7 days with under 20 scored matches since the change. When the keyword's matching rules, platforms or context changed (or it was unmuted) inside the window, the status reads only the matches since then (stats.judgedSince).
+     */
+    status: 'healthy' | 'noisy' | 'quiet' | 'capped' | 'paused' | 'new';
+    /**
+     * Why, in plain words; the first line explains the status.
+     */
+    reasons: Array<string>;
+    /**
+     * Computed over the keyword's matches in the window.
+     */
+    stats: {
+        /**
+         * Matches recorded in the window, relevant or not.
+         */
+        matches: number;
+        /**
+         * Scored at or above the relevance line (40).
+         */
+        relevant: number;
+        /**
+         * Scored under the line: the noise. Billed like any match.
+         */
+        filtered: number;
+        /**
+         * Not scored yet, or failed to score (never billed).
+         */
+        unscored: number;
+        /**
+         * filtered / (relevant + filtered); null with nothing scored.
+         */
+        noiseShare: number | null;
+        /**
+         * This keyword's share of the workspace's matches in the window; null when the workspace matched nothing.
+         */
+        workspaceShare: number | null;
+        /**
+         * When the keyword last changed its matching rules, platforms or context (or was unmuted), when that is inside the window: the status, the reasons, noiseTerms, noiseAuthors and suggestions read only the matches since then, while these numbers keep the whole window. Null: everything reads the whole window.
+         */
+        judgedSince: string | null;
+        /**
+         * One row per platform it matched on, most matches first.
+         */
+        byPlatform: Array<{
+            /**
+             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place).
+             */
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+            /**
+             * Matches on this platform in the window.
+             */
+            matches: number;
+            /**
+             * Of those, scored at or above the relevance line (40).
+             */
+            relevant: number;
+            /**
+             * Of those, scored under the line: the noise.
+             */
+            filtered: number;
+            /**
+             * filtered / (relevant + filtered); null with nothing scored.
+             */
+            noiseShare: number | null;
+        }>;
+        /**
+         * The trend, one row per 7 days of the window, oldest first; the last row may be shorter.
+         */
+        weekly: Array<{
+            /**
+             * First day of the 7, YYYY-MM-DD (counted from the window's first day).
+             */
+            from: string;
+            /**
+             * Matches in those 7 days.
+             */
+            matches: number;
+            /**
+             * Of those, relevant.
+             */
+            relevant: number;
+        }>;
+        /**
+         * What the keyword cost over the window at list price.
+         */
+        cost: {
+            /**
+             * Days in the window the keyword was charged for.
+             */
+            keywordDays: number;
+            /**
+             * Those days at the keyword rate.
+             */
+            keywordCents: number;
+            /**
+             * Matches billed in the window, by the time they were scored.
+             */
+            billableMentions: number;
+            /**
+             * Those matches at the mention rate.
+             */
+            mentionCents: number;
+            /**
+             * keywordCents plus mentionCents: its row in GET /v1/usage/breakdown for the same range.
+             */
+            totalCents: number;
+        };
+    };
+    /**
+     * The posts behind noiseTerms, noiseAuthors and the effects, after the keyword's current rules (a post an older rule let in is not counted). Review platforms are matched by app, not by text, and are left out.
+     */
+    sample: {
+        /**
+         * Noise posts read (the newest of the window, or since stats.judgedSince, at most 200), on platforms matched by text. None under 20 scored matches since a change.
+         */
+        noise: number;
+        /**
+         * Relevant posts read, likewise.
+         */
+        relevant: number;
+    };
+    /**
+     * Up to 10 words or phrases over-represented in the noise against the relevant posts, strongest first. The keyword's own words are left out.
+     */
+    noiseTerms: Array<{
+        /**
+         * A word or two-word phrase.
+         */
+        term: string;
+        /**
+         * Sampled noise posts that carry it.
+         */
+        noisePosts: number;
+        /**
+         * Sampled relevant posts that carry it.
+         */
+        relevantPosts: number;
+        /**
+         * How many times more common it is in noise than in relevant posts (smoothed); null with no relevant post to compare.
+         */
+        lift: number | null;
+    }>;
+    /**
+     * Authors with 3 or more noise posts in the sample and no relevant one.
+     */
+    noiseAuthors: Array<{
+        /**
+         * The author as the platform shows them.
+         */
+        name: string;
+        /**
+         * What matching.excludedAuthors would store for them.
+         */
+        entry: string;
+        /**
+         * Sampled noise posts by them.
+         */
+        noisePosts: number;
+    }>;
+    /**
+     * Changes that would cut the noise, each ready for PATCH /v1/keywords/{id}. Empty when nothing is worth changing, or under 20 scored matches since the last change (a reason says so).
+     */
+    suggestions: Array<KeywordSuggestion>;
+    /**
+     * The optional language model half of the report.
+     */
+    ai: {
+        /**
+         * ai=true was asked.
+         */
+        requested: boolean;
+        /**
+         * off: not asked. generated: written now. cached: written earlier today for the same keyword, window and settings. unavailable: the model failed, answered nothing usable or is not configured. rate_limited: the workspace's 20 model calls this hour are spent.
+         */
+        status: 'off' | 'generated' | 'cached' | 'unavailable' | 'rate_limited';
+    };
+    /**
+     * When the report was computed; it is cached for 5 minutes, and a change to the keyword starts a fresh one.
+     */
+    generatedAt: string;
 };
 
 /**
@@ -341,6 +704,14 @@ export type Mention = {
          * Title and body, truncated to 8 KB at ingest.
          */
         text: string;
+        /**
+         * The post's own title where the platform has one: a Hacker News story, a Reddit thread, a GitHub issue or pull request, a Stack Overflow question, a DEV article, a YouTube video, a news article, a titled review. Null for platforms without titles (X, Bluesky, LinkedIn) and for posts ingested before October 2026.
+         */
+        title: string | null;
+        /**
+         * A preview image of the post, when the platform sent one with it: a YouTube thumbnail, a DEV cover, a news article's sharing image, a Bluesky link card or image. Null otherwise.
+         */
+        imageUrl: string | null;
         /**
          * Links the post carries, in the order written, at most 20. Empty for a post with none, and for posts ingested before September 2026.
          */
@@ -478,7 +849,7 @@ export type Mention = {
          */
         sentiment: 'positive' | 'neutral' | 'negative';
         /**
-         * Intent and topic tags: buy_intent, question, complaint, praise, comparison, churn_intent (leaving or replacing the keyword), bug_report, pricing, hiring, event, promotional.
+         * Intent and topic tags: buy_intent, question, complaint, praise, comparison, churn_intent (leaving or replacing the keyword), bug_report, pricing, hiring, event, promotional, testimonial (a customer vouching for it from their own use), industry_insight (analysis or data about the field), launch (a product or feature launch announcement), feedback (a suggestion or request about it).
          */
         intents: Array<string>;
         /**
@@ -835,6 +1206,152 @@ export type Segment = {
     updatedAt: string;
 };
 
+/**
+ * A group of conditions, all of which must hold: the vocabulary of a view filter, without anyOf.
+ */
+export type FilterGroup = {
+    /**
+     * Substring in the post text or the author's name.
+     */
+    q?: string;
+    /**
+     * Only matches of any of these keywords.
+     */
+    keywordIds?: Array<string>;
+    /**
+     * Never matches of these keywords.
+     */
+    notKeywordIds?: Array<string>;
+    /**
+     * Only matches of keywords of any of these kinds: brand, competitor, topic.
+     */
+    keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+    /**
+     * Only matches of keywords in any of these groups (grp_...).
+     */
+    groupIds?: Array<string>;
+    /**
+     * Never matches of keywords in these groups.
+     */
+    notGroupIds?: Array<string>;
+    /**
+     * Only posts from any of these platforms.
+     */
+    platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+    /**
+     * Never posts from these platforms.
+     */
+    notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+    /**
+     * Only mentions in this status: open, ignored, done.
+     */
+    status?: 'open' | 'ignored' | 'done';
+    /**
+     * true: only mentions the classifier scored relevant; false: only the rest.
+     */
+    relevant?: boolean;
+    /**
+     * Only mentions scored at least this.
+     */
+    minRelevance?: number;
+    /**
+     * Only mentions whose classifier confidence is at least this.
+     */
+    minConfidence?: number;
+    /**
+     * Only these sentiments.
+     */
+    sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+    /**
+     * Never these sentiments; an unscored mention still passes.
+     */
+    notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+    /**
+     * Only mentions carrying any of these intent or topic tags.
+     */
+    intents?: Array<string>;
+    /**
+     * Never mentions carrying these tags.
+     */
+    notIntents?: Array<string>;
+    /**
+     * true: only posts that read as machine-made; false: only the rest.
+     */
+    automated?: boolean;
+    /**
+     * Only posts in any of these languages (ISO 639-1).
+     */
+    languages?: Array<string>;
+    /**
+     * Never posts in these languages; an unknown language still passes.
+     */
+    notLanguages?: Array<string>;
+    /**
+     * Only authors your workspace tagged with any of these.
+     */
+    tags?: Array<string>;
+    /**
+     * Never authors tagged with any of these.
+     */
+    notTags?: Array<string>;
+    /**
+     * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+     */
+    linkHosts?: Array<string>;
+    /**
+     * Never posts linking to these hosts.
+     */
+    notLinkHosts?: Array<string>;
+    /**
+     * Only authors with at least this many followers; unknown reach never passes.
+     */
+    minFollowers?: number;
+    /**
+     * Only authors with at most this many followers; unknown reach never passes.
+     */
+    maxFollowers?: number;
+    /**
+     * true: only replies and comments; false: only top-level posts.
+     */
+    isReply?: boolean;
+    /**
+     * Never these authors: display names, handles or profile URLs.
+     */
+    excludeAuthors?: Array<string>;
+    /**
+     * Only app store reviews with any of these star ratings; every other post fails it.
+     */
+    ratings?: Array<number>;
+    /**
+     * Never reviews with these star ratings; posts that are not reviews still pass.
+     */
+    notRatings?: Array<number>;
+    /**
+     * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+     */
+    minLikes?: number;
+    /**
+     * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+     */
+    minReposts?: number;
+    /**
+     * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+     */
+    minReplies?: number;
+    /**
+     * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+     */
+    minQuotes?: number;
+    /**
+     * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+     */
+    minViews?: number;
+    /**
+     * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+     */
+    minBookmarks?: number;
+};
+
 export type View = {
     /**
      * View id (vw_...).
@@ -955,6 +1472,38 @@ export type View = {
          * Only app store reviews with any of these star ratings; every other post fails it.
          */
         ratings?: Array<number>;
+        /**
+         * Never reviews with these star ratings; posts that are not reviews still pass.
+         */
+        notRatings?: Array<number>;
+        /**
+         * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minLikes?: number;
+        /**
+         * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReposts?: number;
+        /**
+         * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReplies?: number;
+        /**
+         * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minQuotes?: number;
+        /**
+         * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minViews?: number;
+        /**
+         * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minBookmarks?: number;
+        /**
+         * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+         */
+        anyOf?: Array<FilterGroup>;
     };
     /**
      * ISO 8601 timestamp, UTC.
@@ -1643,6 +2192,38 @@ export type Alert = {
          * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
          */
         ratings?: Array<number>;
+        /**
+         * Never reviews with these star ratings (1 to 5): [5] keeps the five star reviews out. Posts that are not reviews still pass.
+         */
+        notRatings?: Array<number>;
+        /**
+         * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minLikes?: number;
+        /**
+         * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReposts?: number;
+        /**
+         * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReplies?: number;
+        /**
+         * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minQuotes?: number;
+        /**
+         * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minViews?: number;
+        /**
+         * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minBookmarks?: number;
+        /**
+         * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+         */
+        anyOf?: Array<FilterGroup>;
     };
     /**
      * Daily and weekly alerts only.
@@ -2893,6 +3474,10 @@ export type ListKeywordsResponses = {
                     noisy: boolean;
                 };
                 /**
+                 * The keyword's health over the same 14 days as `noise`, by the rule GET /v1/keywords/{id}/health applies to its own window: paused (muted), capped (at its mention cap), noisy (20 or more scored matches, under 30% relevant), new (under 7 days old and not noisy, or changed in the last 7 days with under 20 scored matches since), quiet (7 days or older, nothing relevant), else healthy. Judged on the matches since the keyword's last change to its matching rules, platforms or context (or its unmute) when that is inside the 14 days, so a keyword tightened today is not flagged on the noise the change removed; `noise` itself keeps the whole 14 days. Always 14 days, while the endpoint reads 30 by default, so the two can differ for the same keyword. The health endpoint says why and what to change.
+                 */
+                health: 'healthy' | 'noisy' | 'quiet' | 'capped' | 'paused' | 'new';
+                /**
                  * What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding.
                  */
                 cost: {
@@ -3251,6 +3836,57 @@ export type UpdateKeywordResponses = {
 
 export type UpdateKeywordResponse = UpdateKeywordResponses[keyof UpdateKeywordResponses];
 
+export type GetKeywordHealthData = {
+    body?: never;
+    path: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+    };
+    query?: {
+        /**
+         * Trailing window of UTC days ending today, by match time: 7d, 30d, 90d (default 30d).
+         */
+        range?: '7d' | '30d' | '90d';
+        /**
+         * true: also ask a language model for a rewritten context (cached a day per keyword and window, at most 20 model calls an hour per workspace). Default false: every suggestion comes from the rules alone.
+         */
+        ai?: boolean;
+    };
+    url: '/v1/keywords/{id}/health';
+};
+
+export type GetKeywordHealthErrors = {
+    /**
+     * Invalid query parameters
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Keyword not found
+     */
+    404: ErrorResponse;
+    /**
+     * More than 30 health reads this minute (rate_limited)
+     */
+    429: ErrorResponse;
+};
+
+export type GetKeywordHealthError = GetKeywordHealthErrors[keyof GetKeywordHealthErrors];
+
+export type GetKeywordHealthResponses = {
+    /**
+     * The keyword's health report
+     */
+    200: KeywordHealth;
+};
+
+export type GetKeywordHealthResponse = GetKeywordHealthResponses[keyof GetKeywordHealthResponses];
+
 export type GetFiltersData = {
     body?: never;
     path?: never;
@@ -3463,7 +4099,7 @@ export type SearchMentionsData = {
          */
         sentiment?: 'positive' | 'neutral' | 'negative';
         /**
-         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional).
+         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
          */
         intent?: string;
         /**
@@ -3591,6 +4227,38 @@ export type SearchMentionsData = {
          */
         ratings?: Array<number>;
         /**
+         * Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass.
+         */
+        notRatings?: Array<number>;
+        /**
+         * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minLikes?: number | null;
+        /**
+         * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReposts?: number | null;
+        /**
+         * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReplies?: number | null;
+        /**
+         * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minQuotes?: number | null;
+        /**
+         * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minViews?: number | null;
+        /**
+         * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minBookmarks?: number | null;
+        /**
+         * OR across groups of conditions, as URL-encoded JSON: [{"platforms":["reddit"],"sentiments":["negative"]},{"intents":["buy_intent"]}] is "negative on Reddit, or buying intent anywhere". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.
+         */
+        anyOf?: string;
+        /**
          * Substring search in the post text or the author's name.
          */
         q?: string;
@@ -3620,7 +4288,7 @@ export type SearchMentionsData = {
 
 export type SearchMentionsErrors = {
     /**
-     * Invalid query or pagination cursor
+     * Invalid query or pagination cursor, or filter_too_complex: the filters together (anyOf groups, a view or rule on top) name more values than one query can carry
      */
     400: ErrorResponse;
     /**
@@ -3671,7 +4339,7 @@ export type ExportMentionsCsvData = {
          */
         sentiment?: 'positive' | 'neutral' | 'negative';
         /**
-         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional).
+         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
          */
         intent?: string;
         /**
@@ -3799,6 +4467,38 @@ export type ExportMentionsCsvData = {
          */
         ratings?: Array<number>;
         /**
+         * Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass.
+         */
+        notRatings?: Array<number>;
+        /**
+         * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minLikes?: number | null;
+        /**
+         * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReposts?: number | null;
+        /**
+         * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReplies?: number | null;
+        /**
+         * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minQuotes?: number | null;
+        /**
+         * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minViews?: number | null;
+        /**
+         * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minBookmarks?: number | null;
+        /**
+         * OR across groups of conditions, as URL-encoded JSON: [{"platforms":["reddit"],"sentiments":["negative"]},{"intents":["buy_intent"]}] is "negative on Reddit, or buying intent anywhere". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.
+         */
+        anyOf?: string;
+        /**
          * Substring search in the post text or the author's name.
          */
         q?: string;
@@ -3816,7 +4516,7 @@ export type ExportMentionsCsvData = {
 
 export type ExportMentionsCsvErrors = {
     /**
-     * Invalid query
+     * Invalid query, or filter_too_complex: the filters together name more values than one query can carry
      */
     400: ErrorResponse;
     /**
@@ -3840,6 +4540,241 @@ export type ExportMentionsCsvResponses = {
 
 export type ExportMentionsCsvResponse = ExportMentionsCsvResponses[keyof ExportMentionsCsvResponses];
 
+export type ExportMentionsJsonData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Only matches of this keyword.
+         */
+        keywordId?: string;
+        /**
+         * Only posts from this platform.
+         */
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        /**
+         * Only mentions in this status. Omit for every status.
+         */
+        status?: 'open' | 'ignored' | 'done';
+        /**
+         * true: only mentions the classifier scored relevant; false: only the rest (unclassified included).
+         */
+        relevant?: boolean;
+        /**
+         * Only this sentiment.
+         */
+        sentiment?: 'positive' | 'neutral' | 'negative';
+        /**
+         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
+         */
+        intent?: string;
+        /**
+         * true: only mentions that read as machine-made (a bot account, a scheduled or templated post, AI-written text); false: only the rest, mentions judged before this existed included. Omitted: everything.
+         */
+        automated?: boolean;
+        /**
+         * Only this person (an id from /v1/people), merged accounts included. Implies includeMuted.
+         */
+        personId?: string;
+        /**
+         * true: include mentions by people you muted, hidden by default.
+         */
+        includeMuted?: boolean;
+        /**
+         * Only mentions assigned to this workspace member (user id).
+         */
+        assigneeId?: string;
+        /**
+         * true: only mentions currently snoozed. Otherwise snoozed mentions stay out until they wake.
+         */
+        snoozed?: boolean;
+        /**
+         * Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.
+         */
+        excludeAuthors?: Array<string> | null;
+        /**
+         * Only mentions scored at least this; unclassified ones are excluded.
+         */
+        minRelevance?: number | null;
+        /**
+         * Only mentions whose classifier confidence is at least this, 0 to 1. Mentions without a confidence are excluded.
+         */
+        minConfidence?: number | null;
+        /**
+         * Only authors with at least this many followers. Unknown reach never passes.
+         */
+        minFollowers?: number | null;
+        /**
+         * Only authors with at most this many followers. Unknown reach never passes.
+         */
+        maxFollowers?: number | null;
+        /**
+         * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
+         */
+        isReply?: boolean;
+        /**
+         * Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.
+         */
+        alertId?: string;
+        /**
+         * Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404.
+         */
+        viewId?: string;
+        /**
+         * Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.
+         */
+        keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
+         */
+        tags?: Array<string> | null;
+        /**
+         * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated.
+         */
+        linkHosts?: Array<string> | null;
+        /**
+         * Only posts from any of these platforms.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        /**
+         * Never posts from these platforms.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        /**
+         * Only matches of any of these keywords.
+         */
+        keywordIds?: Array<string> | null;
+        /**
+         * Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated.
+         */
+        groupIds?: Array<string> | null;
+        /**
+         * Never matches of keywords in these groups.
+         */
+        notGroupIds?: Array<string> | null;
+        /**
+         * Never matches of these keywords.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Only these sentiments.
+         */
+        sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Never these sentiments. A mention the classifier has not scored yet still passes.
+         */
+        notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions carrying any of these intent or topic tags.
+         */
+        intents?: Array<string> | null;
+        /**
+         * Never mentions carrying these intent or topic tags.
+         */
+        notIntents?: Array<string> | null;
+        /**
+         * Never posts linking to these hosts, the host itself or a subdomain of it.
+         */
+        notLinkHosts?: Array<string> | null;
+        /**
+         * Never authors your workspace tagged with any of these.
+         */
+        notTags?: Array<string> | null;
+        /**
+         * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
+         */
+        languages?: Array<string>;
+        /**
+         * Never posts in these languages. A post whose language is unknown still passes.
+         */
+        notLanguages?: Array<string>;
+        /**
+         * Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.
+         */
+        ratings?: Array<number>;
+        /**
+         * Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass.
+         */
+        notRatings?: Array<number>;
+        /**
+         * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minLikes?: number | null;
+        /**
+         * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReposts?: number | null;
+        /**
+         * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReplies?: number | null;
+        /**
+         * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minQuotes?: number | null;
+        /**
+         * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minViews?: number | null;
+        /**
+         * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minBookmarks?: number | null;
+        /**
+         * OR across groups of conditions, as URL-encoded JSON: [{"platforms":["reddit"],"sentiments":["negative"]},{"intents":["buy_intent"]}] is "negative on Reddit, or buying intent anywhere". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.
+         */
+        anyOf?: string;
+        /**
+         * Substring search in the post text or the author's name.
+         */
+        q?: string;
+        /**
+         * Only posts published at or after this instant (ISO 8601, or epoch ms).
+         */
+        since?: string;
+        /**
+         * Only posts published at or before this instant (ISO 8601, or epoch ms).
+         */
+        until?: string;
+    };
+    url: '/v1/mentions/export.json';
+};
+
+export type ExportMentionsJsonErrors = {
+    /**
+     * Invalid query, or filter_too_complex: the filters together name more values than one query can carry
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * More than 6 exports this minute; retry after the Retry-After seconds
+     */
+    429: ErrorResponse;
+};
+
+export type ExportMentionsJsonError = ExportMentionsJsonErrors[keyof ExportMentionsJsonErrors];
+
+export type ExportMentionsJsonResponses = {
+    /**
+     * Every matching mention, up to the cap
+     */
+    200: {
+        /**
+         * At most 10,000 mentions, newest matched first.
+         */
+        data: Array<Mention>;
+        /**
+         * true when more mentions matched than the cap returns: narrow the filters (since, until) and export again.
+         */
+        truncated: boolean;
+    };
+};
+
+export type ExportMentionsJsonResponse = ExportMentionsJsonResponses[keyof ExportMentionsJsonResponses];
+
 export type ExportPeopleCsvData = {
     body?: never;
     path?: never;
@@ -3852,6 +4787,10 @@ export type ExportPeopleCsvData = {
          * Matches the display name or the profile handle or URL, case-insensitively.
          */
         q?: string;
+        /**
+         * Find a person by one of their accounts: a handle (@jane, u/jane, jane) or a profile or post link (https://x.com/jane). Exact, case-insensitive, merged accounts included; combine with platform to pick one platform. A link names its own platform.
+         */
+        handle?: string;
         /**
          * Only people carrying this tag (exact, case-sensitive).
          */
@@ -3986,6 +4925,10 @@ export type ListPeopleData = {
          * Matches the display name or the profile handle or URL, case-insensitively.
          */
         q?: string;
+        /**
+         * Find a person by one of their accounts: a handle (@jane, u/jane, jane) or a profile or post link (https://x.com/jane). Exact, case-insensitive, merged accounts included; combine with platform to pick one platform. A link names its own platform.
+         */
+        handle?: string;
         /**
          * Only people carrying this tag (exact, case-sensitive).
          */
@@ -5234,6 +6177,38 @@ export type ListViewsResponses = {
                  * Only app store reviews with any of these star ratings; every other post fails it.
                  */
                 ratings?: Array<number>;
+                /**
+                 * Never reviews with these star ratings; posts that are not reviews still pass.
+                 */
+                notRatings?: Array<number>;
+                /**
+                 * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minLikes?: number;
+                /**
+                 * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minReposts?: number;
+                /**
+                 * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minReplies?: number;
+                /**
+                 * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minQuotes?: number;
+                /**
+                 * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minViews?: number;
+                /**
+                 * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minBookmarks?: number;
+                /**
+                 * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+                 */
+                anyOf?: Array<FilterGroup>;
             };
             /**
              * ISO 8601 timestamp, UTC.
@@ -5375,6 +6350,38 @@ export type CreateViewData = {
              * Only app store reviews with any of these star ratings; every other post fails it.
              */
             ratings?: Array<number>;
+            /**
+             * Never reviews with these star ratings; posts that are not reviews still pass.
+             */
+            notRatings?: Array<number>;
+            /**
+             * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minLikes?: number;
+            /**
+             * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReposts?: number;
+            /**
+             * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReplies?: number;
+            /**
+             * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minQuotes?: number;
+            /**
+             * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minViews?: number;
+            /**
+             * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minBookmarks?: number;
+            /**
+             * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+             */
+            anyOf?: Array<FilterGroup>;
         };
     };
     path?: never;
@@ -5383,6 +6390,10 @@ export type CreateViewData = {
 };
 
 export type CreateViewErrors = {
+    /**
+     * Invalid filter (an empty anyOf group, for one), or filter_too_complex: more values than one query can carry
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -5592,6 +6603,38 @@ export type UpdateViewData = {
              * Only app store reviews with any of these star ratings; every other post fails it.
              */
             ratings?: Array<number>;
+            /**
+             * Never reviews with these star ratings; posts that are not reviews still pass.
+             */
+            notRatings?: Array<number>;
+            /**
+             * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minLikes?: number;
+            /**
+             * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReposts?: number;
+            /**
+             * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReplies?: number;
+            /**
+             * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minQuotes?: number;
+            /**
+             * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minViews?: number;
+            /**
+             * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minBookmarks?: number;
+            /**
+             * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+             */
+            anyOf?: Array<FilterGroup>;
         };
     };
     path: {
@@ -6716,6 +7759,38 @@ export type UpdateAlertData = {
              * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
              */
             ratings?: Array<number>;
+            /**
+             * Never reviews with these star ratings (1 to 5): [5] keeps the five star reviews out. Posts that are not reviews still pass.
+             */
+            notRatings?: Array<number>;
+            /**
+             * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minLikes?: number;
+            /**
+             * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReposts?: number;
+            /**
+             * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReplies?: number;
+            /**
+             * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minQuotes?: number;
+            /**
+             * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minViews?: number;
+            /**
+             * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minBookmarks?: number;
+            /**
+             * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+             */
+            anyOf?: Array<FilterGroup>;
         };
         schedule?: {
             hour: number;
@@ -6858,6 +7933,38 @@ export type ListAlertsResponses = {
                  * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
                  */
                 ratings?: Array<number>;
+                /**
+                 * Never reviews with these star ratings (1 to 5): [5] keeps the five star reviews out. Posts that are not reviews still pass.
+                 */
+                notRatings?: Array<number>;
+                /**
+                 * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minLikes?: number;
+                /**
+                 * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minReposts?: number;
+                /**
+                 * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minReplies?: number;
+                /**
+                 * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minQuotes?: number;
+                /**
+                 * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minViews?: number;
+                /**
+                 * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minBookmarks?: number;
+                /**
+                 * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+                 */
+                anyOf?: Array<FilterGroup>;
             };
             /**
              * Daily and weekly alerts only.
@@ -6973,6 +8080,38 @@ export type CreateAlertData = {
              * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
              */
             ratings?: Array<number>;
+            /**
+             * Never reviews with these star ratings (1 to 5): [5] keeps the five star reviews out. Posts that are not reviews still pass.
+             */
+            notRatings?: Array<number>;
+            /**
+             * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minLikes?: number;
+            /**
+             * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReposts?: number;
+            /**
+             * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReplies?: number;
+            /**
+             * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minQuotes?: number;
+            /**
+             * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minViews?: number;
+            /**
+             * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minBookmarks?: number;
+            /**
+             * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+             */
+            anyOf?: Array<FilterGroup>;
         };
         /**
          * Required for daily and weekly alerts (weekly ones also need schedule.weekday).
@@ -7003,7 +8142,7 @@ export type CreateAlertData = {
 
 export type CreateAlertErrors = {
     /**
-     * A daily or weekly rule without a schedule (or a weekly one without a weekday), or an unknown channel
+     * A daily or weekly rule without a schedule (or a weekly one without a weekday), an unknown channel, or anyOf groups binding more values than one query can carry (filter_too_complex)
      */
     400: ErrorResponse;
     /**

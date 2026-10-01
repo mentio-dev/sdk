@@ -322,6 +322,18 @@
                 ],
                 "description": "Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks."
               },
+              "health": {
+                "type": "string",
+                "enum": [
+                  "healthy",
+                  "noisy",
+                  "quiet",
+                  "capped",
+                  "paused",
+                  "new"
+                ],
+                "description": "The keyword's health over the same 14 days as `noise`, by the rule GET /v1/keywords/{id}/health applies to its own window: paused (muted), capped (at its mention cap), noisy (20 or more scored matches, under 30% relevant), new (under 7 days old and not noisy, or changed in the last 7 days with under 20 scored matches since), quiet (7 days or older, nothing relevant), else healthy. Judged on the matches since the keyword's last change to its matching rules, platforms or context (or its unmute) when that is inside the 14 days, so a keyword tightened today is not flagged on the noise the change removed; `noise` itself keeps the whole 14 days. Always 14 days, while the endpoint reads 30 by default, so the two can differ for the same keyword. The health endpoint says why and what to change."
+              },
               "cost": {
                 "type": "object",
                 "properties": {
@@ -366,6 +378,7 @@
               "lastMentionAt",
               "feedback",
               "noise",
+              "health",
               "cost"
             ],
             "description": "Computed over this workspace's matches."
@@ -474,6 +487,7 @@
                   "already_member",
                   "last_owner",
                   "duplicate_segment",
+                  "filter_too_complex",
                   "duplicate_view",
                   "duplicate_group",
                   "default_group",
@@ -510,6 +524,658 @@
         },
         "required": [
           "error"
+        ]
+      },
+      "KeywordSuggestion": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "excluded_terms",
+              "excluded_authors",
+              "required_terms",
+              "platforms",
+              "context"
+            ],
+            "description": "excluded_terms and excluded_authors add to the matching rules; required_terms sets them; platforms drops the platforms that are almost all noise; context rewrites the sentence the classifier reads."
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What it adds (terms, authors), drops (platforms) or writes (the context)."
+          },
+          "why": {
+            "type": "string",
+            "description": "The reason and the measured effect, in plain words."
+          },
+          "patch": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ],
+                "description": "Reclassify it as brand, competitor or topic."
+              },
+              "muted": {
+                "type": "boolean",
+                "description": "A muted keyword stops polling and matching; its mentions stay."
+              },
+              "platforms": {
+                "type": "array",
+                "nullable": true,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin",
+                    "tiktok",
+                    "instagram"
+                  ]
+                },
+                "description": "Replaces the platform list; null means every platform, [] none (reviews only, when the keyword has reviewSources)."
+              },
+              "context": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 300,
+                "description": "A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+              },
+              "matching": {
+                "type": "object",
+                "properties": {
+                  "requiredTerms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "maxItems": 50,
+                    "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                  },
+                  "requiredMode": {
+                    "type": "string",
+                    "enum": [
+                      "any",
+                      "all"
+                    ],
+                    "description": "any: at least one required term must appear. all: every one must."
+                  },
+                  "excludedTerms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "maxItems": 50,
+                    "description": "A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot)."
+                  },
+                  "excludedAuthors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "maxItems": 100,
+                    "description": "Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list."
+                  },
+                  "caseSensitive": {
+                    "type": "boolean",
+                    "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                  }
+                },
+                "description": "Omitted fields are untouched; an empty list clears one."
+              },
+              "cap": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "mentions": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000000,
+                    "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                  }
+                },
+                "required": [
+                  "mentions"
+                ],
+                "description": "Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it."
+              },
+              "groupId": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Moves the keyword to this group (grp_...). A 409 when that group already tracks the term."
+              },
+              "reviewSources": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500,
+                      "description": "The review page's link: an App Store or Google Play app (https://apps.apple.com/us/app/notion/id1232780281, https://play.google.com/store/apps/details?id=notion.id), a Trustpilot page (https://www.trustpilot.com/review/notion.so) or a Google Maps place (its full link, or a maps.app.goo.gl share link). Or give platform and id."
+                    },
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "appstore",
+                        "googleplay",
+                        "trustpilot",
+                        "googlemaps"
+                      ],
+                      "description": "appstore (Apple App Store), googleplay (Google Play), trustpilot (a company's Trustpilot page) or googlemaps (a place's Google reviews)."
+                    },
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200,
+                      "description": "The id on the platform: the digits after \"id\" on the App Store, the package name on Google Play, the company's domain on Trustpilot (notion.so), a Place ID (ChIJ...) on Google Maps."
+                    },
+                    "countries": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z]{2}$"
+                      },
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "description": "App Store and Google Play only: storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention. Trustpilot and Google Maps have one page for everyone and take none."
+                    },
+                    "language": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 10,
+                      "description": "Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en."
+                    }
+                  },
+                  "description": "A review page whose reviews become this keyword's mentions: its link, or the platform and the id."
+                },
+                "maxItems": 10,
+                "description": "Replaces the list of apps whose reviews this keyword collects; [] disconnects them all (their reviews stay). An app or country added here gets the free 30-day look-back; one already listed keeps its place."
+              }
+            },
+            "description": "The body to send to PATCH /v1/keywords/{id} as is to apply it. A list holds the whole new list, current entries kept."
+          },
+          "effect": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "noiseRemoved": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Noise matches of the window (since stats.judgedSince when set) the change would have removed (estimated from the sample unless exact)."
+              },
+              "relevantRemoved": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Relevant matches of the window it would have removed."
+              },
+              "centsSaved": {
+                "type": "integer",
+                "description": "What the removed matches cost at the mention rate: what the change would have saved over the window."
+              },
+              "sample": {
+                "type": "object",
+                "properties": {
+                  "noiseRemoved": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Sampled noise posts the change rejects."
+                  },
+                  "noise": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Noise posts sampled."
+                  },
+                  "relevantRemoved": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Sampled relevant posts the change rejects."
+                  },
+                  "relevant": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Relevant posts sampled."
+                  }
+                },
+                "required": [
+                  "noiseRemoved",
+                  "noise",
+                  "relevantRemoved",
+                  "relevant"
+                ],
+                "description": "The measurement behind the estimate: the matcher's own rules run over the sampled posts."
+              },
+              "exact": {
+                "type": "boolean",
+                "description": "The sample was the whole window, so the counts are measured, not estimated."
+              }
+            },
+            "required": [
+              "noiseRemoved",
+              "relevantRemoved",
+              "centsSaved",
+              "sample",
+              "exact"
+            ],
+            "description": "What the change would have done over the window, measured with the matcher's own rules. Null for a context, which changes scores, not matches."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "rules",
+              "ai"
+            ],
+            "description": "rules: computed from the window's posts. ai: written by a language model (ai=true)."
+          }
+        },
+        "required": [
+          "type",
+          "values",
+          "why",
+          "patch",
+          "effect",
+          "source"
+        ]
+      },
+      "KeywordHealth": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Keyword id (kw_...)."
+              },
+              "term": {
+                "type": "string",
+                "description": "The term as typed."
+              },
+              "group": {
+                "$ref": "#/components/schemas/GroupRef"
+              }
+            },
+            "required": [
+              "id",
+              "term",
+              "group"
+            ],
+            "description": "The keyword the report is about."
+          },
+          "window": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "description": "First day, YYYY-MM-DD, inclusive, UTC."
+              },
+              "to": {
+                "type": "string",
+                "description": "Last day, inclusive: today."
+              },
+              "days": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Length of the window in days."
+              }
+            },
+            "required": [
+              "from",
+              "to",
+              "days"
+            ],
+            "description": "The window the report reads, by match time, in UTC days."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "noisy",
+              "quiet",
+              "capped",
+              "paused",
+              "new"
+            ],
+            "description": "healthy: nothing to fix. noisy: 20 or more scored matches in the window and under 30% of them relevant. quiet: 7 days or older with no relevant match in the window. capped: at its monthly mention cap. paused: muted (by you, the wallet or the noise brake). new: under 7 days old and not noisy yet, or changed in the last 7 days with under 20 scored matches since the change. When the keyword's matching rules, platforms or context changed (or it was unmuted) inside the window, the status reads only the matches since then (stats.judgedSince)."
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Why, in plain words; the first line explains the status."
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "matches": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Matches recorded in the window, relevant or not."
+              },
+              "relevant": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Scored at or above the relevance line (40)."
+              },
+              "filtered": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Scored under the line: the noise. Billed like any match."
+              },
+              "unscored": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Not scored yet, or failed to score (never billed)."
+              },
+              "noiseShare": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 1,
+                "description": "filtered / (relevant + filtered); null with nothing scored."
+              },
+              "workspaceShare": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 1,
+                "description": "This keyword's share of the workspace's matches in the window; null when the workspace matched nothing."
+              },
+              "judgedSince": {
+                "type": "string",
+                "nullable": true,
+                "description": "When the keyword last changed its matching rules, platforms or context (or was unmuted), when that is inside the window: the status, the reasons, noiseTerms, noiseAuthors and suggestions read only the matches since then, while these numbers keep the whole window. Null: everything reads the whole window."
+              },
+              "byPlatform": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platform": {
+                      "type": "string",
+                      "enum": [
+                        "bluesky",
+                        "hackernews",
+                        "github",
+                        "stackoverflow",
+                        "devto",
+                        "reddit",
+                        "x",
+                        "youtube",
+                        "news",
+                        "linkedin",
+                        "tiktok",
+                        "instagram",
+                        "appstore",
+                        "googleplay",
+                        "trustpilot",
+                        "googlemaps"
+                      ],
+                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                    },
+                    "matches": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Matches on this platform in the window."
+                    },
+                    "relevant": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Of those, scored at or above the relevance line (40)."
+                    },
+                    "filtered": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Of those, scored under the line: the noise."
+                    },
+                    "noiseShare": {
+                      "type": "number",
+                      "nullable": true,
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "filtered / (relevant + filtered); null with nothing scored."
+                    }
+                  },
+                  "required": [
+                    "platform",
+                    "matches",
+                    "relevant",
+                    "filtered",
+                    "noiseShare"
+                  ]
+                },
+                "description": "One row per platform it matched on, most matches first."
+              },
+              "weekly": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string",
+                      "description": "First day of the 7, YYYY-MM-DD (counted from the window's first day)."
+                    },
+                    "matches": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Matches in those 7 days."
+                    },
+                    "relevant": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Of those, relevant."
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "matches",
+                    "relevant"
+                  ]
+                },
+                "description": "The trend, one row per 7 days of the window, oldest first; the last row may be shorter."
+              },
+              "cost": {
+                "type": "object",
+                "properties": {
+                  "keywordDays": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Days in the window the keyword was charged for."
+                  },
+                  "keywordCents": {
+                    "type": "integer",
+                    "description": "Those days at the keyword rate."
+                  },
+                  "billableMentions": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Matches billed in the window, by the time they were scored."
+                  },
+                  "mentionCents": {
+                    "type": "integer",
+                    "description": "Those matches at the mention rate."
+                  },
+                  "totalCents": {
+                    "type": "integer",
+                    "description": "keywordCents plus mentionCents: its row in GET /v1/usage/breakdown for the same range."
+                  }
+                },
+                "required": [
+                  "keywordDays",
+                  "keywordCents",
+                  "billableMentions",
+                  "mentionCents",
+                  "totalCents"
+                ],
+                "description": "What the keyword cost over the window at list price."
+              }
+            },
+            "required": [
+              "matches",
+              "relevant",
+              "filtered",
+              "unscored",
+              "noiseShare",
+              "workspaceShare",
+              "judgedSince",
+              "byPlatform",
+              "weekly",
+              "cost"
+            ],
+            "description": "Computed over the keyword's matches in the window."
+          },
+          "sample": {
+            "type": "object",
+            "properties": {
+              "noise": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Noise posts read (the newest of the window, or since stats.judgedSince, at most 200), on platforms matched by text. None under 20 scored matches since a change."
+              },
+              "relevant": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Relevant posts read, likewise."
+              }
+            },
+            "required": [
+              "noise",
+              "relevant"
+            ],
+            "description": "The posts behind noiseTerms, noiseAuthors and the effects, after the keyword's current rules (a post an older rule let in is not counted). Review platforms are matched by app, not by text, and are left out."
+          },
+          "noiseTerms": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "term": {
+                  "type": "string",
+                  "description": "A word or two-word phrase."
+                },
+                "noisePosts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Sampled noise posts that carry it."
+                },
+                "relevantPosts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Sampled relevant posts that carry it."
+                },
+                "lift": {
+                  "type": "number",
+                  "nullable": true,
+                  "description": "How many times more common it is in noise than in relevant posts (smoothed); null with no relevant post to compare."
+                }
+              },
+              "required": [
+                "term",
+                "noisePosts",
+                "relevantPosts",
+                "lift"
+              ]
+            },
+            "description": "Up to 10 words or phrases over-represented in the noise against the relevant posts, strongest first. The keyword's own words are left out."
+          },
+          "noiseAuthors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The author as the platform shows them."
+                },
+                "entry": {
+                  "type": "string",
+                  "description": "What matching.excludedAuthors would store for them."
+                },
+                "noisePosts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Sampled noise posts by them."
+                }
+              },
+              "required": [
+                "name",
+                "entry",
+                "noisePosts"
+              ]
+            },
+            "description": "Authors with 3 or more noise posts in the sample and no relevant one."
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeywordSuggestion"
+            },
+            "description": "Changes that would cut the noise, each ready for PATCH /v1/keywords/{id}. Empty when nothing is worth changing, or under 20 scored matches since the last change (a reason says so)."
+          },
+          "ai": {
+            "type": "object",
+            "properties": {
+              "requested": {
+                "type": "boolean",
+                "description": "ai=true was asked."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "off",
+                  "generated",
+                  "cached",
+                  "unavailable",
+                  "rate_limited"
+                ],
+                "description": "off: not asked. generated: written now. cached: written earlier today for the same keyword, window and settings. unavailable: the model failed, answered nothing usable or is not configured. rate_limited: the workspace's 20 model calls this hour are spent."
+              }
+            },
+            "required": [
+              "requested",
+              "status"
+            ],
+            "description": "The optional language model half of the report."
+          },
+          "generatedAt": {
+            "type": "string",
+            "description": "When the report was computed; it is cached for 5 minutes, and a change to the keyword starts a fresh one."
+          }
+        },
+        "required": [
+          "keyword",
+          "window",
+          "status",
+          "reasons",
+          "stats",
+          "sample",
+          "noiseTerms",
+          "noiseAuthors",
+          "suggestions",
+          "ai",
+          "generatedAt"
         ]
       },
       "WorkspaceFilters": {
@@ -673,6 +1339,16 @@
                 "type": "string",
                 "description": "Title and body, truncated to 8 KB at ingest."
               },
+              "title": {
+                "type": "string",
+                "nullable": true,
+                "description": "The post's own title where the platform has one: a Hacker News story, a Reddit thread, a GitHub issue or pull request, a Stack Overflow question, a DEV article, a YouTube video, a news article, a titled review. Null for platforms without titles (X, Bluesky, LinkedIn) and for posts ingested before October 2026."
+              },
+              "imageUrl": {
+                "type": "string",
+                "nullable": true,
+                "description": "A preview image of the post, when the platform sent one with it: a YouTube thumbnail, a DEV cover, a news article's sharing image, a Bluesky link card or image. Null otherwise."
+              },
               "links": {
                 "type": "array",
                 "items": {
@@ -761,6 +1437,8 @@
               "platform",
               "url",
               "text",
+              "title",
+              "imageUrl",
               "links",
               "publishedAt",
               "engagement",
@@ -933,7 +1611,7 @@
                 "items": {
                   "type": "string"
                 },
-                "description": "Intent and topic tags: buy_intent, question, complaint, praise, comparison, churn_intent (leaving or replacing the keyword), bug_report, pricing, hiring, event, promotional."
+                "description": "Intent and topic tags: buy_intent, question, complaint, praise, comparison, churn_intent (leaving or replacing the keyword), bug_report, pricing, hiring, event, promotional, testimonial (a customer vouching for it from their own use), industry_insight (analysis or data about the field), launch (a product or feature launch announcement), feedback (a suggestion or request about it)."
               },
               "automated": {
                 "type": "boolean",
@@ -1742,6 +2420,331 @@
           "updatedAt"
         ]
       },
+      "FilterGroup": {
+        "type": "object",
+        "properties": {
+          "q": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Substring in the post text or the author's name."
+          },
+          "keywordIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maxItems": 50,
+            "description": "Only matches of any of these keywords."
+          },
+          "notKeywordIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maxItems": 50,
+            "description": "Never matches of these keywords."
+          },
+          "keywordKinds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "brand",
+                "competitor",
+                "topic"
+              ]
+            },
+            "maxItems": 3,
+            "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+          },
+          "groupIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maxItems": 50,
+            "description": "Only matches of keywords in any of these groups (grp_...)."
+          },
+          "notGroupIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "maxItems": 50,
+            "description": "Never matches of keywords in these groups."
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "bluesky",
+                "hackernews",
+                "github",
+                "stackoverflow",
+                "devto",
+                "reddit",
+                "x",
+                "youtube",
+                "news",
+                "linkedin",
+                "tiktok",
+                "instagram",
+                "appstore",
+                "googleplay",
+                "trustpilot",
+                "googlemaps"
+              ],
+              "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+            },
+            "maxItems": 20,
+            "description": "Only posts from any of these platforms."
+          },
+          "notPlatforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "bluesky",
+                "hackernews",
+                "github",
+                "stackoverflow",
+                "devto",
+                "reddit",
+                "x",
+                "youtube",
+                "news",
+                "linkedin",
+                "tiktok",
+                "instagram",
+                "appstore",
+                "googleplay",
+                "trustpilot",
+                "googlemaps"
+              ],
+              "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+            },
+            "maxItems": 20,
+            "description": "Never posts from these platforms."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "ignored",
+              "done"
+            ],
+            "description": "Only mentions in this status: open, ignored, done."
+          },
+          "relevant": {
+            "type": "boolean",
+            "description": "true: only mentions the classifier scored relevant; false: only the rest."
+          },
+          "minRelevance": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Only mentions scored at least this."
+          },
+          "minConfidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Only mentions whose classifier confidence is at least this."
+          },
+          "sentiments": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "neutral",
+                "negative"
+              ],
+              "description": "Classifier sentiment."
+            },
+            "maxItems": 3,
+            "description": "Only these sentiments."
+          },
+          "notSentiments": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "neutral",
+                "negative"
+              ],
+              "description": "Classifier sentiment."
+            },
+            "maxItems": 3,
+            "description": "Never these sentiments; an unscored mention still passes."
+          },
+          "intents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "maxItems": 20,
+            "description": "Only mentions carrying any of these intent or topic tags."
+          },
+          "notIntents": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "maxItems": 20,
+            "description": "Never mentions carrying these tags."
+          },
+          "automated": {
+            "type": "boolean",
+            "description": "true: only posts that read as machine-made; false: only the rest."
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            },
+            "maxItems": 20,
+            "description": "Only posts in any of these languages (ISO 639-1)."
+          },
+          "notLanguages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            },
+            "maxItems": 20,
+            "description": "Never posts in these languages; an unknown language still passes."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "maxItems": 20,
+            "description": "Only authors your workspace tagged with any of these."
+          },
+          "notTags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "maxItems": 20,
+            "description": "Never authors tagged with any of these."
+          },
+          "linkHosts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 20,
+            "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+          },
+          "notLinkHosts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 20,
+            "description": "Never posts linking to these hosts."
+          },
+          "minFollowers": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Only authors with at least this many followers; unknown reach never passes."
+          },
+          "maxFollowers": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Only authors with at most this many followers; unknown reach never passes."
+          },
+          "isReply": {
+            "type": "boolean",
+            "description": "true: only replies and comments; false: only top-level posts."
+          },
+          "excludeAuthors": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 200,
+            "description": "Never these authors: display names, handles or profile URLs."
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "maxItems": 5,
+            "description": "Only app store reviews with any of these star ratings; every other post fails it."
+          },
+          "notRatings": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "maxItems": 5,
+            "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+          },
+          "minLikes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+          },
+          "minReposts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+          },
+          "minReplies": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+          },
+          "minQuotes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+          },
+          "minViews": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+          },
+          "minBookmarks": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+          }
+        },
+        "additionalProperties": false,
+        "description": "A group of conditions, all of which must hold: the vocabulary of a view filter, without anyOf."
+      },
       "View": {
         "type": "object",
         "properties": {
@@ -2035,6 +3038,55 @@
                 },
                 "maxItems": 5,
                 "description": "Only app store reviews with any of these star ratings; every other post fails it."
+              },
+              "notRatings": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "maxItems": 5,
+                "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+              },
+              "minLikes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minReposts": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minReplies": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minQuotes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minViews": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minBookmarks": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "anyOf": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/FilterGroup"
+                },
+                "minItems": 1,
+                "maxItems": 10,
+                "description": "OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own."
               }
             }
           },
@@ -3182,6 +4234,55 @@
                 },
                 "maxItems": 5,
                 "description": "Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it."
+              },
+              "notRatings": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "maxItems": 5,
+                "description": "Never reviews with these star ratings (1 to 5): [5] keeps the five star reviews out. Posts that are not reviews still pass."
+              },
+              "minLikes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minReposts": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minReplies": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minQuotes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minViews": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minBookmarks": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "anyOf": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/FilterGroup"
+                },
+                "minItems": 1,
+                "maxItems": 10,
+                "description": "OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own."
               }
             }
           },
@@ -5869,6 +6970,18 @@
                                 ],
                                 "description": "Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks."
                               },
+                              "health": {
+                                "type": "string",
+                                "enum": [
+                                  "healthy",
+                                  "noisy",
+                                  "quiet",
+                                  "capped",
+                                  "paused",
+                                  "new"
+                                ],
+                                "description": "The keyword's health over the same 14 days as `noise`, by the rule GET /v1/keywords/{id}/health applies to its own window: paused (muted), capped (at its mention cap), noisy (20 or more scored matches, under 30% relevant), new (under 7 days old and not noisy, or changed in the last 7 days with under 20 scored matches since), quiet (7 days or older, nothing relevant), else healthy. Judged on the matches since the keyword's last change to its matching rules, platforms or context (or its unmute) when that is inside the 14 days, so a keyword tightened today is not flagged on the noise the change removed; `noise` itself keeps the whole 14 days. Always 14 days, while the endpoint reads 30 by default, so the two can differ for the same keyword. The health endpoint says why and what to change."
+                              },
                               "cost": {
                                 "type": "object",
                                 "properties": {
@@ -5913,6 +7026,7 @@
                               "lastMentionAt",
                               "feedback",
                               "noise",
+                              "health",
                               "cost"
                             ],
                             "description": "Computed over this workspace's matches."
@@ -6377,6 +7491,112 @@
         }
       }
     },
+    "/v1/keywords/{id}/health": {
+      "get": {
+        "operationId": "getKeywordHealth",
+        "summary": "Get a keyword's health",
+        "description": "Whether the keyword earns what it costs over a trailing window (`range`, default 30d): a status (healthy, noisy, quiet, capped, paused, new) with the reasons in plain words, its numbers by platform and week, what it cost, the words and authors its noise is made of, and suggestions. Each suggestion carries a `patch` to send to PATCH /v1/keywords/{id} as is, and the effect it would have had, measured by running the matcher's own rules over the window's posts. `ai=true` adds a context rewritten by a language model (cached a day, at most 20 model calls an hour per workspace). Read only and never billed; the report is cached for 5 minutes, and a change to the keyword starts a fresh one. At most 30 reads a minute per workspace.",
+        "tags": [
+          "Keywords"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Keyword id (kw_...).",
+              "example": "kw_abc123"
+            },
+            "required": true,
+            "description": "Keyword id (kw_...).",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "7d",
+                "30d",
+                "90d"
+              ],
+              "description": "Trailing window of UTC days ending today, by match time: 7d, 30d, 90d (default 30d)."
+            },
+            "required": false,
+            "description": "Trailing window of UTC days ending today, by match time: 7d, 30d, 90d (default 30d).",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: also ask a language model for a rewritten context (cached a day per keyword and window, at most 20 model calls an hour per workspace). Default false: every suggestion comes from the rules alone."
+            },
+            "required": false,
+            "description": "true: also ask a language model for a rewritten context (cached a day per keyword and window, at most 20 model calls an hour per workspace). Default false: every suggestion comes from the rules alone.",
+            "name": "ai",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The keyword's health report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordHealth"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Keyword not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than 30 health reads this minute (rate_limited)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/filters": {
       "get": {
         "operationId": "getFilters",
@@ -6726,7 +7946,7 @@
       "get": {
         "operationId": "searchMentions",
         "summary": "List mentions",
-        "description": "Mentions matched to your keywords, filtered and paginated. Default order is newest match first; sort=priority ranks the last 30 days of matches by attention score. Page with nextCursor, passing the same filters and sort. A mention is one post matched to one keyword. alertId applies an alert rule's filter on top of the others: the same mentions that rule would send.",
+        "description": "Mentions matched to your keywords, filtered and paginated. Default order is newest match first; sort=priority ranks the last 30 days of matches by attention score. Page with nextCursor, passing the same filters and sort. A mention is one post matched to one keyword. alertId applies an alert rule's filter on top of the others: the same mentions that rule would send. anyOf adds OR: URL-encoded JSON groups of conditions, at least one of which must hold on top of every other filter.",
         "tags": [
           "Mentions"
         ],
@@ -6817,10 +8037,10 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional)."
+              "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback)."
             },
             "required": false,
-            "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional).",
+            "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
             "name": "intent",
             "in": "query"
           },
@@ -7314,6 +8534,104 @@
             "required": false,
             "description": "Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.",
             "name": "ratings",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "maxItems": 5,
+              "description": "Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass."
+            },
+            "required": false,
+            "description": "Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass.",
+            "name": "notRatings",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minLikes",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minReposts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minReplies",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minQuotes",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minViews",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minBookmarks",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "OR across groups of conditions, as URL-encoded JSON: [{\"platforms\":[\"reddit\"],\"sentiments\":[\"negative\"]},{\"intents\":[\"buy_intent\"]}] is \"negative on Reddit, or buying intent anywhere\". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting."
+            },
+            "required": false,
+            "description": "OR across groups of conditions, as URL-encoded JSON: [{\"platforms\":[\"reddit\"],\"sentiments\":[\"negative\"]},{\"intents\":[\"buy_intent\"]}] is \"negative on Reddit, or buying intent anywhere\". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.",
+            "name": "anyOf",
             "in": "query"
           },
           {
@@ -7416,7 +8734,7 @@
             }
           },
           "400": {
-            "description": "Invalid query or pagination cursor",
+            "description": "Invalid query or pagination cursor, or filter_too_complex: the filters together (anyOf groups, a view or rule on top) name more values than one query can carry",
             "content": {
               "application/json": {
                 "schema": {
@@ -7442,7 +8760,7 @@
       "get": {
         "operationId": "exportMentionsCsv",
         "summary": "Export mentions as CSV",
-        "description": "The same mentions GET /v1/mentions would list for these filters, as CSV, newest matched first (the order they entered your feed, which can differ from the post date): id, published_at, platform, keyword, author, author_url, author_followers, relevance, sentiment, intents (pipe-separated), language, confidence, status, relevant, delivered, url, links (pipe-separated), text (first 1,000 characters), group, group_external_id, rating and app_id (app store reviews only). Capped at 10,000 rows; the X-Mentions-Truncated header says when the cap cut the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.",
+        "description": "The same mentions GET /v1/mentions would list for these filters, as CSV, newest matched first (the order they entered your feed, which can differ from the post date): id, published_at, platform, keyword, author, author_url, author_followers, relevance, sentiment, intents (pipe-separated), language, confidence, status, relevant, delivered, url, links (pipe-separated), text (first 1,000 characters), group, group_external_id, rating and app_id (app store reviews only), title and image_url (where the platform has them). Capped at 10,000 rows; the X-Mentions-Truncated header says when the cap cut the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.",
         "tags": [
           "Mentions"
         ],
@@ -7533,10 +8851,10 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional)."
+              "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback)."
             },
             "required": false,
-            "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional).",
+            "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
             "name": "intent",
             "in": "query"
           },
@@ -8034,6 +9352,104 @@
           },
           {
             "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "maxItems": 5,
+              "description": "Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass."
+            },
+            "required": false,
+            "description": "Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass.",
+            "name": "notRatings",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minLikes",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minReposts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minReplies",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minQuotes",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minViews",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minBookmarks",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "OR across groups of conditions, as URL-encoded JSON: [{\"platforms\":[\"reddit\"],\"sentiments\":[\"negative\"]},{\"intents\":[\"buy_intent\"]}] is \"negative on Reddit, or buying intent anywhere\". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting."
+            },
+            "required": false,
+            "description": "OR across groups of conditions, as URL-encoded JSON: [{\"platforms\":[\"reddit\"],\"sentiments\":[\"negative\"]},{\"intents\":[\"buy_intent\"]}] is \"negative on Reddit, or buying intent anywhere\". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.",
+            "name": "anyOf",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "description": "Substring search in the post text or the author's name."
             },
@@ -8077,7 +9493,793 @@
             }
           },
           "400": {
-            "description": "Invalid query",
+            "description": "Invalid query, or filter_too_complex: the filters together name more values than one query can carry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than 6 exports this minute; retry after the Retry-After seconds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/mentions/export.json": {
+      "get": {
+        "operationId": "exportMentionsJson",
+        "summary": "Export mentions as JSON",
+        "description": "The same mentions GET /v1/mentions would list for these filters, in one response, newest matched first (the order they entered your feed): every row is the full Mention object the list returns, text included. Capped at 10,000 mentions; `truncated` (and the X-Mentions-Truncated header) says when the cap cut the list. Shares the CSV export's limit: at most 6 exports per minute per workspace, either format; a 429 carries Retry-After.",
+        "tags": [
+          "Mentions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "description": "Only matches of this keyword."
+            },
+            "required": false,
+            "description": "Only matches of this keyword.",
+            "name": "keywordId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "bluesky",
+                "hackernews",
+                "github",
+                "stackoverflow",
+                "devto",
+                "reddit",
+                "x",
+                "youtube",
+                "news",
+                "linkedin",
+                "tiktok",
+                "instagram",
+                "appstore",
+                "googleplay",
+                "trustpilot",
+                "googlemaps"
+              ],
+              "description": "Only posts from this platform."
+            },
+            "required": false,
+            "description": "Only posts from this platform.",
+            "name": "platform",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "ignored",
+                "done"
+              ],
+              "description": "Only mentions in this status. Omit for every status."
+            },
+            "required": false,
+            "description": "Only mentions in this status. Omit for every status.",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: only mentions the classifier scored relevant; false: only the rest (unclassified included)."
+            },
+            "required": false,
+            "description": "true: only mentions the classifier scored relevant; false: only the rest (unclassified included).",
+            "name": "relevant",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "positive",
+                "neutral",
+                "negative"
+              ],
+              "description": "Only this sentiment."
+            },
+            "required": false,
+            "description": "Only this sentiment.",
+            "name": "sentiment",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback)."
+            },
+            "required": false,
+            "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+            "name": "intent",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: only mentions that read as machine-made (a bot account, a scheduled or templated post, AI-written text); false: only the rest, mentions judged before this existed included. Omitted: everything."
+            },
+            "required": false,
+            "description": "true: only mentions that read as machine-made (a bot account, a scheduled or templated post, AI-written text); false: only the rest, mentions judged before this existed included. Omitted: everything.",
+            "name": "automated",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Only this person (an id from /v1/people), merged accounts included. Implies includeMuted."
+            },
+            "required": false,
+            "description": "Only this person (an id from /v1/people), merged accounts included. Implies includeMuted.",
+            "name": "personId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: include mentions by people you muted, hidden by default."
+            },
+            "required": false,
+            "description": "true: include mentions by people you muted, hidden by default.",
+            "name": "includeMuted",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Only mentions assigned to this workspace member (user id)."
+            },
+            "required": false,
+            "description": "Only mentions assigned to this workspace member (user id).",
+            "name": "assigneeId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: only mentions currently snoozed. Otherwise snoozed mentions stay out until they wake."
+            },
+            "required": false,
+            "description": "true: only mentions currently snoozed. Otherwise snoozed mentions stay out until they wake.",
+            "name": "snoozed",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 200,
+              "description": "Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value."
+            },
+            "required": false,
+            "description": "Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.",
+            "name": "excludeAuthors",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Only mentions scored at least this; unclassified ones are excluded."
+            },
+            "required": false,
+            "description": "Only mentions scored at least this; unclassified ones are excluded.",
+            "name": "minRelevance",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number",
+              "nullable": true,
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Only mentions whose classifier confidence is at least this, 0 to 1. Mentions without a confidence are excluded."
+            },
+            "required": false,
+            "description": "Only mentions whose classifier confidence is at least this, 0 to 1. Mentions without a confidence are excluded.",
+            "name": "minConfidence",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only authors with at least this many followers. Unknown reach never passes."
+            },
+            "required": false,
+            "description": "Only authors with at least this many followers. Unknown reach never passes.",
+            "name": "minFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only authors with at most this many followers. Unknown reach never passes."
+            },
+            "required": false,
+            "description": "Only authors with at most this many followers. Unknown reach never passes.",
+            "name": "maxFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both."
+            },
+            "required": false,
+            "description": "true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.",
+            "name": "isReply",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404."
+            },
+            "required": false,
+            "description": "Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.",
+            "name": "alertId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404."
+            },
+            "required": false,
+            "description": "Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404.",
+            "name": "viewId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.",
+            "name": "keywordKinds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.",
+            "name": "tags",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated.",
+            "name": "linkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+              },
+              "maxItems": 20,
+              "description": "Only posts from any of these platforms."
+            },
+            "required": false,
+            "description": "Only posts from any of these platforms.",
+            "name": "platforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+              },
+              "maxItems": 20,
+              "description": "Never posts from these platforms."
+            },
+            "required": false,
+            "description": "Never posts from these platforms.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only matches of any of these keywords."
+            },
+            "required": false,
+            "description": "Only matches of any of these keywords.",
+            "name": "keywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated.",
+            "name": "groupIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never matches of keywords in these groups."
+            },
+            "required": false,
+            "description": "Never matches of keywords in these groups.",
+            "name": "notGroupIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never matches of these keywords."
+            },
+            "required": false,
+            "description": "Never matches of these keywords.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "positive",
+                  "neutral",
+                  "negative"
+                ],
+                "description": "Classifier sentiment."
+              },
+              "maxItems": 3,
+              "description": "Only these sentiments."
+            },
+            "required": false,
+            "description": "Only these sentiments.",
+            "name": "sentiments",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "positive",
+                  "neutral",
+                  "negative"
+                ],
+                "description": "Classifier sentiment."
+              },
+              "maxItems": 3,
+              "description": "Never these sentiments. A mention the classifier has not scored yet still passes."
+            },
+            "required": false,
+            "description": "Never these sentiments. A mention the classifier has not scored yet still passes.",
+            "name": "notSentiments",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Only mentions carrying any of these intent or topic tags."
+            },
+            "required": false,
+            "description": "Only mentions carrying any of these intent or topic tags.",
+            "name": "intents",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never mentions carrying these intent or topic tags."
+            },
+            "required": false,
+            "description": "Never mentions carrying these intent or topic tags.",
+            "name": "notIntents",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never posts linking to these hosts, the host itself or a subdomain of it."
+            },
+            "required": false,
+            "description": "Never posts linking to these hosts, the host itself or a subdomain of it.",
+            "name": "notLinkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never authors your workspace tagged with any of these."
+            },
+            "required": false,
+            "description": "Never authors your workspace tagged with any of these.",
+            "name": "notTags",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$"
+              },
+              "maxItems": 20,
+              "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes."
+            },
+            "required": false,
+            "description": "Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.",
+            "name": "languages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[a-z]{2}$"
+              },
+              "maxItems": 20,
+              "description": "Never posts in these languages. A post whose language is unknown still passes."
+            },
+            "required": false,
+            "description": "Never posts in these languages. A post whose language is unknown still passes.",
+            "name": "notLanguages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "maxItems": 5,
+              "description": "Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it."
+            },
+            "required": false,
+            "description": "Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.",
+            "name": "ratings",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "maxItems": 5,
+              "description": "Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass."
+            },
+            "required": false,
+            "description": "Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass.",
+            "name": "notRatings",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minLikes",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minReposts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minReplies",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minQuotes",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minViews",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+            },
+            "required": false,
+            "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.",
+            "name": "minBookmarks",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "OR across groups of conditions, as URL-encoded JSON: [{\"platforms\":[\"reddit\"],\"sentiments\":[\"negative\"]},{\"intents\":[\"buy_intent\"]}] is \"negative on Reddit, or buying intent anywhere\". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting."
+            },
+            "required": false,
+            "description": "OR across groups of conditions, as URL-encoded JSON: [{\"platforms\":[\"reddit\"],\"sentiments\":[\"negative\"]},{\"intents\":[\"buy_intent\"]}] is \"negative on Reddit, or buying intent anywhere\". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.",
+            "name": "anyOf",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Substring search in the post text or the author's name."
+            },
+            "required": false,
+            "description": "Substring search in the post text or the author's name.",
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Only posts published at or after this instant (ISO 8601, or epoch ms).",
+              "format": "date-time"
+            },
+            "required": false,
+            "description": "Only posts published at or after this instant (ISO 8601, or epoch ms).",
+            "name": "since",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Only posts published at or before this instant (ISO 8601, or epoch ms).",
+              "format": "date-time"
+            },
+            "required": false,
+            "description": "Only posts published at or before this instant (ISO 8601, or epoch ms).",
+            "name": "until",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Every matching mention, up to the cap",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Mention"
+                      },
+                      "description": "At most 10,000 mentions, newest matched first."
+                    },
+                    "truncated": {
+                      "type": "boolean",
+                      "description": "true when more mentions matched than the cap returns: narrow the filters (since, until) and export again."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "truncated"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query, or filter_too_complex: the filters together name more values than one query can carry",
             "content": {
               "application/json": {
                 "schema": {
@@ -8161,6 +10363,18 @@
             "required": false,
             "description": "Matches the display name or the profile handle or URL, case-insensitively.",
             "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "description": "Find a person by one of their accounts: a handle (@jane, u/jane, jane) or a profile or post link (https://x.com/jane). Exact, case-insensitive, merged accounts included; combine with platform to pick one platform. A link names its own platform."
+            },
+            "required": false,
+            "description": "Find a person by one of their accounts: a handle (@jane, u/jane, jane) or a profile or post link (https://x.com/jane). Exact, case-insensitive, merged accounts included; combine with platform to pick one platform. A link names its own platform.",
+            "name": "handle",
             "in": "query"
           },
           {
@@ -8628,6 +10842,18 @@
             "required": false,
             "description": "Matches the display name or the profile handle or URL, case-insensitively.",
             "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300,
+              "description": "Find a person by one of their accounts: a handle (@jane, u/jane, jane) or a profile or post link (https://x.com/jane). Exact, case-insensitive, merged accounts included; combine with platform to pick one platform. A link names its own platform."
+            },
+            "required": false,
+            "description": "Find a person by one of their accounts: a handle (@jane, u/jane, jane) or a profile or post link (https://x.com/jane). Exact, case-insensitive, merged accounts included; combine with platform to pick one platform. A link names its own platform.",
+            "name": "handle",
             "in": "query"
           },
           {
@@ -11542,6 +13768,55 @@
                                 },
                                 "maxItems": 5,
                                 "description": "Only app store reviews with any of these star ratings; every other post fails it."
+                              },
+                              "notRatings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 5
+                                },
+                                "maxItems": 5,
+                                "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+                              },
+                              "minLikes": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minReposts": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minReplies": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minQuotes": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minViews": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minBookmarks": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "anyOf": {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/FilterGroup"
+                                },
+                                "minItems": 1,
+                                "maxItems": 10,
+                                "description": "OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own."
                               }
                             }
                           },
@@ -11588,7 +13863,7 @@
       "post": {
         "operationId": "createView",
         "summary": "Save a view",
-        "description": "Save a named filter over mentions. The filter takes the same fields as GET /v1/mentions (lists are any-of, `not` lists none-of, every condition ANDed); an empty filter is every mention. Nothing is materialized: the view selects whatever matches when it is read.",
+        "description": "Save a named filter over mentions. The filter takes the same fields as GET /v1/mentions (lists are any-of, `not` lists none-of, every condition ANDed), plus `anyOf`, groups of those conditions of which at least one must hold; an empty filter is every mention. Nothing is materialized: the view selects whatever matches when it is read.",
         "tags": [
           "Views"
         ],
@@ -11896,6 +14171,55 @@
                         },
                         "maxItems": 5,
                         "description": "Only app store reviews with any of these star ratings; every other post fails it."
+                      },
+                      "notRatings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+                      },
+                      "minLikes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReposts": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReplies": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minQuotes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minViews": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minBookmarks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "anyOf": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/FilterGroup"
+                        },
+                        "minItems": 1,
+                        "maxItems": 10,
+                        "description": "OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own."
                       }
                     },
                     "default": {},
@@ -11916,6 +14240,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/View"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid filter (an empty anyOf group, for one), or filter_too_complex: more values than one query can carry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -12324,6 +14658,55 @@
                         },
                         "maxItems": 5,
                         "description": "Only app store reviews with any of these star ratings; every other post fails it."
+                      },
+                      "notRatings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+                      },
+                      "minLikes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReposts": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReplies": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minQuotes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minViews": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minBookmarks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "anyOf": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/FilterGroup"
+                        },
+                        "minItems": 1,
+                        "maxItems": 10,
+                        "description": "OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own."
                       }
                     },
                     "description": "Replaces the whole filter."
@@ -14399,6 +16782,55 @@
                         },
                         "maxItems": 5,
                         "description": "Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it."
+                      },
+                      "notRatings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Never reviews with these star ratings (1 to 5): [5] keeps the five star reviews out. Posts that are not reviews still pass."
+                      },
+                      "minLikes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReposts": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReplies": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minQuotes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minViews": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minBookmarks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "anyOf": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/FilterGroup"
+                        },
+                        "minItems": 1,
+                        "maxItems": 10,
+                        "description": "OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own."
                       }
                     },
                     "description": "Replaces the whole filter."
@@ -14731,6 +17163,55 @@
                                 },
                                 "maxItems": 5,
                                 "description": "Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it."
+                              },
+                              "notRatings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 5
+                                },
+                                "maxItems": 5,
+                                "description": "Never reviews with these star ratings (1 to 5): [5] keeps the five star reviews out. Posts that are not reviews still pass."
+                              },
+                              "minLikes": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minReposts": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minReplies": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minQuotes": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minViews": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minBookmarks": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "anyOf": {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/FilterGroup"
+                                },
+                                "minItems": 1,
+                                "maxItems": 10,
+                                "description": "OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own."
                               }
                             }
                           },
@@ -14872,7 +17353,7 @@
       "post": {
         "operationId": "createAlert",
         "summary": "Create an alert",
-        "description": "A rule (what to watch, the filter) times channels. mode instant sends each matching mention as it happens; daily sends one digest at schedule.hour in schedule.timezone; weekly sends one a week on schedule.weekday (0 Sunday to 6 Saturday).",
+        "description": "A rule (what to watch, the filter) times channels. mode instant sends each matching mention as it happens; daily sends one digest at schedule.hour in schedule.timezone; weekly sends one a week on schedule.weekday (0 Sunday to 6 Saturday). filter.anyOf adds OR: groups of conditions in the vocabulary of the mentions list, at least one of which must hold on top of the rest of the filter.",
         "tags": [
           "Alerts"
         ],
@@ -15038,6 +17519,55 @@
                         },
                         "maxItems": 5,
                         "description": "Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it."
+                      },
+                      "notRatings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Never reviews with these star ratings (1 to 5): [5] keeps the five star reviews out. Posts that are not reviews still pass."
+                      },
+                      "minLikes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReposts": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReplies": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minQuotes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minViews": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minBookmarks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "anyOf": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/FilterGroup"
+                        },
+                        "minItems": 1,
+                        "maxItems": 10,
+                        "description": "OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own."
                       }
                     },
                     "default": {}
@@ -15115,7 +17645,7 @@
             }
           },
           "400": {
-            "description": "A daily or weekly rule without a schedule (or a weekly one without a weekday), or an unknown channel",
+            "description": "A daily or weekly rule without a schedule (or a weekly one without a weekday), an unknown channel, or anyOf groups binding more values than one query can carry (filter_too_complex)",
             "content": {
               "application/json": {
                 "schema": {
@@ -17234,6 +19764,13 @@
       "source": "user",
       "retryable": false,
       "description": "Segment names are unique per workspace."
+    },
+    {
+      "code": "filter_too_complex",
+      "status": 400,
+      "source": "user",
+      "retryable": false,
+      "description": "The filters together (lists, anyOf groups, a view or alert rule applied on top) name more values than one query can carry. Shorten the lists or use fewer groups."
     },
     {
       "code": "duplicate_view",
