@@ -246,7 +246,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -1515,6 +1515,298 @@ export type View = {
     updatedAt: string;
 };
 
+export type MentionSpikeEventData = {
+    /**
+     * The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away.
+     */
+    attentionId: string;
+    /**
+     * Where to look in the dashboard.
+     */
+    url: string;
+    /**
+     * The keyword the item is about.
+     */
+    keyword: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+        /**
+         * The tracked term.
+         */
+        term: string;
+        /**
+         * brand, competitor or topic.
+         */
+        kind: 'brand' | 'competitor' | 'topic';
+        /**
+         * The keyword as Mentio names it: the term, or "term (Group)" outside the default group.
+         */
+        name: string;
+        /**
+         * Its group (grp_...).
+         */
+        groupId: string;
+    };
+    /**
+     * The stretch of time the counts cover, by match time.
+     */
+    window: {
+        /**
+         * Start, inclusive.
+         */
+        from: string;
+        /**
+         * End, exclusive.
+         */
+        to: string;
+    };
+    /**
+     * Fresh matches in the hour: posts published at most 6 hours before they matched. Look-backs and free reviews never count.
+     */
+    matches: number;
+    /**
+     * Of those, scored relevant so far.
+     */
+    relevant: number;
+    /**
+     * What the keyword usually gets.
+     */
+    baseline: {
+        /**
+         * Fresh matches per hour over the baseline.
+         */
+        meanPerHour: number;
+        /**
+         * Their standard deviation.
+         */
+        stddevPerHour: number;
+        /**
+         * Hours in the baseline: the week before the window, or since the keyword started listening.
+         */
+        hours: number;
+    };
+};
+
+export type NegativeSpikeEventData = {
+    /**
+     * The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away.
+     */
+    attentionId: string;
+    /**
+     * Where to look in the dashboard.
+     */
+    url: string;
+    /**
+     * The keyword the item is about.
+     */
+    keyword: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+        /**
+         * The tracked term.
+         */
+        term: string;
+        /**
+         * brand, competitor or topic.
+         */
+        kind: 'brand' | 'competitor' | 'topic';
+        /**
+         * The keyword as Mentio names it: the term, or "term (Group)" outside the default group.
+         */
+        name: string;
+        /**
+         * Its group (grp_...).
+         */
+        groupId: string;
+    };
+    /**
+     * The stretch of time the counts cover, by match time.
+     */
+    window: {
+        /**
+         * Start, inclusive.
+         */
+        from: string;
+        /**
+         * End, exclusive.
+         */
+        to: string;
+    };
+    /**
+     * Relevant matches scored negative in the window.
+     */
+    negative: number;
+    /**
+     * Relevant matches in the window.
+     */
+    relevant: number;
+    /**
+     * negative / relevant.
+     */
+    share: number;
+    /**
+     * What the keyword usually reads.
+     */
+    baseline: {
+        /**
+         * Negative relevant matches in the 7 days before the window.
+         */
+        negative: number;
+        /**
+         * Relevant matches in those 7 days.
+         */
+        relevant: number;
+        /**
+         * The usual negative share, smoothed so a quiet week still has one.
+         */
+        share: number;
+    };
+};
+
+export type KeywordNoisyEventData = {
+    /**
+     * The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away.
+     */
+    attentionId: string;
+    /**
+     * Where to look in the dashboard.
+     */
+    url: string;
+    /**
+     * The keyword the item is about.
+     */
+    keyword: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+        /**
+         * The tracked term.
+         */
+        term: string;
+        /**
+         * brand, competitor or topic.
+         */
+        kind: 'brand' | 'competitor' | 'topic';
+        /**
+         * The keyword as Mentio names it: the term, or "term (Group)" outside the default group.
+         */
+        name: string;
+        /**
+         * Its group (grp_...).
+         */
+        groupId: string;
+    };
+    /**
+     * The window the noise is measured over, in days (since the keyword's last change when that is inside it).
+     */
+    windowDays: number;
+    /**
+     * Matches the classifier scored in that window.
+     */
+    scored: number;
+    /**
+     * Of those, relevant.
+     */
+    relevant: number;
+    /**
+     * The share scored under the relevance line. Every match bills, relevant or not.
+     */
+    noiseShare: number;
+};
+
+export type ChannelFailingEventData = {
+    /**
+     * The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away.
+     */
+    attentionId: string;
+    /**
+     * Where to look in the dashboard.
+     */
+    url: string;
+    /**
+     * The channel whose sends fail.
+     */
+    channel: {
+        /**
+         * Channel id (dest_...).
+         */
+        id: string;
+        /**
+         * slack, email, webhook or telegram.
+         */
+        kind: 'slack' | 'email' | 'webhook' | 'telegram';
+        /**
+         * The channel's label.
+         */
+        label: string;
+    };
+    /**
+     * Failed sends in a row within the last 24 hours.
+     */
+    failures: number;
+    /**
+     * The newest failure, as the transport reported it.
+     */
+    lastError: string | null;
+    /**
+     * The oldest of those failures.
+     */
+    since: string;
+};
+
+export type AttentionItem = {
+    /**
+     * Attention item id (att_...).
+     */
+    id: string;
+    /**
+     * mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed.
+     */
+    kind: 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing';
+    /**
+     * open: the condition holds. resolved: it no longer does. dismissed: a person put it away; it does not come back for the same episode.
+     */
+    status: 'open' | 'resolved' | 'dismissed';
+    /**
+     * What the item is about.
+     */
+    subject: {
+        /**
+         * keyword or channel.
+         */
+        type: 'keyword' | 'channel';
+        /**
+         * The keyword (kw_...) or the channel (dest_...).
+         */
+        id: string;
+    };
+    /**
+     * One line for a person: what happened.
+     */
+    title: string;
+    /**
+     * When the condition was first seen.
+     */
+    openedAt: string;
+    /**
+     * When it no longer held; null while it does.
+     */
+    resolvedAt: string | null;
+    /**
+     * When a person dismissed it; null if nobody did.
+     */
+    dismissedAt: string | null;
+    /**
+     * The facts as they stood when it opened: the same object the account event of the same name carries as `data`.
+     */
+    data: MentionSpikeEventData | NegativeSpikeEventData | KeywordNoisyEventData | ChannelFailingEventData;
+};
+
 /**
  * The group the keyword belongs to.
  */
@@ -2132,9 +2424,9 @@ export type Alert = {
     name: string;
     enabled: boolean;
     /**
-     * instant: each matching mention as it happens. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday.
+     * instant: each matching mention as it happens. hourly: one digest each UTC hour (five minutes past, so the last mentions of the hour are scored) covering the previous full hour, nothing when that hour has no mention at or over the rule's relevance floor; Slack, Telegram and webhook channels only. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday.
      */
-    mode: 'instant' | 'daily' | 'weekly';
+    mode: 'instant' | 'hourly' | 'daily' | 'weekly';
     filter: {
         /**
          * Only these keywords.
@@ -2226,7 +2518,7 @@ export type Alert = {
         anyOf?: Array<FilterGroup>;
     };
     /**
-     * Daily and weekly alerts only.
+     * Daily and weekly alerts only; null for instant and hourly ones.
      */
     schedule: {
         hour: number;
@@ -2263,7 +2555,7 @@ export type Alert = {
          */
         lastSentAt: string | null;
         /**
-         * Daily and weekly alerts: the next digest; null when disabled or instant.
+         * Hourly, daily and weekly alerts: the next digest; null when disabled or instant.
          */
         nextRunAt: string | null;
     };
@@ -3060,6 +3352,10 @@ export type SlackChannel = {
          * Slack channel name, without the #.
          */
         channelName: string;
+        /**
+         * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
+         */
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
     };
 };
 
@@ -3109,6 +3405,10 @@ export type EmailChannel = {
              */
             confirmedAt: string | null;
         }>;
+        /**
+         * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
+         */
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
     };
 };
 
@@ -3159,9 +3459,9 @@ export type WebhookChannel = {
             [key: string]: string;
         };
         /**
-         * The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes. Empty when it receives none; mention and digest deliveries come through rules as before.
+         * The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes and the attention events. Empty when it receives none; mention and digest deliveries come through rules as before.
          */
-        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed'>;
+        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
         /**
          * Only on creation and rotation. Signs every request: X-Mentions-Signature-V2 is v2= plus the hex HMAC-SHA256 of "<X-Mentions-Timestamp>.<raw body>" (reject a timestamp older than a few minutes); X-Mentions-Signature, the hex HMAC-SHA256 of the raw body alone, stays for older verifiers.
          */
@@ -3210,6 +3510,10 @@ export type TelegramChannel = {
          */
         chatId: string;
         chatType: 'private' | 'group' | 'supergroup' | 'channel';
+        /**
+         * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
+         */
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
     };
 };
 
@@ -3233,6 +3537,10 @@ export type CreateSlackChannel = {
      * The channel name, for the label.
      */
     channelName: string;
+    /**
+     * Attention events to receive here, on top of whatever rules send. Omit for none.
+     */
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
 };
 
 export type CreateEmailChannel = {
@@ -3241,6 +3549,10 @@ export type CreateEmailChannel = {
      * Each address gets a confirmation link; workspace members are confirmed on sight.
      */
     emails: Array<string>;
+    /**
+     * Attention events to receive here, on top of whatever rules send. Omit for none.
+     */
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
 };
 
 export type CreateWebhookChannel = {
@@ -3260,9 +3572,9 @@ export type CreateWebhookChannel = {
         [key: string]: string;
     };
     /**
-     * Account events to receive at this endpoint (keyword and wallet state changes), on top of whatever rules send here. Omit for none.
+     * Account events to receive at this endpoint (keyword and wallet state changes, attention events), on top of whatever rules send here. Omit for none.
      */
-    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed'>;
+    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
 };
 
 export type GetHealthData = {
@@ -6673,6 +6985,92 @@ export type UpdateViewResponses = {
 
 export type UpdateViewResponse = UpdateViewResponses[keyof UpdateViewResponses];
 
+export type ListAttentionData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * open (default), resolved, dismissed, or all.
+         */
+        status?: 'open' | 'resolved' | 'dismissed' | 'all';
+        /**
+         * Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing.
+         */
+        kind?: string;
+        /**
+         * Items per page, newest first; 50 by default, at most 100.
+         */
+        limit?: number;
+        /**
+         * nextCursor from the previous page.
+         */
+        cursor?: string;
+    };
+    url: '/v1/attention';
+};
+
+export type ListAttentionErrors = {
+    /**
+     * Unknown kind, or a cursor this list did not hand out
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListAttentionError = ListAttentionErrors[keyof ListAttentionErrors];
+
+export type ListAttentionResponses = {
+    /**
+     * Attention items
+     */
+    200: {
+        data: Array<AttentionItem>;
+        /**
+         * Pass as cursor for the next page; null on the last one.
+         */
+        nextCursor: string | null;
+    };
+};
+
+export type ListAttentionResponse = ListAttentionResponses[keyof ListAttentionResponses];
+
+export type DismissAttentionData = {
+    body?: never;
+    path: {
+        /**
+         * Attention item id (att_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/attention/{id}/dismiss';
+};
+
+export type DismissAttentionErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such attention item in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type DismissAttentionError = DismissAttentionErrors[keyof DismissAttentionErrors];
+
+export type DismissAttentionResponses = {
+    /**
+     * The dismissed item
+     */
+    200: AttentionItem;
+};
+
+export type DismissAttentionResponse = DismissAttentionResponses[keyof DismissAttentionResponses];
+
 export type ListGroupsData = {
     body?: never;
     path?: never;
@@ -7698,7 +8096,7 @@ export type UpdateAlertData = {
     body: {
         name?: string;
         enabled?: boolean;
-        mode?: 'instant' | 'daily' | 'weekly';
+        mode?: 'instant' | 'hourly' | 'daily' | 'weekly';
         /**
          * Replaces the whole filter.
          */
@@ -7792,6 +8190,9 @@ export type UpdateAlertData = {
              */
             anyOf?: Array<FilterGroup>;
         };
+        /**
+         * Daily and weekly alerts. Ignored on an hourly one, except a weekday, which is refused.
+         */
         schedule?: {
             hour: number;
             minute?: number;
@@ -7820,7 +8221,7 @@ export type UpdateAlertData = {
 
 export type UpdateAlertErrors = {
     /**
-     * A daily or weekly rule without a schedule (or a weekly one without a weekday), or an unknown channel
+     * A daily or weekly rule without a schedule (or a weekly one without a weekday), an hourly one with a weekday or an email channel (hourly_email_unsupported), or an unknown channel
      */
     400: ErrorResponse;
     /**
@@ -7873,9 +8274,9 @@ export type ListAlertsResponses = {
             name: string;
             enabled: boolean;
             /**
-             * instant: each matching mention as it happens. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday.
+             * instant: each matching mention as it happens. hourly: one digest each UTC hour (five minutes past, so the last mentions of the hour are scored) covering the previous full hour, nothing when that hour has no mention at or over the rule's relevance floor; Slack, Telegram and webhook channels only. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday.
              */
-            mode: 'instant' | 'daily' | 'weekly';
+            mode: 'instant' | 'hourly' | 'daily' | 'weekly';
             filter: {
                 /**
                  * Only these keywords.
@@ -7967,7 +8368,7 @@ export type ListAlertsResponses = {
                 anyOf?: Array<FilterGroup>;
             };
             /**
-             * Daily and weekly alerts only.
+             * Daily and weekly alerts only; null for instant and hourly ones.
              */
             schedule: {
                 hour: number;
@@ -8004,7 +8405,7 @@ export type ListAlertsResponses = {
                  */
                 lastSentAt: string | null;
                 /**
-                 * Daily and weekly alerts: the next digest; null when disabled or instant.
+                 * Hourly, daily and weekly alerts: the next digest; null when disabled or instant.
                  */
                 nextRunAt: string | null;
             };
@@ -8022,7 +8423,7 @@ export type CreateAlertData = {
     body: {
         name: string;
         enabled?: boolean;
-        mode?: 'instant' | 'daily' | 'weekly';
+        mode?: 'instant' | 'hourly' | 'daily' | 'weekly';
         filter?: {
             /**
              * Only these keywords.
@@ -8114,7 +8515,7 @@ export type CreateAlertData = {
             anyOf?: Array<FilterGroup>;
         };
         /**
-         * Required for daily and weekly alerts (weekly ones also need schedule.weekday).
+         * Required for daily and weekly alerts (weekly ones also need schedule.weekday). Hourly alerts take none: they send every UTC hour, so a time of day and a zone are ignored and a weekday is refused.
          */
         schedule?: {
             hour: number;
@@ -8142,7 +8543,7 @@ export type CreateAlertData = {
 
 export type CreateAlertErrors = {
     /**
-     * A daily or weekly rule without a schedule (or a weekly one without a weekday), an unknown channel, or anyOf groups binding more values than one query can carry (filter_too_complex)
+     * A daily or weekly rule without a schedule (or a weekly one without a weekday), an hourly one with a weekday or an email channel (hourly_email_unsupported), an unknown channel, or anyOf groups binding more values than one query can carry (filter_too_complex)
      */
     400: ErrorResponse;
     /**
@@ -8216,7 +8617,7 @@ export type RunAlertDigestData = {
 
 export type RunAlertDigestErrors = {
     /**
-     * Only daily and weekly rules have a digest
+     * Only hourly, daily and weekly rules have a digest
      */
     400: ErrorResponse;
     /**
@@ -8233,13 +8634,13 @@ export type RunAlertDigestError = RunAlertDigestErrors[keyof RunAlertDigestError
 
 export type RunAlertDigestResponses = {
     /**
-     * The digest for the rule's own period (the last day, or the last week) was sent now (the scheduled one still runs)
+     * The digest for the rule's own period (the last hour, day or week) was sent now (the scheduled one still runs)
      */
     200: {
         /**
-         * Why nothing was sent, if nothing was.
+         * Why nothing was sent, if nothing was: the period already went out, the window had nothing to show, (hourly rules) the hour's retry window closed before it could send, or another run of the same period is sending it right now.
          */
-        skipped: 'already_sent' | 'empty';
+        skipped: 'already_sent' | 'empty' | 'expired' | 'in_flight';
         matched: number;
         relevant: number;
         outcomes: Array<{
@@ -8731,9 +9132,9 @@ export type UpdateChannelData = {
             [key: string]: string;
         };
         /**
-         * Webhooks only; replaces the whole set of account events the endpoint receives. An empty list unsubscribes it from all of them.
+         * Replaces the whole set of account events the channel receives. A webhook takes any of them; a Slack, email or Telegram channel the attention events only (mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing). An empty list unsubscribes it from all of them.
          */
-        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed'>;
+        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
     };
     path: {
         /**
@@ -8746,6 +9147,10 @@ export type UpdateChannelData = {
 };
 
 export type UpdateChannelErrors = {
+    /**
+     * An event this kind of channel cannot receive: Slack, email and Telegram take the attention events only
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -8961,6 +9366,10 @@ export type CreateChannelData = {
 };
 
 export type CreateChannelErrors = {
+    /**
+     * An event this kind of channel cannot receive: Slack, email and Telegram take the attention events only
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */

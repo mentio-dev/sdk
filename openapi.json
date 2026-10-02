@@ -477,6 +477,7 @@
                   "schedule_required",
                   "unknown_channel",
                   "not_a_digest",
+                  "hourly_email_unsupported",
                   "slack_not_connected",
                   "slack_not_configured",
                   "telegram_not_configured",
@@ -3108,6 +3109,483 @@
           "updatedAt"
         ]
       },
+      "MentionSpikeEventData": {
+        "type": "object",
+        "properties": {
+          "attentionId": {
+            "type": "string",
+            "description": "The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away."
+          },
+          "url": {
+            "type": "string",
+            "description": "Where to look in the dashboard."
+          },
+          "keyword": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Keyword id (kw_...)."
+              },
+              "term": {
+                "type": "string",
+                "description": "The tracked term."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ],
+                "description": "brand, competitor or topic."
+              },
+              "name": {
+                "type": "string",
+                "description": "The keyword as Mentio names it: the term, or \"term (Group)\" outside the default group."
+              },
+              "groupId": {
+                "type": "string",
+                "description": "Its group (grp_...)."
+              }
+            },
+            "required": [
+              "id",
+              "term",
+              "kind",
+              "name",
+              "groupId"
+            ],
+            "description": "The keyword the item is about."
+          },
+          "window": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "description": "Start, inclusive."
+              },
+              "to": {
+                "type": "string",
+                "description": "End, exclusive."
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "description": "The stretch of time the counts cover, by match time."
+          },
+          "matches": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Fresh matches in the hour: posts published at most 6 hours before they matched. Look-backs and free reviews never count."
+          },
+          "relevant": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Of those, scored relevant so far."
+          },
+          "baseline": {
+            "type": "object",
+            "properties": {
+              "meanPerHour": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Fresh matches per hour over the baseline."
+              },
+              "stddevPerHour": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Their standard deviation."
+              },
+              "hours": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Hours in the baseline: the week before the window, or since the keyword started listening."
+              }
+            },
+            "required": [
+              "meanPerHour",
+              "stddevPerHour",
+              "hours"
+            ],
+            "description": "What the keyword usually gets."
+          }
+        },
+        "required": [
+          "attentionId",
+          "url",
+          "keyword",
+          "window",
+          "matches",
+          "relevant",
+          "baseline"
+        ]
+      },
+      "NegativeSpikeEventData": {
+        "type": "object",
+        "properties": {
+          "attentionId": {
+            "type": "string",
+            "description": "The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away."
+          },
+          "url": {
+            "type": "string",
+            "description": "Where to look in the dashboard."
+          },
+          "keyword": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Keyword id (kw_...)."
+              },
+              "term": {
+                "type": "string",
+                "description": "The tracked term."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ],
+                "description": "brand, competitor or topic."
+              },
+              "name": {
+                "type": "string",
+                "description": "The keyword as Mentio names it: the term, or \"term (Group)\" outside the default group."
+              },
+              "groupId": {
+                "type": "string",
+                "description": "Its group (grp_...)."
+              }
+            },
+            "required": [
+              "id",
+              "term",
+              "kind",
+              "name",
+              "groupId"
+            ],
+            "description": "The keyword the item is about."
+          },
+          "window": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "description": "Start, inclusive."
+              },
+              "to": {
+                "type": "string",
+                "description": "End, exclusive."
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "description": "The stretch of time the counts cover, by match time."
+          },
+          "negative": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Relevant matches scored negative in the window."
+          },
+          "relevant": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Relevant matches in the window."
+          },
+          "share": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "negative / relevant."
+          },
+          "baseline": {
+            "type": "object",
+            "properties": {
+              "negative": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Negative relevant matches in the 7 days before the window."
+              },
+              "relevant": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Relevant matches in those 7 days."
+              },
+              "share": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "The usual negative share, smoothed so a quiet week still has one."
+              }
+            },
+            "required": [
+              "negative",
+              "relevant",
+              "share"
+            ],
+            "description": "What the keyword usually reads."
+          }
+        },
+        "required": [
+          "attentionId",
+          "url",
+          "keyword",
+          "window",
+          "negative",
+          "relevant",
+          "share",
+          "baseline"
+        ]
+      },
+      "KeywordNoisyEventData": {
+        "type": "object",
+        "properties": {
+          "attentionId": {
+            "type": "string",
+            "description": "The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away."
+          },
+          "url": {
+            "type": "string",
+            "description": "Where to look in the dashboard."
+          },
+          "keyword": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Keyword id (kw_...)."
+              },
+              "term": {
+                "type": "string",
+                "description": "The tracked term."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ],
+                "description": "brand, competitor or topic."
+              },
+              "name": {
+                "type": "string",
+                "description": "The keyword as Mentio names it: the term, or \"term (Group)\" outside the default group."
+              },
+              "groupId": {
+                "type": "string",
+                "description": "Its group (grp_...)."
+              }
+            },
+            "required": [
+              "id",
+              "term",
+              "kind",
+              "name",
+              "groupId"
+            ],
+            "description": "The keyword the item is about."
+          },
+          "windowDays": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The window the noise is measured over, in days (since the keyword's last change when that is inside it)."
+          },
+          "scored": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Matches the classifier scored in that window."
+          },
+          "relevant": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Of those, relevant."
+          },
+          "noiseShare": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "The share scored under the relevance line. Every match bills, relevant or not."
+          }
+        },
+        "required": [
+          "attentionId",
+          "url",
+          "keyword",
+          "windowDays",
+          "scored",
+          "relevant",
+          "noiseShare"
+        ]
+      },
+      "ChannelFailingEventData": {
+        "type": "object",
+        "properties": {
+          "attentionId": {
+            "type": "string",
+            "description": "The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away."
+          },
+          "url": {
+            "type": "string",
+            "description": "Where to look in the dashboard."
+          },
+          "channel": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Channel id (dest_...)."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "slack",
+                  "email",
+                  "webhook",
+                  "telegram"
+                ],
+                "description": "slack, email, webhook or telegram."
+              },
+              "label": {
+                "type": "string",
+                "description": "The channel's label."
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "label"
+            ],
+            "description": "The channel whose sends fail."
+          },
+          "failures": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Failed sends in a row within the last 24 hours."
+          },
+          "lastError": {
+            "type": "string",
+            "nullable": true,
+            "description": "The newest failure, as the transport reported it."
+          },
+          "since": {
+            "type": "string",
+            "description": "The oldest of those failures."
+          }
+        },
+        "required": [
+          "attentionId",
+          "url",
+          "channel",
+          "failures",
+          "lastError",
+          "since"
+        ]
+      },
+      "AttentionItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Attention item id (att_...)."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "mention.spike",
+              "sentiment.negative_spike",
+              "keyword.noisy",
+              "channel.failing"
+            ],
+            "description": "mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "resolved",
+              "dismissed"
+            ],
+            "description": "open: the condition holds. resolved: it no longer does. dismissed: a person put it away; it does not come back for the same episode."
+          },
+          "subject": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "keyword",
+                  "channel"
+                ],
+                "description": "keyword or channel."
+              },
+              "id": {
+                "type": "string",
+                "description": "The keyword (kw_...) or the channel (dest_...)."
+              }
+            },
+            "required": [
+              "type",
+              "id"
+            ],
+            "description": "What the item is about."
+          },
+          "title": {
+            "type": "string",
+            "description": "One line for a person: what happened."
+          },
+          "openedAt": {
+            "type": "string",
+            "description": "When the condition was first seen."
+          },
+          "resolvedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "When it no longer held; null while it does."
+          },
+          "dismissedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "When a person dismissed it; null if nobody did."
+          },
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MentionSpikeEventData"
+              },
+              {
+                "$ref": "#/components/schemas/NegativeSpikeEventData"
+              },
+              {
+                "$ref": "#/components/schemas/KeywordNoisyEventData"
+              },
+              {
+                "$ref": "#/components/schemas/ChannelFailingEventData"
+              }
+            ],
+            "description": "The facts as they stood when it opened: the same object the account event of the same name carries as `data`."
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "subject",
+          "title",
+          "openedAt",
+          "resolvedAt",
+          "dismissedAt",
+          "data"
+        ]
+      },
       "Group": {
         "allOf": [
           {
@@ -4097,10 +4575,11 @@
             "type": "string",
             "enum": [
               "instant",
+              "hourly",
               "daily",
               "weekly"
             ],
-            "description": "instant: each matching mention as it happens. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday."
+            "description": "instant: each matching mention as it happens. hourly: one digest each UTC hour (five minutes past, so the last mentions of the hour are scored) covering the previous full hour, nothing when that hour has no mention at or over the rule's relevance floor; Slack, Telegram and webhook channels only. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday."
           },
           "filter": {
             "type": "object",
@@ -4321,7 +4800,7 @@
               "hour",
               "timezone"
             ],
-            "description": "Daily and weekly alerts only."
+            "description": "Daily and weekly alerts only; null for instant and hourly ones."
           },
           "event": {
             "type": "string",
@@ -4372,7 +4851,7 @@
               "nextRunAt": {
                 "type": "string",
                 "nullable": true,
-                "description": "Daily and weekly alerts: the next digest; null when disabled or instant."
+                "description": "Hourly, daily and weekly alerts: the next digest; null when disabled or instant."
               }
             },
             "required": [
@@ -5844,11 +6323,26 @@
               "channelName": {
                 "type": "string",
                 "description": "Slack channel name, without the #."
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "mention.spike",
+                    "sentiment.negative_spike",
+                    "keyword.noisy",
+                    "channel.failing"
+                  ],
+                  "description": "mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed."
+                },
+                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
               }
             },
             "required": [
               "channelId",
-              "channelName"
+              "channelName",
+              "events"
             ]
           }
         },
@@ -5949,10 +6443,25 @@
                   ]
                 },
                 "description": "Every address on the list and whether it confirmed."
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "mention.spike",
+                    "sentiment.negative_spike",
+                    "keyword.noisy",
+                    "channel.failing"
+                  ],
+                  "description": "mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed."
+                },
+                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
               }
             },
             "required": [
-              "recipients"
+              "recipients",
+              "events"
             ]
           }
         },
@@ -6054,11 +6563,15 @@
                     "keyword.resumed",
                     "wallet.low",
                     "wallet.paused",
-                    "wallet.resumed"
+                    "wallet.resumed",
+                    "mention.spike",
+                    "sentiment.negative_spike",
+                    "keyword.noisy",
+                    "channel.failing"
                   ],
-                  "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back."
+                  "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back. The attention events, sent once when an item opens (GET /v1/attention): mention.spike: a keyword got far more mentions in the last hour than it usually does. sentiment.negative_spike: its negative share of the last 24 hours jumped. keyword.noisy: most of its scored matches are noise. channel.failing: a channel's last sends all failed."
                 },
-                "description": "The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes. Empty when it receives none; mention and digest deliveries come through rules as before."
+                "description": "The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes and the attention events. Empty when it receives none; mention and digest deliveries come through rules as before."
               },
               "secret": {
                 "type": "string",
@@ -6161,11 +6674,26 @@
                   "supergroup",
                   "channel"
                 ]
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "mention.spike",
+                    "sentiment.negative_spike",
+                    "keyword.noisy",
+                    "channel.failing"
+                  ],
+                  "description": "mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed."
+                },
+                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
               }
             },
             "required": [
               "chatId",
-              "chatType"
+              "chatType",
+              "events"
             ]
           }
         },
@@ -6223,6 +6751,21 @@
             "minLength": 1,
             "maxLength": 90,
             "description": "The channel name, for the label."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "mention.spike",
+                "sentiment.negative_spike",
+                "keyword.noisy",
+                "channel.failing"
+              ],
+              "description": "mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed."
+            },
+            "maxItems": 4,
+            "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
           }
         },
         "required": [
@@ -6249,6 +6792,21 @@
             "minItems": 1,
             "maxItems": 20,
             "description": "Each address gets a confirmation link; workspace members are confirmed on sight."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "mention.spike",
+                "sentiment.negative_spike",
+                "keyword.noisy",
+                "channel.failing"
+              ],
+              "description": "mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed."
+            },
+            "maxItems": 4,
+            "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
           }
         },
         "required": [
@@ -6293,12 +6851,16 @@
                 "keyword.resumed",
                 "wallet.low",
                 "wallet.paused",
-                "wallet.resumed"
+                "wallet.resumed",
+                "mention.spike",
+                "sentiment.negative_spike",
+                "keyword.noisy",
+                "channel.failing"
               ],
-              "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back."
+              "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back. The attention events, sent once when an item opens (GET /v1/attention): mention.spike: a keyword got far more mentions in the last hour than it usually does. sentiment.negative_spike: its negative share of the last 24 hours jumped. keyword.noisy: most of its scored matches are noise. channel.failing: a channel's last sends all failed."
             },
-            "maxItems": 6,
-            "description": "Account events to receive at this endpoint (keyword and wallet state changes), on top of whatever rules send here. Omit for none."
+            "maxItems": 10,
+            "description": "Account events to receive at this endpoint (keyword and wallet state changes, attention events), on top of whatever rules send here. Omit for none."
           }
         },
         "required": [
@@ -14812,6 +15374,183 @@
         }
       }
     },
+    "/v1/attention": {
+      "get": {
+        "operationId": "listAttention",
+        "summary": "List attention items",
+        "description": "What needs a person, newest first: a keyword whose mentions spiked in the last hour (mention.spike), whose negative share of the last 24 hours jumped (sentiment.negative_spike), that turned noisy (keyword.noisy), or a channel whose last sends all failed (channel.failing). Detected once an hour; an item opens when its condition starts and resolves on its own when the condition is gone. Open items by default; `status=all` reads the history. Each opening is also an account event of the same name, which webhook, Slack, email and Telegram channels can subscribe to.",
+        "tags": [
+          "Attention"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "open",
+                "resolved",
+                "dismissed",
+                "all"
+              ],
+              "default": "open",
+              "description": "open (default), resolved, dismissed, or all."
+            },
+            "required": false,
+            "description": "open (default), resolved, dismissed, or all.",
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing."
+            },
+            "required": false,
+            "description": "Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing.",
+            "name": "kind",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Items per page, newest first; 50 by default, at most 100."
+            },
+            "required": false,
+            "description": "Items per page, newest first; 50 by default, at most 100.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "nextCursor from the previous page."
+            },
+            "required": false,
+            "description": "nextCursor from the previous page.",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attention items",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AttentionItem"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Pass as cursor for the next page; null on the last one."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Unknown kind, or a cursor this list did not hand out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/attention/{id}/dismiss": {
+      "post": {
+        "operationId": "dismissAttention",
+        "summary": "Dismiss an attention item",
+        "description": "Put an item away. It leaves the open list and does not come back while its condition lasts; once the condition clears, a new episode may open a new item. Idempotent.",
+        "tags": [
+          "Attention"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Attention item id (att_...).",
+              "example": "att_abc123"
+            },
+            "required": true,
+            "description": "Attention item id (att_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The dismissed item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttentionItem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such attention item in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/groups": {
       "get": {
         "operationId": "listGroups",
@@ -16646,6 +17385,7 @@
                     "type": "string",
                     "enum": [
                       "instant",
+                      "hourly",
                       "daily",
                       "weekly"
                     ]
@@ -16869,7 +17609,8 @@
                     "required": [
                       "hour",
                       "timezone"
-                    ]
+                    ],
+                    "description": "Daily and weekly alerts. Ignored on an hourly one, except a weekday, which is refused."
                   },
                   "event": {
                     "type": "string",
@@ -16904,7 +17645,7 @@
             }
           },
           "400": {
-            "description": "A daily or weekly rule without a schedule (or a weekly one without a weekday), or an unknown channel",
+            "description": "A daily or weekly rule without a schedule (or a weekly one without a weekday), an hourly one with a weekday or an email channel (hourly_email_unsupported), or an unknown channel",
             "content": {
               "application/json": {
                 "schema": {
@@ -17026,10 +17767,11 @@
                             "type": "string",
                             "enum": [
                               "instant",
+                              "hourly",
                               "daily",
                               "weekly"
                             ],
-                            "description": "instant: each matching mention as it happens. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday."
+                            "description": "instant: each matching mention as it happens. hourly: one digest each UTC hour (five minutes past, so the last mentions of the hour are scored) covering the previous full hour, nothing when that hour has no mention at or over the rule's relevance floor; Slack, Telegram and webhook channels only. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday."
                           },
                           "filter": {
                             "type": "object",
@@ -17250,7 +17992,7 @@
                               "hour",
                               "timezone"
                             ],
-                            "description": "Daily and weekly alerts only."
+                            "description": "Daily and weekly alerts only; null for instant and hourly ones."
                           },
                           "event": {
                             "type": "string",
@@ -17301,7 +18043,7 @@
                               "nextRunAt": {
                                 "type": "string",
                                 "nullable": true,
-                                "description": "Daily and weekly alerts: the next digest; null when disabled or instant."
+                                "description": "Hourly, daily and weekly alerts: the next digest; null when disabled or instant."
                               }
                             },
                             "required": [
@@ -17353,7 +18095,7 @@
       "post": {
         "operationId": "createAlert",
         "summary": "Create an alert",
-        "description": "A rule (what to watch, the filter) times channels. mode instant sends each matching mention as it happens; daily sends one digest at schedule.hour in schedule.timezone; weekly sends one a week on schedule.weekday (0 Sunday to 6 Saturday). filter.anyOf adds OR: groups of conditions in the vocabulary of the mentions list, at least one of which must hold on top of the rest of the filter.",
+        "description": "A rule (what to watch, the filter) times channels. mode instant sends each matching mention as it happens; hourly sends one digest every UTC hour (five minutes past) for the previous full hour, nothing when it had no mention over the rule's floor, to Slack, Telegram and webhook channels only (no schedule); daily sends one digest at schedule.hour in schedule.timezone; weekly sends one a week on schedule.weekday (0 Sunday to 6 Saturday). filter.anyOf adds OR: groups of conditions in the vocabulary of the mentions list, at least one of which must hold on top of the rest of the filter.",
         "tags": [
           "Alerts"
         ],
@@ -17382,6 +18124,7 @@
                     "type": "string",
                     "enum": [
                       "instant",
+                      "hourly",
                       "daily",
                       "weekly"
                     ],
@@ -17606,7 +18349,7 @@
                       "hour",
                       "timezone"
                     ],
-                    "description": "Required for daily and weekly alerts (weekly ones also need schedule.weekday)."
+                    "description": "Required for daily and weekly alerts (weekly ones also need schedule.weekday). Hourly alerts take none: they send every UTC hour, so a time of day and a zone are ignored and a weekday is refused."
                   },
                   "event": {
                     "type": "string",
@@ -17645,7 +18388,7 @@
             }
           },
           "400": {
-            "description": "A daily or weekly rule without a schedule (or a weekly one without a weekday), an unknown channel, or anyOf groups binding more values than one query can carry (filter_too_complex)",
+            "description": "A daily or weekly rule without a schedule (or a weekly one without a weekday), an hourly one with a weekday or an email channel (hourly_email_unsupported), an unknown channel, or anyOf groups binding more values than one query can carry (filter_too_complex)",
             "content": {
               "application/json": {
                 "schema": {
@@ -17783,7 +18526,7 @@
         ],
         "responses": {
           "200": {
-            "description": "The digest for the rule's own period (the last day, or the last week) was sent now (the scheduled one still runs)",
+            "description": "The digest for the rule's own period (the last hour, day or week) was sent now (the scheduled one still runs)",
             "content": {
               "application/json": {
                 "schema": {
@@ -17794,9 +18537,11 @@
                       "nullable": true,
                       "enum": [
                         "already_sent",
-                        "empty"
+                        "empty",
+                        "expired",
+                        "in_flight"
                       ],
-                      "description": "Why nothing was sent, if nothing was."
+                      "description": "Why nothing was sent, if nothing was: the period already went out, the window had nothing to show, (hourly rules) the hour's retry window closed before it could send, or another run of the same period is sending it right now."
                     },
                     "matched": {
                       "type": "integer"
@@ -17839,7 +18584,7 @@
             }
           },
           "400": {
-            "description": "Only daily and weekly rules have a digest",
+            "description": "Only hourly, daily and weekly rules have a digest",
             "content": {
               "application/json": {
                 "schema": {
@@ -19026,12 +19771,16 @@
                         "keyword.resumed",
                         "wallet.low",
                         "wallet.paused",
-                        "wallet.resumed"
+                        "wallet.resumed",
+                        "mention.spike",
+                        "sentiment.negative_spike",
+                        "keyword.noisy",
+                        "channel.failing"
                       ],
-                      "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back."
+                      "description": "keyword.capped: a keyword reached its monthly mention cap and stopped matching. keyword.paused_for_balance: the wallet ran out and paused it. keyword.resumed: it listens again (reason says why). wallet.low: the effective balance fell to 20% of the last credit (once per credit). wallet.paused: the wallet paused every keyword. wallet.resumed: a credit brought them back. The attention events, sent once when an item opens (GET /v1/attention): mention.spike: a keyword got far more mentions in the last hour than it usually does. sentiment.negative_spike: its negative share of the last 24 hours jumped. keyword.noisy: most of its scored matches are noise. channel.failing: a channel's last sends all failed."
                     },
-                    "maxItems": 6,
-                    "description": "Webhooks only; replaces the whole set of account events the endpoint receives. An empty list unsubscribes it from all of them."
+                    "maxItems": 10,
+                    "description": "Replaces the whole set of account events the channel receives. A webhook takes any of them; a Slack, email or Telegram channel the attention events only (mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing). An empty list unsubscribes it from all of them."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -19046,6 +19795,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Channel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "An event this kind of channel cannot receive: Slack, email and Telegram take the attention events only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -19561,6 +20320,16 @@
               }
             }
           },
+          "400": {
+            "description": "An event this kind of channel cannot receive: Slack, email and Telegram take the attention events only",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -19694,6 +20463,13 @@
       "source": "user",
       "retryable": false,
       "description": "A digest-only action was called on an instant rule."
+    },
+    {
+      "code": "hourly_email_unsupported",
+      "status": 400,
+      "source": "user",
+      "retryable": false,
+      "description": "An hourly rule was given an email channel (up to 24 emails a day per rule). Use Slack, Telegram or a webhook, or a daily digest by email."
     },
     {
       "code": "slack_not_connected",
