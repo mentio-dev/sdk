@@ -130,6 +130,10 @@ export type Keyword = {
          * true: the term must appear in the case it was typed (RAG, never rag). Default false.
          */
         caseSensitive: boolean;
+        /**
+         * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+         */
+        exactPhrase: boolean;
     };
     /**
      * Computed over this workspace's matches.
@@ -319,6 +323,10 @@ export type KeywordSuggestion = {
              * true: the term must appear in the case it was typed (RAG, never rag). Default false.
              */
             caseSensitive?: boolean;
+            /**
+             * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+             */
+            exactPhrase?: boolean;
         };
         /**
          * Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it.
@@ -678,7 +686,7 @@ export type Mention = {
      */
     priority: number;
     /**
-     * The keyword this post matched, and the group it is in.
+     * The keyword this post matched, the group it is in, and how it matched.
      */
     keyword: {
         /**
@@ -690,6 +698,10 @@ export type Mention = {
          */
         term: string;
         group: GroupRef;
+        /**
+         * phrase: the post holds the term as written. close_words: it holds the term's words close together, in another order or form (kept and billed only because the classifier scored it relevant).
+         */
+        matchedAs: 'phrase' | 'close_words';
     };
     post: {
         /**
@@ -3730,6 +3742,10 @@ export type ListKeywordsResponses = {
                  * true: the term must appear in the case it was typed (RAG, never rag). Default false.
                  */
                 caseSensitive: boolean;
+                /**
+                 * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+                 */
+                exactPhrase: boolean;
             };
             /**
              * Computed over this workspace's matches.
@@ -3849,7 +3865,7 @@ export type ListKeywordsResponse = ListKeywordsResponses[keyof ListKeywordsRespo
 export type CreateKeywordData = {
     body: {
         /**
-         * The word or phrase to track, matched case-insensitively as a phrase.
+         * The word or phrase to track, case-insensitive. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only.
          */
         term: string;
         /**
@@ -3888,6 +3904,10 @@ export type CreateKeywordData = {
              * true: the term must appear in the case it was typed (RAG, never rag). Default false.
              */
             caseSensitive?: boolean;
+            /**
+             * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+             */
+            exactPhrase?: boolean;
         };
         /**
          * A monthly mention cap; omit or null for none.
@@ -4072,6 +4092,10 @@ export type UpdateKeywordData = {
              * true: the term must appear in the case it was typed (RAG, never rag). Default false.
              */
             caseSensitive?: boolean;
+            /**
+             * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+             */
+            exactPhrase?: boolean;
         };
         /**
          * Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it.

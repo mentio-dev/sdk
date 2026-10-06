@@ -238,6 +238,10 @@
               "caseSensitive": {
                 "type": "boolean",
                 "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+              },
+              "exactPhrase": {
+                "type": "boolean",
+                "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
               }
             },
             "required": [
@@ -245,7 +249,8 @@
               "requiredMode",
               "excludedTerms",
               "excludedAuthors",
-              "caseSensitive"
+              "caseSensitive",
+              "exactPhrase"
             ],
             "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
           },
@@ -640,6 +645,10 @@
                   "caseSensitive": {
                     "type": "boolean",
                     "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                  },
+                  "exactPhrase": {
+                    "type": "boolean",
+                    "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
                   }
                 },
                 "description": "Omitted fields are untouched; an empty list clears one."
@@ -1298,14 +1307,23 @@
               },
               "group": {
                 "$ref": "#/components/schemas/GroupRef"
+              },
+              "matchedAs": {
+                "type": "string",
+                "enum": [
+                  "phrase",
+                  "close_words"
+                ],
+                "description": "phrase: the post holds the term as written. close_words: it holds the term's words close together, in another order or form (kept and billed only because the classifier scored it relevant)."
               }
             },
             "required": [
               "id",
               "term",
-              "group"
+              "group",
+              "matchedAs"
             ],
-            "description": "The keyword this post matched, and the group it is in."
+            "description": "The keyword this post matched, the group it is in, and how it matched."
           },
           "post": {
             "type": "object",
@@ -6924,7 +6942,7 @@
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 80,
-                    "description": "The word or phrase to track, matched case-insensitively as a phrase."
+                    "description": "The word or phrase to track, case-insensitive. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only."
                   },
                   "kind": {
                     "type": "string",
@@ -7008,6 +7026,10 @@
                       "caseSensitive": {
                         "type": "boolean",
                         "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                      },
+                      "exactPhrase": {
+                        "type": "boolean",
+                        "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
                       }
                     },
                     "description": "Omitted fields are untouched; an empty list clears one."
@@ -7448,6 +7470,10 @@
                               "caseSensitive": {
                                 "type": "boolean",
                                 "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                              },
+                              "exactPhrase": {
+                                "type": "boolean",
+                                "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
                               }
                             },
                             "required": [
@@ -7455,7 +7481,8 @@
                               "requiredMode",
                               "excludedTerms",
                               "excludedAuthors",
-                              "caseSensitive"
+                              "caseSensitive",
+                              "exactPhrase"
                             ],
                             "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
                           },
@@ -7877,6 +7904,10 @@
                       "caseSensitive": {
                         "type": "boolean",
                         "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                      },
+                      "exactPhrase": {
+                        "type": "boolean",
+                        "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
                       }
                     },
                     "description": "Omitted fields are untouched; an empty list clears one."
