@@ -1315,13 +1315,22 @@
                   "close_words"
                 ],
                 "description": "phrase: the post holds the term as written. close_words: it holds the term's words close together, in another order or form (kept and billed only because the classifier scored it relevant)."
+              },
+              "matchedIn": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "speech"
+                ],
+                "description": "text: the term is in the post itself (its text, caption, hashtags or review). speech: it is only in what is said in the video (TikTok), whose transcript follows the 🎙 mark in post.text."
               }
             },
             "required": [
               "id",
               "term",
               "group",
-              "matchedAs"
+              "matchedAs",
+              "matchedIn"
             ],
             "description": "The keyword this post matched, the group it is in, and how it matched."
           },

@@ -702,6 +702,10 @@ export type Mention = {
          * phrase: the post holds the term as written. close_words: it holds the term's words close together, in another order or form (kept and billed only because the classifier scored it relevant).
          */
         matchedAs: 'phrase' | 'close_words';
+        /**
+         * text: the term is in the post itself (its text, caption, hashtags or review). speech: it is only in what is said in the video (TikTok), whose transcript follows the 🎙 mark in post.text.
+         */
+        matchedIn: 'text' | 'speech';
     };
     post: {
         /**
