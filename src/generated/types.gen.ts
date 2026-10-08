@@ -179,6 +179,23 @@ export type Keyword = {
              */
             excluded: Array<string>;
         };
+        /**
+         * GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed.
+         */
+        repositories: {
+            /**
+             * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+             */
+            events: Array<'new' | 'traction' | 'stars' | 'growth'>;
+            /**
+             * Only repositories with at least this many stars; null for no minimum.
+             */
+            minStars: number | null;
+            /**
+             * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+             */
+            minWeeklyStars: number | null;
+        };
     };
     /**
      * Computed over this workspace's matches.
@@ -380,6 +397,23 @@ export type KeywordSuggestion = {
              * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
              */
             exactPhrase?: boolean;
+            /**
+             * GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum.
+             */
+            repositories?: {
+                /**
+                 * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+                 */
+                events?: Array<'new' | 'traction' | 'stars' | 'growth'>;
+                /**
+                 * Only repositories with at least this many stars; null for no minimum.
+                 */
+                minStars?: number | null;
+                /**
+                 * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+                 */
+                minWeeklyStars?: number | null;
+            };
             /**
              * Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted.
              */
@@ -809,9 +843,9 @@ export type Mention = {
          */
         platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
-         * post: a top-level post. comment: an item that answers a post or another comment (a Reddit or Hacker News comment, an X or Bluesky reply, a Stack Overflow answer, a YouTube comment).
+         * post: a top-level post. comment: an item that answers a post or another comment (a Reddit or Hacker News comment, an X or Bluesky reply, a Stack Overflow answer, a YouTube comment). repository: an event about a GitHub repository naming the keyword (see post.repository).
          */
-        kind: 'post' | 'comment';
+        kind: 'post' | 'comment' | 'repository';
         /**
          * Permalink of the post.
          */
@@ -836,6 +870,27 @@ export type Mention = {
          * A Reddit post's flair, when its subreddit uses them (Question, Show and Tell). Null otherwise.
          */
         flair: string | null;
+        /**
+         * A GitHub repository event's facts, on a mention whose kind is repository; null on every other mention. The sentence is post.title.
+         */
+        repository: {
+            /**
+             * The repository, owner/name.
+             */
+            name: string;
+            /**
+             * What happened. new: it was created. traction: under 30 days old, it reached 10 stars. stars: it passed a star milestone. growth: it gained stars fast in a week. top: one of the most starred repositories naming the keyword, brought by a new keyword's look-back.
+             */
+            event: 'new' | 'traction' | 'stars' | 'growth' | 'top';
+            /**
+             * Its stars when the event was found.
+             */
+            stars: number;
+            /**
+             * Stars gained in the 7 days before the event; null when that week is not known yet.
+             */
+            weeklyStars: number | null;
+        } | null;
         /**
          * Links the post carries, in the order written, at most 20. Empty for a post with none, and for posts ingested before September 2026.
          */
@@ -1553,9 +1608,9 @@ export type FilterGroup = {
      */
     isReply?: boolean;
     /**
-     * Only posts (post) or only comments (comment).
+     * Only posts (post), only comments (comment) or only GitHub repository events (repository).
      */
-    kind?: 'post' | 'comment';
+    kind?: 'post' | 'comment' | 'repository';
     /**
      * Never these authors: display names, handles or profile URLs.
      */
@@ -1715,9 +1770,9 @@ export type View = {
          */
         isReply?: boolean;
         /**
-         * Only posts (post) or only comments (comment).
+         * Only posts (post), only comments (comment) or only GitHub repository events (repository).
          */
-        kind?: 'post' | 'comment';
+        kind?: 'post' | 'comment' | 'repository';
         /**
          * Never these authors: display names, handles or profile URLs.
          */
@@ -4038,6 +4093,23 @@ export type ListKeywordsResponses = {
                      */
                     excluded: Array<string>;
                 };
+                /**
+                 * GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed.
+                 */
+                repositories: {
+                    /**
+                     * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+                     */
+                    events: Array<'new' | 'traction' | 'stars' | 'growth'>;
+                    /**
+                     * Only repositories with at least this many stars; null for no minimum.
+                     */
+                    minStars: number | null;
+                    /**
+                     * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+                     */
+                    minWeeklyStars: number | null;
+                };
             };
             /**
              * Computed over this workspace's matches.
@@ -4208,6 +4280,23 @@ export type CreateKeywordData = {
              * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
              */
             exactPhrase?: boolean;
+            /**
+             * GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum.
+             */
+            repositories?: {
+                /**
+                 * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+                 */
+                events?: Array<'new' | 'traction' | 'stars' | 'growth'>;
+                /**
+                 * Only repositories with at least this many stars; null for no minimum.
+                 */
+                minStars?: number | null;
+                /**
+                 * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+                 */
+                minWeeklyStars?: number | null;
+            };
             /**
              * Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted.
              */
@@ -4431,6 +4520,23 @@ export type UpdateKeywordData = {
              * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
              */
             exactPhrase?: boolean;
+            /**
+             * GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum.
+             */
+            repositories?: {
+                /**
+                 * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+                 */
+                events?: Array<'new' | 'traction' | 'stars' | 'growth'>;
+                /**
+                 * Only repositories with at least this many stars; null for no minimum.
+                 */
+                minStars?: number | null;
+                /**
+                 * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+                 */
+                minWeeklyStars?: number | null;
+            };
             /**
              * Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted.
              */
@@ -4853,9 +4959,9 @@ export type SearchMentionsData = {
          */
         maxFollowers?: number | null;
         /**
-         * Only posts (post) or only comments (comment). Omitted: both.
+         * Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all.
          */
-        kind?: 'post' | 'comment';
+        kind?: 'post' | 'comment' | 'repository';
         /**
          * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
          */
@@ -5109,9 +5215,9 @@ export type ExportMentionsCsvData = {
          */
         maxFollowers?: number | null;
         /**
-         * Only posts (post) or only comments (comment). Omitted: both.
+         * Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all.
          */
-        kind?: 'post' | 'comment';
+        kind?: 'post' | 'comment' | 'repository';
         /**
          * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
          */
@@ -5404,9 +5510,9 @@ export type ExportMentionsJsonData = {
          */
         maxFollowers?: number | null;
         /**
-         * Only posts (post) or only comments (comment). Omitted: both.
+         * Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all.
          */
-        kind?: 'post' | 'comment';
+        kind?: 'post' | 'comment' | 'repository';
         /**
          * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
          */
@@ -6985,9 +7091,9 @@ export type ListViewsResponses = {
                  */
                 isReply?: boolean;
                 /**
-                 * Only posts (post) or only comments (comment).
+                 * Only posts (post), only comments (comment) or only GitHub repository events (repository).
                  */
-                kind?: 'post' | 'comment';
+                kind?: 'post' | 'comment' | 'repository';
                 /**
                  * Never these authors: display names, handles or profile URLs.
                  */
@@ -7170,9 +7276,9 @@ export type CreateViewData = {
              */
             isReply?: boolean;
             /**
-             * Only posts (post) or only comments (comment).
+             * Only posts (post), only comments (comment) or only GitHub repository events (repository).
              */
-            kind?: 'post' | 'comment';
+            kind?: 'post' | 'comment' | 'repository';
             /**
              * Never these authors: display names, handles or profile URLs.
              */
@@ -7435,9 +7541,9 @@ export type UpdateViewData = {
              */
             isReply?: boolean;
             /**
-             * Only posts (post) or only comments (comment).
+             * Only posts (post), only comments (comment) or only GitHub repository events (repository).
              */
-            kind?: 'post' | 'comment';
+            kind?: 'post' | 'comment' | 'repository';
             /**
              * Never these authors: display names, handles or profile URLs.
              */

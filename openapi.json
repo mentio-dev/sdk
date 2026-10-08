@@ -322,6 +322,44 @@
                   "excluded"
                 ],
                 "description": "Reddit only, for this keyword alone; the workspace filters' own subreddit lists (GET /v1/filters) still apply to every keyword, and a post must pass both."
+              },
+              "repositories": {
+                "type": "object",
+                "properties": {
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "new",
+                        "traction",
+                        "stars",
+                        "growth"
+                      ]
+                    },
+                    "description": "The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events."
+                  },
+                  "minStars": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "maximum": 1000000,
+                    "description": "Only repositories with at least this many stars; null for no minimum."
+                  },
+                  "minWeeklyStars": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 25,
+                    "maximum": 1000000,
+                    "description": "Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth."
+                  }
+                },
+                "required": [
+                  "events",
+                  "minStars",
+                  "minWeeklyStars"
+                ],
+                "description": "GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed."
               }
             },
             "required": [
@@ -331,7 +369,8 @@
               "excludedAuthors",
               "caseSensitive",
               "exactPhrase",
-              "subreddits"
+              "subreddits",
+              "repositories"
             ],
             "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
           },
@@ -744,6 +783,39 @@
                   "exactPhrase": {
                     "type": "boolean",
                     "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
+                  },
+                  "repositories": {
+                    "type": "object",
+                    "properties": {
+                      "events": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "new",
+                            "traction",
+                            "stars",
+                            "growth"
+                          ]
+                        },
+                        "description": "The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events."
+                      },
+                      "minStars": {
+                        "type": "integer",
+                        "nullable": true,
+                        "minimum": 0,
+                        "maximum": 1000000,
+                        "description": "Only repositories with at least this many stars; null for no minimum."
+                      },
+                      "minWeeklyStars": {
+                        "type": "integer",
+                        "nullable": true,
+                        "minimum": 25,
+                        "maximum": 1000000,
+                        "description": "Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth."
+                      }
+                    },
+                    "description": "GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum."
                   },
                   "subreddits": {
                     "type": "object",
@@ -1533,9 +1605,10 @@
                 "type": "string",
                 "enum": [
                   "post",
-                  "comment"
+                  "comment",
+                  "repository"
                 ],
-                "description": "post: a top-level post. comment: an item that answers a post or another comment (a Reddit or Hacker News comment, an X or Bluesky reply, a Stack Overflow answer, a YouTube comment)."
+                "description": "post: a top-level post. comment: an item that answers a post or another comment (a Reddit or Hacker News comment, an X or Bluesky reply, a Stack Overflow answer, a YouTube comment). repository: an event about a GitHub repository naming the keyword (see post.repository)."
               },
               "url": {
                 "type": "string",
@@ -1564,6 +1637,43 @@
                 "type": "string",
                 "nullable": true,
                 "description": "A Reddit post's flair, when its subreddit uses them (Question, Show and Tell). Null otherwise."
+              },
+              "repository": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The repository, owner/name."
+                  },
+                  "event": {
+                    "type": "string",
+                    "enum": [
+                      "new",
+                      "traction",
+                      "stars",
+                      "growth",
+                      "top"
+                    ],
+                    "description": "What happened. new: it was created. traction: under 30 days old, it reached 10 stars. stars: it passed a star milestone. growth: it gained stars fast in a week. top: one of the most starred repositories naming the keyword, brought by a new keyword's look-back."
+                  },
+                  "stars": {
+                    "type": "integer",
+                    "description": "Its stars when the event was found."
+                  },
+                  "weeklyStars": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "Stars gained in the 7 days before the event; null when that week is not known yet."
+                  }
+                },
+                "required": [
+                  "name",
+                  "event",
+                  "stars",
+                  "weeklyStars"
+                ],
+                "description": "A GitHub repository event's facts, on a mention whose kind is repository; null on every other mention. The sentence is post.title."
               },
               "links": {
                 "type": "array",
@@ -1658,6 +1768,7 @@
               "imageUrl",
               "subreddit",
               "flair",
+              "repository",
               "links",
               "publishedAt",
               "engagement",
@@ -3150,9 +3261,10 @@
             "type": "string",
             "enum": [
               "post",
-              "comment"
+              "comment",
+              "repository"
             ],
-            "description": "Only posts (post) or only comments (comment)."
+            "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
           },
           "excludeAuthors": {
             "type": "array",
@@ -3518,9 +3630,10 @@
                 "type": "string",
                 "enum": [
                   "post",
-                  "comment"
+                  "comment",
+                  "repository"
                 ],
-                "description": "Only posts (post) or only comments (comment)."
+                "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
               },
               "excludeAuthors": {
                 "type": "array",
@@ -7547,6 +7660,39 @@
                         "type": "boolean",
                         "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
                       },
+                      "repositories": {
+                        "type": "object",
+                        "properties": {
+                          "events": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "new",
+                                "traction",
+                                "stars",
+                                "growth"
+                              ]
+                            },
+                            "description": "The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events."
+                          },
+                          "minStars": {
+                            "type": "integer",
+                            "nullable": true,
+                            "minimum": 0,
+                            "maximum": 1000000,
+                            "description": "Only repositories with at least this many stars; null for no minimum."
+                          },
+                          "minWeeklyStars": {
+                            "type": "integer",
+                            "nullable": true,
+                            "minimum": 25,
+                            "maximum": 1000000,
+                            "description": "Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth."
+                          }
+                        },
+                        "description": "GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum."
+                      },
                       "subreddits": {
                         "type": "object",
                         "properties": {
@@ -8110,6 +8256,44 @@
                                   "excluded"
                                 ],
                                 "description": "Reddit only, for this keyword alone; the workspace filters' own subreddit lists (GET /v1/filters) still apply to every keyword, and a post must pass both."
+                              },
+                              "repositories": {
+                                "type": "object",
+                                "properties": {
+                                  "events": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "enum": [
+                                        "new",
+                                        "traction",
+                                        "stars",
+                                        "growth"
+                                      ]
+                                    },
+                                    "description": "The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events."
+                                  },
+                                  "minStars": {
+                                    "type": "integer",
+                                    "nullable": true,
+                                    "minimum": 0,
+                                    "maximum": 1000000,
+                                    "description": "Only repositories with at least this many stars; null for no minimum."
+                                  },
+                                  "minWeeklyStars": {
+                                    "type": "integer",
+                                    "nullable": true,
+                                    "minimum": 25,
+                                    "maximum": 1000000,
+                                    "description": "Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth."
+                                  }
+                                },
+                                "required": [
+                                  "events",
+                                  "minStars",
+                                  "minWeeklyStars"
+                                ],
+                                "description": "GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed."
                               }
                             },
                             "required": [
@@ -8119,7 +8303,8 @@
                               "excludedAuthors",
                               "caseSensitive",
                               "exactPhrase",
-                              "subreddits"
+                              "subreddits",
+                              "repositories"
                             ],
                             "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
                           },
@@ -8559,6 +8744,39 @@
                       "exactPhrase": {
                         "type": "boolean",
                         "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
+                      },
+                      "repositories": {
+                        "type": "object",
+                        "properties": {
+                          "events": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "enum": [
+                                "new",
+                                "traction",
+                                "stars",
+                                "growth"
+                              ]
+                            },
+                            "description": "The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events."
+                          },
+                          "minStars": {
+                            "type": "integer",
+                            "nullable": true,
+                            "minimum": 0,
+                            "maximum": 1000000,
+                            "description": "Only repositories with at least this many stars; null for no minimum."
+                          },
+                          "minWeeklyStars": {
+                            "type": "integer",
+                            "nullable": true,
+                            "minimum": 25,
+                            "maximum": 1000000,
+                            "description": "Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth."
+                          }
+                        },
+                        "description": "GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum."
                       },
                       "subreddits": {
                         "type": "object",
@@ -9485,12 +9703,13 @@
               "type": "string",
               "enum": [
                 "post",
-                "comment"
+                "comment",
+                "repository"
               ],
-              "description": "Only posts (post) or only comments (comment). Omitted: both."
+              "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all."
             },
             "required": false,
-            "description": "Only posts (post) or only comments (comment). Omitted: both.",
+            "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all.",
             "name": "kind",
             "in": "query"
           },
@@ -10360,12 +10579,13 @@
               "type": "string",
               "enum": [
                 "post",
-                "comment"
+                "comment",
+                "repository"
               ],
-              "description": "Only posts (post) or only comments (comment). Omitted: both."
+              "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all."
             },
             "required": false,
-            "description": "Only posts (post) or only comments (comment). Omitted: both.",
+            "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all.",
             "name": "kind",
             "in": "query"
           },
@@ -11302,12 +11522,13 @@
               "type": "string",
               "enum": [
                 "post",
-                "comment"
+                "comment",
+                "repository"
               ],
-              "description": "Only posts (post) or only comments (comment). Omitted: both."
+              "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all."
             },
             "required": false,
-            "description": "Only posts (post) or only comments (comment). Omitted: both.",
+            "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all.",
             "name": "kind",
             "in": "query"
           },
@@ -15392,9 +15613,10 @@
                                 "type": "string",
                                 "enum": [
                                   "post",
-                                  "comment"
+                                  "comment",
+                                  "repository"
                                 ],
-                                "description": "Only posts (post) or only comments (comment)."
+                                "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
                               },
                               "excludeAuthors": {
                                 "type": "array",
@@ -15825,9 +16047,10 @@
                         "type": "string",
                         "enum": [
                           "post",
-                          "comment"
+                          "comment",
+                          "repository"
                         ],
-                        "description": "Only posts (post) or only comments (comment)."
+                        "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
                       },
                       "excludeAuthors": {
                         "type": "array",
@@ -16342,9 +16565,10 @@
                         "type": "string",
                         "enum": [
                           "post",
-                          "comment"
+                          "comment",
+                          "repository"
                         ],
-                        "description": "Only posts (post) or only comments (comment)."
+                        "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
                       },
                       "excludeAuthors": {
                         "type": "array",
