@@ -2414,6 +2414,10 @@ export type UsageBreakdown = {
      */
     by: 'day' | 'platform' | 'keyword' | 'group';
     /**
+     * true when keywordIds, groupIds or platforms narrowed the report: totals and rows count only what passes them, except totals.ledgerDebitCents, which is the whole workspace's.
+     */
+    filtered: boolean;
+    /**
      * Every amount is in USD cents.
      */
     currency: 'USD';
@@ -2458,7 +2462,7 @@ export type UsageBreakdown = {
          */
         totalCents: number;
         /**
-         * What the ledger has debited so far for the days of the window, each debit by the day it settled. Mentions settle the morning after their day, so a window ending today lags totalCents by today's mentions (and yesterday's before the tick at 00:05 UTC); a closed month differs from totalCents only by cumulative rounding.
+         * What the ledger has debited so far for the days of the window, each debit by the day it settled, for the whole workspace whatever the filters. Mentions settle the morning after their day, so a window ending today lags totalCents by today's mentions (and yesterday's before the tick at 00:05 UTC); a closed month differs from totalCents only by cumulative rounding.
          */
         ledgerDebitCents: number;
         /**
@@ -8434,6 +8438,26 @@ export type GetUsageBreakdownData = {
          * A calendar month (YYYY-MM, UTC) instead of a trailing window: from its first day to its last, or to today for the running month. A future month is a 400.
          */
         month?: string;
+        /**
+         * First UTC day of a custom window, YYYY-MM-DD, inclusive; with `to` (default today). At most 366 days. Wins over `range` and `month`.
+         */
+        from?: string;
+        /**
+         * Last UTC day of a custom window, YYYY-MM-DD, inclusive; never after today. Needs `from`.
+         */
+        to?: string;
+        /**
+         * Only these keywords (kw_...), deleted ones included. Repeatable, or comma-separated.
+         */
+        keywordIds?: Array<string> | null;
+        /**
+         * Only these groups (grp_...): a keyword-day by the group it was metered under, a mention or a comment by its keyword's group as it is now. Repeatable, or comma-separated.
+         */
+        groupIds?: Array<string> | null;
+        /**
+         * Only these platforms. A keyword-day belongs to no platform, so with this filter the keyword line reads 0 and only mentions and comments count. Repeatable, or comma-separated.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Rows per page, 1 to 500 (default 100). Only by=keyword can outgrow a page; a window has at most 90 days and a dozen platforms.
          */

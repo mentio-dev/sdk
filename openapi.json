@@ -4696,6 +4696,10 @@
             ],
             "description": "The dimension the rows are grouped by."
           },
+          "filtered": {
+            "type": "boolean",
+            "description": "true when keywordIds, groupIds or platforms narrowed the report: totals and rows count only what passes them, except totals.ledgerDebitCents, which is the whole workspace's."
+          },
           "currency": {
             "type": "string",
             "enum": [
@@ -4749,7 +4753,7 @@
               },
               "ledgerDebitCents": {
                 "type": "integer",
-                "description": "What the ledger has debited so far for the days of the window, each debit by the day it settled. Mentions settle the morning after their day, so a window ending today lags totalCents by today's mentions (and yesterday's before the tick at 00:05 UTC); a closed month differs from totalCents only by cumulative rounding."
+                "description": "What the ledger has debited so far for the days of the window, each debit by the day it settled, for the whole workspace whatever the filters. Mentions settle the morning after their day, so a window ending today lags totalCents by today's mentions (and yesterday's before the tick at 00:05 UTC); a closed month differs from totalCents only by cumulative rounding."
               },
               "unattributedBillable": {
                 "type": "integer",
@@ -4903,6 +4907,7 @@
         "required": [
           "window",
           "by",
+          "filtered",
           "currency",
           "totals",
           "data",
@@ -18240,6 +18245,95 @@
             "required": false,
             "description": "A calendar month (YYYY-MM, UTC) instead of a trailing window: from its first day to its last, or to today for the running month. A future month is a 400.",
             "name": "month",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "First UTC day of a custom window, YYYY-MM-DD, inclusive; with `to` (default today). At most 366 days. Wins over `range` and `month`."
+            },
+            "required": false,
+            "description": "First UTC day of a custom window, YYYY-MM-DD, inclusive; with `to` (default today). At most 366 days. Wins over `range` and `month`.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "Last UTC day of a custom window, YYYY-MM-DD, inclusive; never after today. Needs `from`."
+            },
+            "required": false,
+            "description": "Last UTC day of a custom window, YYYY-MM-DD, inclusive; never after today. Needs `from`.",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 30,
+              "description": "Only these keywords (kw_...), deleted ones included. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only these keywords (kw_...), deleted ones included. Repeatable, or comma-separated.",
+            "name": "keywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 30,
+              "description": "Only these groups (grp_...): a keyword-day by the group it was metered under, a mention or a comment by its keyword's group as it is now. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only these groups (grp_...): a keyword-day by the group it was metered under, a mention or a comment by its keyword's group as it is now. Repeatable, or comma-separated.",
+            "name": "groupIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ]
+              },
+              "maxItems": 20,
+              "description": "Only these platforms. A keyword-day belongs to no platform, so with this filter the keyword line reads 0 and only mentions and comments count. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only these platforms. A keyword-day belongs to no platform, so with this filter the keyword line reads 0 and only mentions and comments count. Repeatable, or comma-separated.",
+            "name": "platforms",
             "in": "query"
           },
           {
