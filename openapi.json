@@ -694,6 +694,12 @@
           "patch": {
             "type": "object",
             "properties": {
+              "term": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 80,
+                "description": "Renames the keyword: the new term is tracked from now on, with no look-back, and the keyword keeps its id, its settings and the mentions the old term found. Wrap it in double quotes for the exact phrase only. A 409 when its group already tracks the new term."
+              },
               "kind": {
                 "type": "string",
                 "enum": [
@@ -8630,7 +8636,7 @@
       "patch": {
         "operationId": "updateKeyword",
         "summary": "Update a keyword",
-        "description": "Mute or unmute it, reclassify it (`kind`), change the platforms it is tracked on, its classifier `context`, its `matching` rules (each rule field optional; an empty list clears one), or its monthly mention `cap` (null removes it; a cap above this month's count resumes a capped keyword at once). Rules apply to new mentions from the next poll; stored mentions are untouched.",
+        "description": "Rename it (`term`: the new term is tracked from now on, with no look-back; the mentions the old term found stay), mute or unmute it, reclassify it (`kind`), change the platforms it is tracked on, its classifier `context`, its `matching` rules (each rule field optional; an empty list clears one), or its monthly mention `cap` (null removes it; a cap above this month's count resumes a capped keyword at once). Rules apply to new mentions from the next poll; stored mentions are untouched.",
         "tags": [
           "Keywords"
         ],
@@ -8660,6 +8666,12 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "term": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "description": "Renames the keyword: the new term is tracked from now on, with no look-back, and the keyword keeps its id, its settings and the mentions the old term found. Wrap it in double quotes for the exact phrase only. A 409 when its group already tracks the new term."
+                  },
                   "kind": {
                     "type": "string",
                     "enum": [
@@ -8964,6 +8976,16 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Renamed to, or moved into a group with, a term that group already tracks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -9115,6 +9137,125 @@
           },
           "429": {
             "description": "More than 30 health reads this minute (rate_limited)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/keywords/{id}/duplicate": {
+      "post": {
+        "operationId": "duplicateKeyword",
+        "summary": "Duplicate a keyword",
+        "description": "A new keyword with this one's settings and a new `term` (or the same term in another group): its kind, platforms, context, every matching rule, its monthly mention cap and its comments setting. Review apps and feeds are copied only when listed in `include`. It is a new keyword: $5 per month, and the newest posts of the last 30 days come in at once, as with any new keyword.",
+        "tags": [
+          "Keywords"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Keyword id (kw_...).",
+              "example": "kw_abc123"
+            },
+            "required": true,
+            "description": "Keyword id (kw_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "term": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "description": "The term of the copy. The same term as the original only in another group (groupId): a term is tracked once per group. Wrap it in double quotes for the exact phrase only."
+                  },
+                  "groupId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "The group of the copy (grp_...); omit for the original's group."
+                  },
+                  "include": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "reviewSources",
+                        "feeds"
+                      ]
+                    },
+                    "maxItems": 2,
+                    "description": "Also copy these: reviewSources (its review apps) and feeds (its RSS or Atom feeds). Off by default, since two keywords on one app or feed collect, and bill, every review or item twice."
+                  }
+                },
+                "required": [
+                  "term"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new keyword",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Keyword"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Not enough balance for one more keyword-day (insufficient_balance), or the 500-keyword ceiling is reached (keyword_limit_reached)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Keyword not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The group already tracks this term",
             "content": {
               "application/json": {
                 "schema": {

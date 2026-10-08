@@ -354,6 +354,10 @@ export type KeywordSuggestion = {
      */
     patch: {
         /**
+         * Renames the keyword: the new term is tracked from now on, with no look-back, and the keyword keeps its id, its settings and the mentions the old term found. Wrap it in double quotes for the exact phrase only. A 409 when its group already tracks the new term.
+         */
+        term?: string;
+        /**
          * Reclassify it as brand, competitor or topic.
          */
         kind?: 'brand' | 'competitor' | 'topic';
@@ -4481,6 +4485,10 @@ export type UpdateKeywordData = {
      */
     body: {
         /**
+         * Renames the keyword: the new term is tracked from now on, with no look-back, and the keyword keeps its id, its settings and the mentions the old term found. Wrap it in double quotes for the exact phrase only. A 409 when its group already tracks the new term.
+         */
+        term?: string;
+        /**
          * Reclassify it as brand, competitor or topic.
          */
         kind?: 'brand' | 'competitor' | 'topic';
@@ -4639,6 +4647,10 @@ export type UpdateKeywordErrors = {
      * Keyword not found
      */
     404: ErrorResponse;
+    /**
+     * Renamed to, or moved into a group with, a term that group already tracks
+     */
+    409: ErrorResponse;
 };
 
 export type UpdateKeywordError = UpdateKeywordErrors[keyof UpdateKeywordErrors];
@@ -4702,6 +4714,61 @@ export type GetKeywordHealthResponses = {
 };
 
 export type GetKeywordHealthResponse = GetKeywordHealthResponses[keyof GetKeywordHealthResponses];
+
+export type DuplicateKeywordData = {
+    body: {
+        /**
+         * The term of the copy. The same term as the original only in another group (groupId): a term is tracked once per group. Wrap it in double quotes for the exact phrase only.
+         */
+        term: string;
+        /**
+         * The group of the copy (grp_...); omit for the original's group.
+         */
+        groupId?: string;
+        /**
+         * Also copy these: reviewSources (its review apps) and feeds (its RSS or Atom feeds). Off by default, since two keywords on one app or feed collect, and bill, every review or item twice.
+         */
+        include?: Array<'reviewSources' | 'feeds'>;
+    };
+    path: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/keywords/{id}/duplicate';
+};
+
+export type DuplicateKeywordErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Not enough balance for one more keyword-day (insufficient_balance), or the 500-keyword ceiling is reached (keyword_limit_reached)
+     */
+    402: ErrorResponse;
+    /**
+     * Keyword not found
+     */
+    404: ErrorResponse;
+    /**
+     * The group already tracks this term
+     */
+    409: ErrorResponse;
+};
+
+export type DuplicateKeywordError = DuplicateKeywordErrors[keyof DuplicateKeywordErrors];
+
+export type DuplicateKeywordResponses = {
+    /**
+     * The new keyword
+     */
+    201: Keyword;
+};
+
+export type DuplicateKeywordResponse = DuplicateKeywordResponses[keyof DuplicateKeywordResponses];
 
 export type GetFiltersData = {
     body?: never;
