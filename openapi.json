@@ -48,6 +48,29 @@
         ],
         "description": "The group the keyword belongs to."
       },
+      "KeywordFeed": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "description": "The feed itself (after redirects): what is polled."
+          },
+          "title": {
+            "type": "string",
+            "nullable": true,
+            "description": "The feed's own title, when it has one."
+          },
+          "connectedAt": {
+            "type": "string",
+            "description": "When this keyword started reading the feed: nothing published before it is a live mention."
+          }
+        },
+        "required": [
+          "url",
+          "title",
+          "connectedAt"
+        ]
+      },
       "ReviewSource": {
         "type": "object",
         "properties": {
@@ -137,7 +160,7 @@
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 1000000,
-                "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
               },
               "welcome": {
                 "type": "boolean",
@@ -155,6 +178,26 @@
               "own"
             ],
             "description": "The monthly mention cap, or null for none."
+          },
+          "comments": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default."
+              },
+              "maxPerPost": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "description": "The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling."
+              }
+            },
+            "required": [
+              "enabled",
+              "maxPerPost"
+            ],
+            "description": "Comments under this keyword's mentions: when enabled, the comments of every mention scored relevant are read from 30 minutes after the post, on a schedule per platform (for a day on Reddit, Hacker News and Bluesky, a week on GitHub, Stack Overflow and DEV, a month on YouTube) (new comments only, at most maxPerPost a thread, comments of fewer than three words dropped), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments."
           },
           "group": {
             "$ref": "#/components/schemas/GroupRef"
@@ -180,6 +223,13 @@
               ]
             },
             "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
+          },
+          "feeds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KeywordFeed"
+            },
+            "description": "RSS and Atom feeds this keyword reads; empty for none."
           },
           "reviewSources": {
             "type": "array",
@@ -242,6 +292,36 @@
               "exactPhrase": {
                 "type": "boolean",
                 "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
+              },
+              "subreddits": {
+                "type": "object",
+                "properties": {
+                  "only": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "maxItems": 50,
+                    "description": "When non-empty, this keyword takes Reddit posts from these subreddits ONLY and `excluded` is ignored. r/name or name, stored bare and lowercase."
+                  },
+                  "excluded": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "maxItems": 50,
+                    "description": "Reddit posts from these subreddits are dropped for this keyword. r/name or name."
+                  }
+                },
+                "required": [
+                  "only",
+                  "excluded"
+                ],
+                "description": "Reddit only, for this keyword alone; the workspace filters' own subreddit lists (GET /v1/filters) still apply to every keyword, and a post must pass both."
               }
             },
             "required": [
@@ -250,7 +330,8 @@
               "excludedTerms",
               "excludedAuthors",
               "caseSensitive",
-              "exactPhrase"
+              "exactPhrase",
+              "subreddits"
             ],
             "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
           },
@@ -275,7 +356,7 @@
               "thisMonth": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "Matches recorded this calendar month (UTC), the count a cap compares against."
+                "description": "Matches recorded this calendar month (UTC), plus the thread comments delivered under this keyword's mentions: the count a cap compares against."
               },
               "lastMentionAt": {
                 "type": "string",
@@ -360,9 +441,18 @@
                     "type": "integer",
                     "description": "Those matches at $0.008 each, rounded once on the total."
                   },
+                  "billableComments": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Comments billed this month under this keyword: comments delivered in its threads and comments it matched, each once per workspace."
+                  },
+                  "commentCents": {
+                    "type": "integer",
+                    "description": "Those comments at $0.008 each, rounded once on the total."
+                  },
                   "totalCents": {
                     "type": "integer",
-                    "description": "keywordCents plus mentionCents: what this keyword has cost this month, in USD cents."
+                    "description": "keywordCents plus mentionCents plus commentCents: what this keyword has cost this month, in USD cents."
                   }
                 },
                 "required": [
@@ -370,6 +460,8 @@
                   "keywordCents",
                   "billableMentions",
                   "mentionCents",
+                  "billableComments",
+                  "commentCents",
                   "totalCents"
                 ],
                 "description": "What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding."
@@ -411,9 +503,10 @@
                     "appstore",
                     "googleplay",
                     "trustpilot",
-                    "googlemaps"
+                    "googlemaps",
+                    "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                 },
                 "lastPolledAt": {
                   "type": "string",
@@ -447,8 +540,10 @@
           "pausedForNoise",
           "pausedForCap",
           "cap",
+          "comments",
           "group",
           "platforms",
+          "feeds",
           "reviewSources",
           "context",
           "matching",
@@ -649,6 +744,32 @@
                   "exactPhrase": {
                     "type": "boolean",
                     "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
+                  },
+                  "subreddits": {
+                    "type": "object",
+                    "properties": {
+                      "only": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "maxItems": 50,
+                        "description": "Replaces the keyword's allowlist; [] clears it."
+                      },
+                      "excluded": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        },
+                        "maxItems": 50,
+                        "description": "Replaces the keyword's deny list; [] clears it."
+                      }
+                    },
+                    "description": "Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted."
                   }
                 },
                 "description": "Omitted fields are untouched; an empty list clears one."
@@ -661,13 +782,29 @@
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 1000000,
-                    "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                    "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
                   }
                 },
                 "required": [
                   "mentions"
                 ],
                 "description": "Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it."
+              },
+              "comments": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default."
+                  },
+                  "maxPerPost": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "description": "The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling."
+                  }
+                },
+                "description": "Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post)."
               },
               "groupId": {
                 "type": "string",
@@ -722,6 +859,26 @@
                 },
                 "maxItems": 10,
                 "description": "Replaces the list of apps whose reviews this keyword collects; [] disconnects them all (their reviews stay). An app or country added here gets the free 30-day look-back; one already listed keeps its place."
+              },
+              "feeds": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "minLength": 4,
+                      "maxLength": 500,
+                      "description": "A feed's address (https://forum.example.com/posts.rss), or a page's (https://forum.example.com): the feed the page advertises is used."
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "description": "One feed to read."
+                },
+                "maxItems": 20,
+                "description": "Replaces the feeds this keyword reads; [] disconnects them all (their mentions stay). A feed added here is checked now and brings its newest 10 matching items of the last 30 days; one already listed keeps its place."
               }
             },
             "description": "The body to send to PATCH /v1/keywords/{id} as is to apply it. A list holds the whole new list, current entries kept."
@@ -941,9 +1098,10 @@
                         "appstore",
                         "googleplay",
                         "trustpilot",
-                        "googlemaps"
+                        "googlemaps",
+                        "rss"
                       ],
-                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                     },
                     "matches": {
                       "type": "integer",
@@ -1027,9 +1185,18 @@
                     "type": "integer",
                     "description": "Those matches at the mention rate."
                   },
+                  "billableComments": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Comments billed in the window under the keyword (0074)."
+                  },
+                  "commentCents": {
+                    "type": "integer",
+                    "description": "Those comments at the comment rate."
+                  },
                   "totalCents": {
                     "type": "integer",
-                    "description": "keywordCents plus mentionCents: its row in GET /v1/usage/breakdown for the same range."
+                    "description": "keywordCents, mentionCents and commentCents: its row in GET /v1/usage/breakdown for the same range."
                   }
                 },
                 "required": [
@@ -1037,6 +1204,8 @@
                   "keywordCents",
                   "billableMentions",
                   "mentionCents",
+                  "billableComments",
+                  "commentCents",
                   "totalCents"
                 ],
                 "description": "What the keyword cost over the window at list price."
@@ -1355,9 +1524,18 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "comment"
+                ],
+                "description": "post: a top-level post. comment: an item that answers a post or another comment (a Reddit or Hacker News comment, an X or Bluesky reply, a Stack Overflow answer, a YouTube comment)."
               },
               "url": {
                 "type": "string",
@@ -1376,6 +1554,16 @@
                 "type": "string",
                 "nullable": true,
                 "description": "A preview image of the post, when the platform sent one with it: a YouTube thumbnail, a DEV cover, a news article's sharing image, a Bluesky link card or image. Null otherwise."
+              },
+              "subreddit": {
+                "type": "string",
+                "nullable": true,
+                "description": "The subreddit a Reddit post was written in, without the r/ (SaaS). Null on every other platform."
+              },
+              "flair": {
+                "type": "string",
+                "nullable": true,
+                "description": "A Reddit post's flair, when its subreddit uses them (Question, Show and Tell). Null otherwise."
               },
               "links": {
                 "type": "array",
@@ -1458,20 +1646,28 @@
                   "url",
                   "text"
                 ],
-                "description": "The post this one replies to (X, Bluesky); null for top-level posts."
+                "description": "The post or comment this one answers; null for top-level posts."
               }
             },
             "required": [
               "platform",
+              "kind",
               "url",
               "text",
               "title",
               "imageUrl",
+              "subreddit",
+              "flair",
               "links",
               "publishedAt",
               "engagement",
               "replyTo"
             ]
+          },
+          "parentMentionId": {
+            "type": "string",
+            "nullable": true,
+            "description": "For a comment whose parent post or comment is itself one of your mentions: that mention's id (mm_...). Null otherwise."
           },
           "author": {
             "type": "object",
@@ -1787,6 +1983,75 @@
               "note"
             ]
           },
+          "duplicateOf": {
+            "type": "string",
+            "nullable": true,
+            "description": "Set on a cross-post: the id of the mention this one copies (the same author posting the same text again for the same keyword within three days, like one announcement pasted into five subreddits). A copy is billed like any mention but is listed only under its original and never alerted on its own. null for an original."
+          },
+          "duplicates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "The copy's mention id (mm_...)."
+                },
+                "platform": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin",
+                    "tiktok",
+                    "instagram",
+                    "appstore",
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps",
+                    "rss"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                },
+                "url": {
+                  "type": "string",
+                  "description": "Link to the copy."
+                },
+                "publishedAt": {
+                  "type": "string",
+                  "description": "When the copy was published."
+                }
+              },
+              "required": [
+                "id",
+                "platform",
+                "url",
+                "publishedAt"
+              ]
+            },
+            "description": "The cross-posts filed under this mention, oldest first: where else its author posted it. Empty when there are none, and on a copy."
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "comments": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Comments of this post delivered to you (GET /v1/mentions/{id}/comments); 0 until its thread is read, and for keywords without comments."
+              }
+            },
+            "required": [
+              "comments"
+            ],
+            "description": "Computed counts."
+          },
           "createdAt": {
             "type": "string",
             "description": "When the match was recorded; the default feed order."
@@ -1800,11 +2065,157 @@
           "priority",
           "keyword",
           "post",
+          "parentMentionId",
           "author",
           "review",
           "classification",
           "triage",
+          "duplicateOf",
+          "duplicates",
+          "stats",
           "createdAt"
+        ]
+      },
+      "MentionComment": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Comment id (men_...): the item itself, the same for every workspace it reaches."
+          },
+          "url": {
+            "type": "string",
+            "description": "Permalink of the comment."
+          },
+          "text": {
+            "type": "string",
+            "description": "The comment, truncated to 8 KB at ingest."
+          },
+          "publishedAt": {
+            "type": "string",
+            "description": "When the comment was written."
+          },
+          "author": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "name": {
+                "type": "string",
+                "nullable": true,
+                "description": "As the platform names them."
+              },
+              "url": {
+                "type": "string",
+                "nullable": true,
+                "description": "Their profile."
+              },
+              "avatarUrl": {
+                "type": "string",
+                "nullable": true,
+                "description": "Their profile picture, when the platform sends one."
+              }
+            },
+            "required": [
+              "name",
+              "url",
+              "avatarUrl"
+            ],
+            "description": "Who wrote it; null when the platform gave no author (a deleted account)."
+          },
+          "parentCommentId": {
+            "type": "string",
+            "nullable": true,
+            "description": "The comment this one answers, when it is a reply inside the thread; null for a comment on the post itself."
+          },
+          "engagement": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "likes": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0
+              },
+              "reposts": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0
+              },
+              "replies": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0
+              },
+              "quotes": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0
+              },
+              "views": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0
+              },
+              "bookmarks": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0
+              }
+            },
+            "required": [
+              "likes",
+              "reposts",
+              "replies",
+              "quotes",
+              "views",
+              "bookmarks"
+            ],
+            "description": "Engagement counts as the platform reported them when the post was ingested, usually minutes after it was written; a count the platform does not have is null. Null as a whole for platforms that report none and for posts ingested before September 2026. X carries all six."
+          },
+          "classification": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "sentiment": {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                  "positive",
+                  "neutral",
+                  "negative"
+                ],
+                "description": "Classifier sentiment."
+              },
+              "intents": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Intent and topic tags, the same vocabulary as a mention's."
+              }
+            },
+            "required": [
+              "sentiment",
+              "intents"
+            ],
+            "description": "A light read of the comment (sentiment and intent tags); null until it is scored, usually minutes after the thread arrives."
+          },
+          "mentionId": {
+            "type": "string",
+            "nullable": true,
+            "description": "When this comment itself names one of your keywords, its mention (mm_...), with the full verdict. Null otherwise."
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "text",
+          "publishedAt",
+          "author",
+          "parentCommentId",
+          "engagement",
+          "classification",
+          "mentionId"
         ]
       },
       "Person": {
@@ -1832,7 +2243,8 @@
               "appstore",
               "googleplay",
               "trustpilot",
-              "googlemaps"
+              "googlemaps",
+              "rss"
             ],
             "description": "Platform of the canonical account; `accounts` lists every account."
           },
@@ -1882,9 +2294,10 @@
                     "appstore",
                     "googleplay",
                     "trustpilot",
-                    "googlemaps"
+                    "googlemaps",
+                    "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                 },
                 "name": {
                   "type": "string",
@@ -2251,9 +2664,10 @@
                     "appstore",
                     "googleplay",
                     "trustpilot",
-                    "googlemaps"
+                    "googlemaps",
+                    "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                 },
                 "maxItems": 20,
                 "description": "People with an account on any of these platforms."
@@ -2344,9 +2758,10 @@
                     "appstore",
                     "googleplay",
                     "trustpilot",
-                    "googlemaps"
+                    "googlemaps",
+                    "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                 },
                 "maxItems": 20,
                 "description": "Nobody with an account on these platforms."
@@ -2526,9 +2941,10 @@
                 "appstore",
                 "googleplay",
                 "trustpilot",
-                "googlemaps"
+                "googlemaps",
+                "rss"
               ],
-              "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+              "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
             },
             "maxItems": 20,
             "description": "Only posts from any of these platforms."
@@ -2553,9 +2969,10 @@
                 "appstore",
                 "googleplay",
                 "trustpilot",
-                "googlemaps"
+                "googlemaps",
+                "rss"
               ],
-              "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+              "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
             },
             "maxItems": 20,
             "description": "Never posts from these platforms."
@@ -2695,6 +3112,26 @@
             "maxItems": 20,
             "description": "Never posts linking to these hosts."
           },
+          "subreddits": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "maxItems": 50,
+            "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+          },
+          "notSubreddits": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "maxItems": 50,
+            "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+          },
           "minFollowers": {
             "type": "integer",
             "minimum": 0,
@@ -2708,6 +3145,14 @@
           "isReply": {
             "type": "boolean",
             "description": "true: only replies and comments; false: only top-level posts."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "post",
+              "comment"
+            ],
+            "description": "Only posts (post) or only comments (comment)."
           },
           "excludeAuthors": {
             "type": "array",
@@ -2864,9 +3309,10 @@
                     "appstore",
                     "googleplay",
                     "trustpilot",
-                    "googlemaps"
+                    "googlemaps",
+                    "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -2891,9 +3337,10 @@
                     "appstore",
                     "googleplay",
                     "trustpilot",
-                    "googlemaps"
+                    "googlemaps",
+                    "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -3033,6 +3480,26 @@
                 "maxItems": 20,
                 "description": "Never posts linking to these hosts."
               },
+              "subreddits": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                "maxItems": 50,
+                "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+              },
+              "notSubreddits": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                "maxItems": 50,
+                "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+              },
               "minFollowers": {
                 "type": "integer",
                 "minimum": 0,
@@ -3046,6 +3513,14 @@
               "isReply": {
                 "type": "boolean",
                 "description": "true: only replies and comments; false: only top-level posts."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "comment"
+                ],
+                "description": "Only posts (post) or only comments (comment)."
               },
               "excludeAuthors": {
                 "type": "array",
@@ -3943,7 +4418,7 @@
               },
               "pendingCents": {
                 "type": "integer",
-                "description": "Mentions matched since the last daily settlement, priced but not yet debited."
+                "description": "Mentions and comments billed since the last daily settlement, priced but not yet debited."
               },
               "effectiveCents": {
                 "type": "integer",
@@ -4137,18 +4612,27 @@
                 "minimum": 0,
                 "description": "Of the matches billed in the window (every scored match, relevant or not), the ones in this group."
               },
+              "unclassifiedMentions": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Matches recorded in the window that are never charged: no score yet (still being scored, or classification failed), or a free review from the look-back of a newly connected app. Every other match is charged, on the mentions line or, for a comment, on the comments line."
+              },
               "mentionCents": {
                 "type": "integer",
                 "description": "The billed mentions at $0.008 each, rounded once on the total."
               },
-              "totalCents": {
-                "type": "integer",
-                "description": "keywordCents plus mentionCents."
-              },
-              "unclassifiedMentions": {
+              "billableComments": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "Matched but never scored (classification failed): never charged."
+                "description": "Comments billed in the window (the comments line): comments delivered under your mentions and comments that matched a keyword, each once per workspace."
+              },
+              "commentCents": {
+                "type": "integer",
+                "description": "The billed comments at $0.008 each, rounded once on the total."
+              },
+              "totalCents": {
+                "type": "integer",
+                "description": "keywordCents plus mentionCents plus commentCents."
               },
               "ledgerDebitCents": {
                 "type": "integer",
@@ -4157,7 +4641,7 @@
               "unattributedBillable": {
                 "type": "integer",
                 "minimum": 0,
-                "description": "Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row can claim them. Charged all the same."
+                "description": "Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row can claim them. Charged all the same. Comments carry their keyword and platform on the billed row, so they are never unattributed (by=group puts a deleted keyword's comments on the no-group row)."
               }
             },
             "required": [
@@ -4165,9 +4649,11 @@
               "keywordCents",
               "matchedMentions",
               "billableMentions",
-              "mentionCents",
-              "totalCents",
               "unclassifiedMentions",
+              "mentionCents",
+              "billableComments",
+              "commentCents",
+              "totalCents",
               "ledgerDebitCents",
               "unattributedBillable"
             ],
@@ -4254,13 +4740,27 @@
                   "minimum": 0,
                   "description": "Of the matches billed in the window (every scored match, relevant or not), the ones in this group."
                 },
+                "unclassifiedMentions": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Matches recorded in the window that are never charged: no score yet (still being scored, or classification failed), or a free review from the look-back of a newly connected app. Every other match is charged, on the mentions line or, for a comment, on the comments line."
+                },
                 "mentionCents": {
                   "type": "integer",
                   "description": "The billed mentions at $0.008 each, rounded once on the total."
                 },
+                "billableComments": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Comments billed in the window (the comments line): comments delivered under your mentions and comments that matched a keyword, each once per workspace."
+                },
+                "commentCents": {
+                  "type": "integer",
+                  "description": "The billed comments at $0.008 each, rounded once on the total."
+                },
                 "totalCents": {
                   "type": "integer",
-                  "description": "keywordCents plus mentionCents."
+                  "description": "keywordCents plus mentionCents plus commentCents."
                 }
               },
               "required": [
@@ -4272,7 +4772,10 @@
                 "keywordCents",
                 "matchedMentions",
                 "billableMentions",
+                "unclassifiedMentions",
                 "mentionCents",
+                "billableComments",
+                "commentCents",
                 "totalCents"
               ]
             },
@@ -4302,7 +4805,7 @@
           },
           "pendingCents": {
             "type": "integer",
-            "description": "Mentions matched since the last daily settlement, priced but not yet debited."
+            "description": "Mentions and comments billed since the last daily settlement, priced but not yet debited."
           },
           "effectiveBalanceCents": {
             "type": "integer",
@@ -4473,9 +4976,10 @@
                     "refund",
                     "debit_keyword_days",
                     "debit_mentions",
+                    "debit_comments",
                     "adjustment"
                   ],
-                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions or adjustment."
+                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments or adjustment."
                 },
                 "amountCents": {
                   "type": "integer",
@@ -4645,9 +5149,10 @@
                     "appstore",
                     "googleplay",
                     "trustpilot",
-                    "googlemaps"
+                    "googlemaps",
+                    "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                 },
                 "description": "Only posts from these platforms."
               },
@@ -5552,7 +6057,8 @@
               "status",
               "hour",
               "person",
-              "language"
+              "language",
+              "subreddit"
             ],
             "description": "The dimension the rows are grouped by."
           },
@@ -5563,11 +6069,11 @@
               "properties": {
                 "key": {
                   "type": "string",
-                  "description": "The group: platform name, keyword id, sentiment, intent, status, \"weekday-hour\" for by=hour, or an opaque person key."
+                  "description": "The group: platform name, keyword id, sentiment, intent, status, \"weekday-hour\" for by=hour, an opaque person key, or the subreddit in lowercase."
                 },
                 "label": {
                   "type": "string",
-                  "description": "Readable name: the keyword term, the person name, otherwise the key."
+                  "description": "Readable name: the keyword term, the person name, the subreddit as Reddit spells it, otherwise the key."
                 },
                 "keyword": {
                   "type": "object",
@@ -5641,9 +6147,10 @@
                         "appstore",
                         "googleplay",
                         "trustpilot",
-                        "googlemaps"
+                        "googlemaps",
+                        "rss"
                       ],
-                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                     },
                     "url": {
                       "type": "string",
@@ -6983,7 +7490,7 @@
                         "instagram"
                       ]
                     },
-                    "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews, which then needs reviewSources."
+                    "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds."
                   },
                   "context": {
                     "type": "string",
@@ -7039,6 +7546,32 @@
                       "exactPhrase": {
                         "type": "boolean",
                         "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
+                      },
+                      "subreddits": {
+                        "type": "object",
+                        "properties": {
+                          "only": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "maxItems": 50,
+                            "description": "Replaces the keyword's allowlist; [] clears it."
+                          },
+                          "excluded": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "maxItems": 50,
+                            "description": "Replaces the keyword's deny list; [] clears it."
+                          }
+                        },
+                        "description": "Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted."
                       }
                     },
                     "description": "Omitted fields are untouched; an empty list clears one."
@@ -7051,13 +7584,29 @@
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 1000000,
-                        "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                        "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
                       }
                     },
                     "required": [
                       "mentions"
                     ],
                     "description": "A monthly mention cap; omit or null for none."
+                  },
+                  "comments": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default."
+                      },
+                      "maxPerPost": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100,
+                        "description": "The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling."
+                      }
+                    },
+                    "description": "Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post)."
                   },
                   "groupId": {
                     "type": "string",
@@ -7112,6 +7661,26 @@
                     },
                     "maxItems": 10,
                     "description": "Review pages this keyword collects, at most 10: App Store and Google Play apps, Trustpilot pages, Google Maps places. Every new review of one is a mention of the keyword, whatever its text says. Polled once a day (per country on the app stores). A newly connected page brings its last 30 days, the newest 100 reviews (per country), free and never sent as instant alerts; after that each review bills like any mention."
+                  },
+                  "feeds": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "minLength": 4,
+                          "maxLength": 500,
+                          "description": "A feed's address (https://forum.example.com/posts.rss), or a page's (https://forum.example.com): the feed the page advertises is used."
+                        }
+                      },
+                      "required": [
+                        "url"
+                      ],
+                      "description": "One feed to read."
+                    },
+                    "maxItems": 20,
+                    "description": "RSS or Atom feeds this keyword reads, at most 20, each { url }: a feed's URL, or a page's (a forum, a community, a blog), in which case the feed the page advertises is used, else a usual address such as /feed or /rss. A URL with no feed behind it is a 400. Each feed is read every hour; an item is a mention of this keyword when it holds the term (with the keyword's matching rules), and only of keywords that named the feed. A newly connected feed brings its newest 10 items of the last 30 days that hold the term, billed like any mention and never sent as instant alerts."
                   }
                 },
                 "required": [
@@ -7268,9 +7837,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated."
@@ -7378,7 +7948,7 @@
                                 "type": "integer",
                                 "minimum": 1,
                                 "maximum": 1000000,
-                                "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                                "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
                               },
                               "welcome": {
                                 "type": "boolean",
@@ -7396,6 +7966,26 @@
                               "own"
                             ],
                             "description": "The monthly mention cap, or null for none."
+                          },
+                          "comments": {
+                            "type": "object",
+                            "properties": {
+                              "enabled": {
+                                "type": "boolean",
+                                "description": "Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default."
+                              },
+                              "maxPerPost": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 100,
+                                "description": "The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling."
+                              }
+                            },
+                            "required": [
+                              "enabled",
+                              "maxPerPost"
+                            ],
+                            "description": "Comments under this keyword's mentions: when enabled, the comments of every mention scored relevant are read from 30 minutes after the post, on a schedule per platform (for a day on Reddit, Hacker News and Bluesky, a week on GitHub, Stack Overflow and DEV, a month on YouTube) (new comments only, at most maxPerPost a thread, comments of fewer than three words dropped), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments."
                           },
                           "group": {
                             "$ref": "#/components/schemas/GroupRef"
@@ -7421,6 +8011,13 @@
                               ]
                             },
                             "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
+                          },
+                          "feeds": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/KeywordFeed"
+                            },
+                            "description": "RSS and Atom feeds this keyword reads; empty for none."
                           },
                           "reviewSources": {
                             "type": "array",
@@ -7483,6 +8080,36 @@
                               "exactPhrase": {
                                 "type": "boolean",
                                 "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
+                              },
+                              "subreddits": {
+                                "type": "object",
+                                "properties": {
+                                  "only": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100
+                                    },
+                                    "maxItems": 50,
+                                    "description": "When non-empty, this keyword takes Reddit posts from these subreddits ONLY and `excluded` is ignored. r/name or name, stored bare and lowercase."
+                                  },
+                                  "excluded": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 100
+                                    },
+                                    "maxItems": 50,
+                                    "description": "Reddit posts from these subreddits are dropped for this keyword. r/name or name."
+                                  }
+                                },
+                                "required": [
+                                  "only",
+                                  "excluded"
+                                ],
+                                "description": "Reddit only, for this keyword alone; the workspace filters' own subreddit lists (GET /v1/filters) still apply to every keyword, and a post must pass both."
                               }
                             },
                             "required": [
@@ -7491,7 +8118,8 @@
                               "excludedTerms",
                               "excludedAuthors",
                               "caseSensitive",
-                              "exactPhrase"
+                              "exactPhrase",
+                              "subreddits"
                             ],
                             "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
                           },
@@ -7516,7 +8144,7 @@
                               "thisMonth": {
                                 "type": "integer",
                                 "minimum": 0,
-                                "description": "Matches recorded this calendar month (UTC), the count a cap compares against."
+                                "description": "Matches recorded this calendar month (UTC), plus the thread comments delivered under this keyword's mentions: the count a cap compares against."
                               },
                               "lastMentionAt": {
                                 "type": "string",
@@ -7601,9 +8229,18 @@
                                     "type": "integer",
                                     "description": "Those matches at $0.008 each, rounded once on the total."
                                   },
+                                  "billableComments": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Comments billed this month under this keyword: comments delivered in its threads and comments it matched, each once per workspace."
+                                  },
+                                  "commentCents": {
+                                    "type": "integer",
+                                    "description": "Those comments at $0.008 each, rounded once on the total."
+                                  },
                                   "totalCents": {
                                     "type": "integer",
-                                    "description": "keywordCents plus mentionCents: what this keyword has cost this month, in USD cents."
+                                    "description": "keywordCents plus mentionCents plus commentCents: what this keyword has cost this month, in USD cents."
                                   }
                                 },
                                 "required": [
@@ -7611,6 +8248,8 @@
                                   "keywordCents",
                                   "billableMentions",
                                   "mentionCents",
+                                  "billableComments",
+                                  "commentCents",
                                   "totalCents"
                                 ],
                                 "description": "What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding."
@@ -7652,9 +8291,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "lastPolledAt": {
                                   "type": "string",
@@ -7688,8 +8328,10 @@
                           "pausedForNoise",
                           "pausedForCap",
                           "cap",
+                          "comments",
                           "group",
                           "platforms",
+                          "feeds",
                           "reviewSources",
                           "context",
                           "matching",
@@ -7917,6 +8559,32 @@
                       "exactPhrase": {
                         "type": "boolean",
                         "description": "true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true."
+                      },
+                      "subreddits": {
+                        "type": "object",
+                        "properties": {
+                          "only": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "maxItems": 50,
+                            "description": "Replaces the keyword's allowlist; [] clears it."
+                          },
+                          "excluded": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 100
+                            },
+                            "maxItems": 50,
+                            "description": "Replaces the keyword's deny list; [] clears it."
+                          }
+                        },
+                        "description": "Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted."
                       }
                     },
                     "description": "Omitted fields are untouched; an empty list clears one."
@@ -7929,13 +8597,29 @@
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 1000000,
-                        "description": "Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                        "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
                       }
                     },
                     "required": [
                       "mentions"
                     ],
                     "description": "Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it."
+                  },
+                  "comments": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "description": "Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default."
+                      },
+                      "maxPerPost": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100,
+                        "description": "The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling."
+                      }
+                    },
+                    "description": "Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post)."
                   },
                   "groupId": {
                     "type": "string",
@@ -7990,6 +8674,26 @@
                     },
                     "maxItems": 10,
                     "description": "Replaces the list of apps whose reviews this keyword collects; [] disconnects them all (their reviews stay). An app or country added here gets the free 30-day look-back; one already listed keeps its place."
+                  },
+                  "feeds": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "minLength": 4,
+                          "maxLength": 500,
+                          "description": "A feed's address (https://forum.example.com/posts.rss), or a page's (https://forum.example.com): the feed the page advertises is used."
+                        }
+                      },
+                      "required": [
+                        "url"
+                      ],
+                      "description": "One feed to read."
+                    },
+                    "maxItems": 20,
+                    "description": "Replaces the feeds this keyword reads; [] disconnects them all (their mentions stay). A feed added here is checked now and brings its newest 10 matching items of the last 30 days; one already listed keeps its place."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -8587,7 +9291,8 @@
                 "appstore",
                 "googleplay",
                 "trustpilot",
-                "googlemaps"
+                "googlemaps",
+                "rss"
               ],
               "description": "Only posts from this platform."
             },
@@ -8679,6 +9384,16 @@
           },
           {
             "schema": {
+              "type": "boolean",
+              "description": "true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates."
+            },
+            "required": false,
+            "description": "true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.",
+            "name": "includeDuplicates",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "minLength": 1,
               "description": "Only mentions assigned to this workspace member (user id)."
@@ -8763,6 +9478,20 @@
             "required": false,
             "description": "Only authors with at most this many followers. Unknown reach never passes.",
             "name": "maxFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "post",
+                "comment"
+              ],
+              "description": "Only posts (post) or only comments (comment). Omitted: both."
+            },
+            "required": false,
+            "description": "Only posts (post) or only comments (comment). Omitted: both.",
+            "name": "kind",
             "in": "query"
           },
           {
@@ -8871,9 +9600,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -8904,9 +9634,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -9073,6 +9804,40 @@
             "required": false,
             "description": "Never posts linking to these hosts, the host itself or a subdomain of it.",
             "name": "notLinkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated.",
+            "name": "subreddits",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+            },
+            "required": false,
+            "description": "Never Reddit posts from these subreddits; posts from other platforms still pass.",
+            "name": "notSubreddits",
             "in": "query"
           },
           {
@@ -9362,7 +10127,7 @@
       "get": {
         "operationId": "exportMentionsCsv",
         "summary": "Export mentions as CSV",
-        "description": "The same mentions GET /v1/mentions would list for these filters, as CSV, newest matched first (the order they entered your feed, which can differ from the post date): id, published_at, platform, keyword, author, author_url, author_followers, relevance, sentiment, intents (pipe-separated), language, confidence, status, relevant, delivered, url, links (pipe-separated), text (first 1,000 characters), group, group_external_id, rating and app_id (app store reviews only), title and image_url (where the platform has them). Capped at 10,000 rows; the X-Mentions-Truncated header says when the cap cut the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.",
+        "description": "The same mentions GET /v1/mentions would list for these filters, as CSV, newest matched first (the order they entered your feed, which can differ from the post date): id, published_at, platform, keyword, author, author_url, author_followers, relevance, sentiment, intents (pipe-separated), language, confidence, status, relevant, delivered, url, links (pipe-separated), text (first 1,000 characters), group, group_external_id, rating and app_id (app store reviews only), title and image_url (where the platform has them), kind (post or comment), parent_url (the post a comment answers) and comments (comments of it delivered to you). Capped at 10,000 rows; the X-Mentions-Truncated header says when the cap cut the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.",
         "tags": [
           "Mentions"
         ],
@@ -9401,7 +10166,8 @@
                 "appstore",
                 "googleplay",
                 "trustpilot",
-                "googlemaps"
+                "googlemaps",
+                "rss"
               ],
               "description": "Only posts from this platform."
             },
@@ -9493,6 +10259,16 @@
           },
           {
             "schema": {
+              "type": "boolean",
+              "description": "true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates."
+            },
+            "required": false,
+            "description": "true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.",
+            "name": "includeDuplicates",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "minLength": 1,
               "description": "Only mentions assigned to this workspace member (user id)."
@@ -9577,6 +10353,20 @@
             "required": false,
             "description": "Only authors with at most this many followers. Unknown reach never passes.",
             "name": "maxFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "post",
+                "comment"
+              ],
+              "description": "Only posts (post) or only comments (comment). Omitted: both."
+            },
+            "required": false,
+            "description": "Only posts (post) or only comments (comment). Omitted: both.",
+            "name": "kind",
             "in": "query"
           },
           {
@@ -9685,9 +10475,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -9718,9 +10509,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -9887,6 +10679,40 @@
             "required": false,
             "description": "Never posts linking to these hosts, the host itself or a subdomain of it.",
             "name": "notLinkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated.",
+            "name": "subreddits",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+            },
+            "required": false,
+            "description": "Never Reddit posts from these subreddits; posts from other platforms still pass.",
+            "name": "notSubreddits",
             "in": "query"
           },
           {
@@ -10127,6 +10953,118 @@
         }
       }
     },
+    "/v1/mentions/{id}/comments": {
+      "get": {
+        "operationId": "listMentionComments",
+        "summary": "List the comments of a mention",
+        "description": "The comments under a mention's post, newest first: every comment in the thread, whether or not it names your keyword. Read once, about a day after the post, for mentions scored relevant whose keyword has comments enabled (keywords.comments), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit; empty before that and for other keywords. Each comment delivered costs $0.008 on the comments line of the bill, once per workspace. A comment that itself names one of your keywords is also a mention: `mentionId` links it. Two mentions of one post (two keywords) list the same thread.",
+        "tags": [
+          "Mentions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Mention id (mm_...).",
+              "example": "mm_abc123"
+            },
+            "required": true,
+            "description": "Mention id (mm_...).",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "nextCursor from the previous page."
+            },
+            "required": false,
+            "description": "nextCursor from the previous page.",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Page size, 1 to 100."
+            },
+            "required": false,
+            "description": "Page size, 1 to 100.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One page of the thread, newest first",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MentionComment"
+                      }
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Pass as cursor for the next page; null on the last page."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid pagination cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Mention not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/mentions/export.json": {
       "get": {
         "operationId": "exportMentionsJson",
@@ -10170,7 +11108,8 @@
                 "appstore",
                 "googleplay",
                 "trustpilot",
-                "googlemaps"
+                "googlemaps",
+                "rss"
               ],
               "description": "Only posts from this platform."
             },
@@ -10262,6 +11201,16 @@
           },
           {
             "schema": {
+              "type": "boolean",
+              "description": "true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates."
+            },
+            "required": false,
+            "description": "true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.",
+            "name": "includeDuplicates",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "string",
               "minLength": 1,
               "description": "Only mentions assigned to this workspace member (user id)."
@@ -10346,6 +11295,20 @@
             "required": false,
             "description": "Only authors with at most this many followers. Unknown reach never passes.",
             "name": "maxFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "post",
+                "comment"
+              ],
+              "description": "Only posts (post) or only comments (comment). Omitted: both."
+            },
+            "required": false,
+            "description": "Only posts (post) or only comments (comment). Omitted: both.",
+            "name": "kind",
             "in": "query"
           },
           {
@@ -10454,9 +11417,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -10487,9 +11451,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -10656,6 +11621,40 @@
             "required": false,
             "description": "Never posts linking to these hosts, the host itself or a subdomain of it.",
             "name": "notLinkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated.",
+            "name": "subreddits",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+            },
+            "required": false,
+            "description": "Never Reddit posts from these subreddits; posts from other platforms still pass.",
+            "name": "notSubreddits",
             "in": "query"
           },
           {
@@ -10946,7 +11945,8 @@
                 "appstore",
                 "googleplay",
                 "trustpilot",
-                "googlemaps"
+                "googlemaps",
+                "rss"
               ],
               "description": "People with an account on this platform."
             },
@@ -11044,9 +12044,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -11157,9 +12158,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -11425,7 +12427,8 @@
                 "appstore",
                 "googleplay",
                 "trustpilot",
-                "googlemaps"
+                "googlemaps",
+                "rss"
               ],
               "description": "People with an account on this platform."
             },
@@ -11523,9 +12526,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -11636,9 +12640,10 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -11878,7 +12883,8 @@
                               "appstore",
                               "googleplay",
                               "trustpilot",
-                              "googlemaps"
+                              "googlemaps",
+                              "rss"
                             ],
                             "description": "Platform of the canonical account; `accounts` lists every account."
                           },
@@ -11928,9 +12934,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "name": {
                                   "type": "string",
@@ -12939,9 +13946,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -13032,9 +14040,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -13174,9 +14183,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -13267,9 +14277,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -13429,9 +14440,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -13522,9 +14534,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -13778,9 +14791,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -13871,9 +14885,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -14168,9 +15183,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts from any of these platforms."
@@ -14195,9 +15211,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "maxItems": 20,
                                 "description": "Never posts from these platforms."
@@ -14337,6 +15354,26 @@
                                 "maxItems": 20,
                                 "description": "Never posts linking to these hosts."
                               },
+                              "subreddits": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60
+                                },
+                                "maxItems": 50,
+                                "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+                              },
+                              "notSubreddits": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60
+                                },
+                                "maxItems": 50,
+                                "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+                              },
                               "minFollowers": {
                                 "type": "integer",
                                 "minimum": 0,
@@ -14350,6 +15387,14 @@
                               "isReply": {
                                 "type": "boolean",
                                 "description": "true: only replies and comments; false: only top-level posts."
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "post",
+                                  "comment"
+                                ],
+                                "description": "Only posts (post) or only comments (comment)."
                               },
                               "excludeAuthors": {
                                 "type": "array",
@@ -14571,9 +15616,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -14598,9 +15644,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -14740,6 +15787,26 @@
                         "maxItems": 20,
                         "description": "Never posts linking to these hosts."
                       },
+                      "subreddits": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "maxItems": 50,
+                        "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+                      },
+                      "notSubreddits": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "maxItems": 50,
+                        "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+                      },
                       "minFollowers": {
                         "type": "integer",
                         "minimum": 0,
@@ -14753,6 +15820,14 @@
                       "isReply": {
                         "type": "boolean",
                         "description": "true: only replies and comments; false: only top-level posts."
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "post",
+                          "comment"
+                        ],
+                        "description": "Only posts (post) or only comments (comment)."
                       },
                       "excludeAuthors": {
                         "type": "array",
@@ -15058,9 +16133,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -15085,9 +16161,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -15227,6 +16304,26 @@
                         "maxItems": 20,
                         "description": "Never posts linking to these hosts."
                       },
+                      "subreddits": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "maxItems": 50,
+                        "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+                      },
+                      "notSubreddits": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "maxItems": 50,
+                        "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+                      },
                       "minFollowers": {
                         "type": "integer",
                         "minimum": 0,
@@ -15240,6 +16337,14 @@
                       "isReply": {
                         "type": "boolean",
                         "description": "true: only replies and comments; false: only top-level posts."
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "post",
+                          "comment"
+                        ],
+                        "description": "Only posts (post) or only comments (comment)."
                       },
                       "excludeAuthors": {
                         "type": "array",
@@ -17467,9 +18572,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -17850,9 +18956,10 @@
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
-                                    "googlemaps"
+                                    "googlemaps",
+                                    "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                                 },
                                 "description": "Only posts from these platforms."
                               },
@@ -18207,9 +19314,10 @@
                             "appstore",
                             "googleplay",
                             "trustpilot",
-                            "googlemaps"
+                            "googlemaps",
+                            "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place)."
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -18932,7 +20040,8 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ]
               },
               "maxItems": 20,
@@ -19089,7 +20198,8 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ]
               },
               "maxItems": 20,
@@ -19277,7 +20387,8 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ]
               },
               "maxItems": 20,
@@ -19320,12 +20431,13 @@
                 "status",
                 "hour",
                 "person",
-                "language"
+                "language",
+                "subreddit"
               ],
-              "description": "The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; \"unknown\" for posts without one)."
+              "description": "The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; \"unknown\" for posts without one), subreddit (Reddit posts only, most active first; `share` stays a percent of the whole window, every platform included)."
             },
             "required": true,
-            "description": "The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; \"unknown\" for posts without one).",
+            "description": "The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; \"unknown\" for posts without one), subreddit (Reddit posts only, most active first; `share` stays a percent of the whole window, every platform included).",
             "name": "by",
             "in": "query"
           }
@@ -19454,7 +20566,8 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ]
               },
               "maxItems": 20,
@@ -19611,7 +20724,8 @@
                   "appstore",
                   "googleplay",
                   "trustpilot",
-                  "googlemaps"
+                  "googlemaps",
+                  "rss"
                 ]
               },
               "maxItems": 20,

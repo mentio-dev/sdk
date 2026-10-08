@@ -26,6 +26,21 @@ export type GroupRef = {
     isDefault: boolean;
 };
 
+export type KeywordFeed = {
+    /**
+     * The feed itself (after redirects): what is polled.
+     */
+    url: string;
+    /**
+     * The feed's own title, when it has one.
+     */
+    title: string | null;
+    /**
+     * When this keyword started reading the feed: nothing published before it is a live mention.
+     */
+    connectedAt: string;
+};
+
 export type ReviewSource = {
     /**
      * appstore (Apple App Store), googleplay (Google Play), trustpilot (a company's Trustpilot page) or googlemaps (a place's Google reviews).
@@ -81,7 +96,7 @@ export type Keyword = {
      */
     cap: {
         /**
-         * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+         * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
          */
         mentions: number;
         /**
@@ -93,11 +108,28 @@ export type Keyword = {
          */
         own: number | null;
     } | null;
+    /**
+     * Comments under this keyword's mentions: when enabled, the comments of every mention scored relevant are read from 30 minutes after the post, on a schedule per platform (for a day on Reddit, Hacker News and Bluesky, a week on GitHub, Stack Overflow and DEV, a month on YouTube) (new comments only, at most maxPerPost a thread, comments of fewer than three words dropped), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments.
+     */
+    comments: {
+        /**
+         * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+         */
+        enabled: boolean;
+        /**
+         * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+         */
+        maxPerPost: number;
+    };
     group: GroupRef;
     /**
      * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
      */
     platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
+    /**
+     * RSS and Atom feeds this keyword reads; empty for none.
+     */
+    feeds: Array<KeywordFeed>;
     /**
      * Where this keyword collects reviews from (App Store and Google Play apps, Trustpilot pages, Google Maps places); empty for none.
      */
@@ -134,6 +166,19 @@ export type Keyword = {
          * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
          */
         exactPhrase: boolean;
+        /**
+         * Reddit only, for this keyword alone; the workspace filters' own subreddit lists (GET /v1/filters) still apply to every keyword, and a post must pass both.
+         */
+        subreddits: {
+            /**
+             * When non-empty, this keyword takes Reddit posts from these subreddits ONLY and `excluded` is ignored. r/name or name, stored bare and lowercase.
+             */
+            only: Array<string>;
+            /**
+             * Reddit posts from these subreddits are dropped for this keyword. r/name or name.
+             */
+            excluded: Array<string>;
+        };
     };
     /**
      * Computed over this workspace's matches.
@@ -152,7 +197,7 @@ export type Keyword = {
          */
         last7d: number;
         /**
-         * Matches recorded this calendar month (UTC), the count a cap compares against.
+         * Matches recorded this calendar month (UTC), plus the thread comments delivered under this keyword's mentions: the count a cap compares against.
          */
         thisMonth: number;
         /**
@@ -214,7 +259,15 @@ export type Keyword = {
              */
             mentionCents: number;
             /**
-             * keywordCents plus mentionCents: what this keyword has cost this month, in USD cents.
+             * Comments billed this month under this keyword: comments delivered in its threads and comments it matched, each once per workspace.
+             */
+            billableComments: number;
+            /**
+             * Those comments at $0.008 each, rounded once on the total.
+             */
+            commentCents: number;
+            /**
+             * keywordCents plus mentionCents plus commentCents: what this keyword has cost this month, in USD cents.
              */
             totalCents: number;
         };
@@ -224,9 +277,9 @@ export type Keyword = {
      */
     polling: Array<{
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place).
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
          * Newest poll of this platform for the term; null until the first one.
          */
@@ -327,16 +380,42 @@ export type KeywordSuggestion = {
              * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
              */
             exactPhrase?: boolean;
+            /**
+             * Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted.
+             */
+            subreddits?: {
+                /**
+                 * Replaces the keyword's allowlist; [] clears it.
+                 */
+                only?: Array<string>;
+                /**
+                 * Replaces the keyword's deny list; [] clears it.
+                 */
+                excluded?: Array<string>;
+            };
         };
         /**
          * Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it.
          */
         cap?: {
             /**
-             * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
              */
             mentions: number;
         } | null;
+        /**
+         * Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post).
+         */
+        comments?: {
+            /**
+             * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+             */
+            enabled?: boolean;
+            /**
+             * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+             */
+            maxPerPost?: number;
+        };
         /**
          * Moves the keyword to this group (grp_...). A 409 when that group already tracks the term.
          */
@@ -365,6 +444,15 @@ export type KeywordSuggestion = {
              * Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en.
              */
             language?: string;
+        }>;
+        /**
+         * Replaces the feeds this keyword reads; [] disconnects them all (their mentions stay). A feed added here is checked now and brings its newest 10 matching items of the last 30 days; one already listed keeps its place.
+         */
+        feeds?: Array<{
+            /**
+             * A feed's address (https://forum.example.com/posts.rss), or a page's (https://forum.example.com): the feed the page advertises is used.
+             */
+            url: string;
         }>;
     };
     /**
@@ -492,9 +580,9 @@ export type KeywordHealth = {
          */
         byPlatform: Array<{
             /**
-             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place).
+             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
              */
-            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
             /**
              * Matches on this platform in the window.
              */
@@ -550,7 +638,15 @@ export type KeywordHealth = {
              */
             mentionCents: number;
             /**
-             * keywordCents plus mentionCents: its row in GET /v1/usage/breakdown for the same range.
+             * Comments billed in the window under the keyword (0074).
+             */
+            billableComments: number;
+            /**
+             * Those comments at the comment rate.
+             */
+            commentCents: number;
+            /**
+             * keywordCents, mentionCents and commentCents: its row in GET /v1/usage/breakdown for the same range.
              */
             totalCents: number;
         };
@@ -709,9 +805,13 @@ export type Mention = {
     };
     post: {
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place).
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+        /**
+         * post: a top-level post. comment: an item that answers a post or another comment (a Reddit or Hacker News comment, an X or Bluesky reply, a Stack Overflow answer, a YouTube comment).
+         */
+        kind: 'post' | 'comment';
         /**
          * Permalink of the post.
          */
@@ -728,6 +828,14 @@ export type Mention = {
          * A preview image of the post, when the platform sent one with it: a YouTube thumbnail, a DEV cover, a news article's sharing image, a Bluesky link card or image. Null otherwise.
          */
         imageUrl: string | null;
+        /**
+         * The subreddit a Reddit post was written in, without the r/ (SaaS). Null on every other platform.
+         */
+        subreddit: string | null;
+        /**
+         * A Reddit post's flair, when its subreddit uses them (Question, Show and Tell). Null otherwise.
+         */
+        flair: string | null;
         /**
          * Links the post carries, in the order written, at most 20. Empty for a post with none, and for posts ingested before September 2026.
          */
@@ -748,7 +856,7 @@ export type Mention = {
             bookmarks: number | null;
         } | null;
         /**
-         * The post this one replies to (X, Bluesky); null for top-level posts.
+         * The post or comment this one answers; null for top-level posts.
          */
         replyTo: {
             /**
@@ -765,6 +873,10 @@ export type Mention = {
             text: string | null;
         } | null;
     };
+    /**
+     * For a comment whose parent post or comment is itself one of your mentions: that mention's id (mm_...). Null otherwise.
+     */
+    parentMentionId: string | null;
     /**
      * Who posted it; null when the platform gave no author at all.
      */
@@ -942,9 +1054,111 @@ export type Mention = {
         note: string | null;
     };
     /**
+     * Set on a cross-post: the id of the mention this one copies (the same author posting the same text again for the same keyword within three days, like one announcement pasted into five subreddits). A copy is billed like any mention but is listed only under its original and never alerted on its own. null for an original.
+     */
+    duplicateOf: string | null;
+    /**
+     * The cross-posts filed under this mention, oldest first: where else its author posted it. Empty when there are none, and on a copy.
+     */
+    duplicates: Array<{
+        /**
+         * The copy's mention id (mm_...).
+         */
+        id: string;
+        /**
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
+         */
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+        /**
+         * Link to the copy.
+         */
+        url: string;
+        /**
+         * When the copy was published.
+         */
+        publishedAt: string;
+    }>;
+    /**
+     * Computed counts.
+     */
+    stats: {
+        /**
+         * Comments of this post delivered to you (GET /v1/mentions/{id}/comments); 0 until its thread is read, and for keywords without comments.
+         */
+        comments: number;
+    };
+    /**
      * When the match was recorded; the default feed order.
      */
     createdAt: string;
+};
+
+export type MentionComment = {
+    /**
+     * Comment id (men_...): the item itself, the same for every workspace it reaches.
+     */
+    id: string;
+    /**
+     * Permalink of the comment.
+     */
+    url: string;
+    /**
+     * The comment, truncated to 8 KB at ingest.
+     */
+    text: string;
+    /**
+     * When the comment was written.
+     */
+    publishedAt: string;
+    /**
+     * Who wrote it; null when the platform gave no author (a deleted account).
+     */
+    author: {
+        /**
+         * As the platform names them.
+         */
+        name: string | null;
+        /**
+         * Their profile.
+         */
+        url: string | null;
+        /**
+         * Their profile picture, when the platform sends one.
+         */
+        avatarUrl: string | null;
+    } | null;
+    /**
+     * The comment this one answers, when it is a reply inside the thread; null for a comment on the post itself.
+     */
+    parentCommentId: string | null;
+    /**
+     * Engagement counts as the platform reported them when the post was ingested, usually minutes after it was written; a count the platform does not have is null. Null as a whole for platforms that report none and for posts ingested before September 2026. X carries all six.
+     */
+    engagement: {
+        likes: number | null;
+        reposts: number | null;
+        replies: number | null;
+        quotes: number | null;
+        views: number | null;
+        bookmarks: number | null;
+    } | null;
+    /**
+     * A light read of the comment (sentiment and intent tags); null until it is scored, usually minutes after the thread arrives.
+     */
+    classification: {
+        /**
+         * Classifier sentiment.
+         */
+        sentiment: 'positive' | 'neutral' | 'negative';
+        /**
+         * Intent and topic tags, the same vocabulary as a mention's.
+         */
+        intents: Array<string>;
+    } | null;
+    /**
+     * When this comment itself names one of your keywords, its mention (mm_...), with the full verdict. Null otherwise.
+     */
+    mentionId: string | null;
 };
 
 export type Person = {
@@ -955,7 +1169,7 @@ export type Person = {
     /**
      * Platform of the canonical account; `accounts` lists every account.
      */
-    platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+    platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
     /**
      * Display name as of their newest post; null when the platform has none.
      */
@@ -978,9 +1192,9 @@ export type Person = {
          */
         id: string;
         /**
-         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place).
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
          */
-        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
          * Display name as the platform reports it.
          */
@@ -1138,7 +1352,7 @@ export type Segment = {
         /**
          * People with an account on any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * People carrying any of these tags.
          */
@@ -1174,7 +1388,7 @@ export type Segment = {
         /**
          * Nobody with an account on these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Nobody carrying any of these tags.
          */
@@ -1253,11 +1467,11 @@ export type FilterGroup = {
     /**
      * Only posts from any of these platforms.
      */
-    platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+    platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
     /**
      * Never posts from these platforms.
      */
-    notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+    notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
     /**
      * Only mentions in this status: open, ignored, done.
      */
@@ -1319,6 +1533,14 @@ export type FilterGroup = {
      */
     notLinkHosts?: Array<string>;
     /**
+     * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+     */
+    subreddits?: Array<string>;
+    /**
+     * Never Reddit posts from these subreddits; posts from other platforms still pass.
+     */
+    notSubreddits?: Array<string>;
+    /**
      * Only authors with at least this many followers; unknown reach never passes.
      */
     minFollowers?: number;
@@ -1330,6 +1552,10 @@ export type FilterGroup = {
      * true: only replies and comments; false: only top-level posts.
      */
     isReply?: boolean;
+    /**
+     * Only posts (post) or only comments (comment).
+     */
+    kind?: 'post' | 'comment';
     /**
      * Never these authors: display names, handles or profile URLs.
      */
@@ -1403,11 +1629,11 @@ export type View = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Only mentions in this status: open, ignored, done.
          */
@@ -1469,6 +1695,14 @@ export type View = {
          */
         notLinkHosts?: Array<string>;
         /**
+         * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+         */
+        subreddits?: Array<string>;
+        /**
+         * Never Reddit posts from these subreddits; posts from other platforms still pass.
+         */
+        notSubreddits?: Array<string>;
+        /**
          * Only authors with at least this many followers; unknown reach never passes.
          */
         minFollowers?: number;
@@ -1480,6 +1714,10 @@ export type View = {
          * true: only replies and comments; false: only top-level posts.
          */
         isReply?: boolean;
+        /**
+         * Only posts (post) or only comments (comment).
+         */
+        kind?: 'post' | 'comment';
         /**
          * Never these authors: display names, handles or profile URLs.
          */
@@ -2020,7 +2258,7 @@ export type UsageSummary = {
          */
         cents: number;
         /**
-         * Mentions matched since the last daily settlement, priced but not yet debited.
+         * Mentions and comments billed since the last daily settlement, priced but not yet debited.
          */
         pendingCents: number;
         /**
@@ -2145,23 +2383,31 @@ export type UsageBreakdown = {
          */
         billableMentions: number;
         /**
+         * Matches recorded in the window that are never charged: no score yet (still being scored, or classification failed), or a free review from the look-back of a newly connected app. Every other match is charged, on the mentions line or, for a comment, on the comments line.
+         */
+        unclassifiedMentions: number;
+        /**
          * The billed mentions at $0.008 each, rounded once on the total.
          */
         mentionCents: number;
         /**
-         * keywordCents plus mentionCents.
+         * Comments billed in the window (the comments line): comments delivered under your mentions and comments that matched a keyword, each once per workspace.
+         */
+        billableComments: number;
+        /**
+         * The billed comments at $0.008 each, rounded once on the total.
+         */
+        commentCents: number;
+        /**
+         * keywordCents plus mentionCents plus commentCents.
          */
         totalCents: number;
-        /**
-         * Matched but never scored (classification failed): never charged.
-         */
-        unclassifiedMentions: number;
         /**
          * What the ledger has debited so far for the days of the window, each debit by the day it settled. Mentions settle the morning after their day, so a window ending today lags totalCents by today's mentions (and yesterday's before the tick at 00:05 UTC); a closed month differs from totalCents only by cumulative rounding.
          */
         ledgerDebitCents: number;
         /**
-         * Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row can claim them. Charged all the same.
+         * Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row can claim them. Charged all the same. Comments carry their keyword and platform on the billed row, so they are never unattributed (by=group puts a deleted keyword's comments on the no-group row).
          */
         unattributedBillable: number;
     };
@@ -2228,11 +2474,23 @@ export type UsageBreakdown = {
          */
         billableMentions: number;
         /**
+         * Matches recorded in the window that are never charged: no score yet (still being scored, or classification failed), or a free review from the look-back of a newly connected app. Every other match is charged, on the mentions line or, for a comment, on the comments line.
+         */
+        unclassifiedMentions: number;
+        /**
          * The billed mentions at $0.008 each, rounded once on the total.
          */
         mentionCents: number;
         /**
-         * keywordCents plus mentionCents.
+         * Comments billed in the window (the comments line): comments delivered under your mentions and comments that matched a keyword, each once per workspace.
+         */
+        billableComments: number;
+        /**
+         * The billed comments at $0.008 each, rounded once on the total.
+         */
+        commentCents: number;
+        /**
+         * keywordCents plus mentionCents plus commentCents.
          */
         totalCents: number;
     }>;
@@ -2248,7 +2506,7 @@ export type Wallet = {
      */
     balanceCents: number;
     /**
-     * Mentions matched since the last daily settlement, priced but not yet debited.
+     * Mentions and comments billed since the last daily settlement, priced but not yet debited.
      */
     pendingCents: number;
     /**
@@ -2362,9 +2620,9 @@ export type LedgerList = {
          */
         id: string;
         /**
-         * signup_credit, topup, refund, debit_keyword_days, debit_mentions or adjustment.
+         * signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments or adjustment.
          */
-        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'adjustment';
+        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'adjustment';
         /**
          * Integer USD cents; credits positive, debits negative.
          */
@@ -2455,7 +2713,7 @@ export type Alert = {
         /**
          * Only posts from these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
          */
@@ -2965,17 +3223,17 @@ export type AnalyticsBreakdown = {
     /**
      * The dimension the rows are grouped by.
      */
-    by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language';
+    by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'subreddit';
     /**
      * Most matched first, at most 50 groups. by=hour is chronological and unlimited (168 cells at most).
      */
     data: Array<{
         /**
-         * The group: platform name, keyword id, sentiment, intent, status, "weekday-hour" for by=hour, or an opaque person key.
+         * The group: platform name, keyword id, sentiment, intent, status, "weekday-hour" for by=hour, an opaque person key, or the subreddit in lowercase.
          */
         key: string;
         /**
-         * Readable name: the keyword term, the person name, otherwise the key.
+         * Readable name: the keyword term, the person name, the subreddit as Reddit spells it, otherwise the key.
          */
         label: string;
         /**
@@ -3009,9 +3267,9 @@ export type AnalyticsBreakdown = {
              */
             name: string | null;
             /**
-             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place).
+             * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
              */
-            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
             /**
              * Profile URL.
              */
@@ -3634,7 +3892,7 @@ export type ListKeywordsData = {
         /**
          * Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated.
          */
-        platform?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platform?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * newest: created most recently first. oldest: the reverse. term: A to Z. mentions: most matches first. relevant: most relevant matches first. recent: most matches in the last 7 days first. lastMention: newest matched post first, keywords with none last.
          */
@@ -3697,7 +3955,7 @@ export type ListKeywordsResponses = {
              */
             cap: {
                 /**
-                 * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+                 * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
                  */
                 mentions: number;
                 /**
@@ -3709,11 +3967,28 @@ export type ListKeywordsResponses = {
                  */
                 own: number | null;
             } | null;
+            /**
+             * Comments under this keyword's mentions: when enabled, the comments of every mention scored relevant are read from 30 minutes after the post, on a schedule per platform (for a day on Reddit, Hacker News and Bluesky, a week on GitHub, Stack Overflow and DEV, a month on YouTube) (new comments only, at most maxPerPost a thread, comments of fewer than three words dropped), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments.
+             */
+            comments: {
+                /**
+                 * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+                 */
+                enabled: boolean;
+                /**
+                 * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+                 */
+                maxPerPost: number;
+            };
             group: GroupRef;
             /**
              * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
              */
             platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
+            /**
+             * RSS and Atom feeds this keyword reads; empty for none.
+             */
+            feeds: Array<KeywordFeed>;
             /**
              * Where this keyword collects reviews from (App Store and Google Play apps, Trustpilot pages, Google Maps places); empty for none.
              */
@@ -3750,6 +4025,19 @@ export type ListKeywordsResponses = {
                  * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
                  */
                 exactPhrase: boolean;
+                /**
+                 * Reddit only, for this keyword alone; the workspace filters' own subreddit lists (GET /v1/filters) still apply to every keyword, and a post must pass both.
+                 */
+                subreddits: {
+                    /**
+                     * When non-empty, this keyword takes Reddit posts from these subreddits ONLY and `excluded` is ignored. r/name or name, stored bare and lowercase.
+                     */
+                    only: Array<string>;
+                    /**
+                     * Reddit posts from these subreddits are dropped for this keyword. r/name or name.
+                     */
+                    excluded: Array<string>;
+                };
             };
             /**
              * Computed over this workspace's matches.
@@ -3768,7 +4056,7 @@ export type ListKeywordsResponses = {
                  */
                 last7d: number;
                 /**
-                 * Matches recorded this calendar month (UTC), the count a cap compares against.
+                 * Matches recorded this calendar month (UTC), plus the thread comments delivered under this keyword's mentions: the count a cap compares against.
                  */
                 thisMonth: number;
                 /**
@@ -3830,7 +4118,15 @@ export type ListKeywordsResponses = {
                      */
                     mentionCents: number;
                     /**
-                     * keywordCents plus mentionCents: what this keyword has cost this month, in USD cents.
+                     * Comments billed this month under this keyword: comments delivered in its threads and comments it matched, each once per workspace.
+                     */
+                    billableComments: number;
+                    /**
+                     * Those comments at $0.008 each, rounded once on the total.
+                     */
+                    commentCents: number;
+                    /**
+                     * keywordCents plus mentionCents plus commentCents: what this keyword has cost this month, in USD cents.
                      */
                     totalCents: number;
                 };
@@ -3840,9 +4136,9 @@ export type ListKeywordsResponses = {
              */
             polling: Array<{
                 /**
-                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place).
+                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
                  */
-                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
                 /**
                  * Newest poll of this platform for the term; null until the first one.
                  */
@@ -3877,7 +4173,7 @@ export type CreateKeywordData = {
          */
         kind?: 'brand' | 'competitor' | 'topic';
         /**
-         * Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews, which then needs reviewSources.
+         * Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram'> | null;
         /**
@@ -3912,16 +4208,42 @@ export type CreateKeywordData = {
              * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
              */
             exactPhrase?: boolean;
+            /**
+             * Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted.
+             */
+            subreddits?: {
+                /**
+                 * Replaces the keyword's allowlist; [] clears it.
+                 */
+                only?: Array<string>;
+                /**
+                 * Replaces the keyword's deny list; [] clears it.
+                 */
+                excluded?: Array<string>;
+            };
         };
         /**
          * A monthly mention cap; omit or null for none.
          */
         cap?: {
             /**
-             * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
              */
             mentions: number;
         } | null;
+        /**
+         * Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post).
+         */
+        comments?: {
+            /**
+             * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+             */
+            enabled?: boolean;
+            /**
+             * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+             */
+            maxPerPost?: number;
+        };
         /**
          * The group to track it in (grp_...); omit for the workspace's default group. A term may be tracked once per group.
          */
@@ -3950,6 +4272,15 @@ export type CreateKeywordData = {
              * Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en.
              */
             language?: string;
+        }>;
+        /**
+         * RSS or Atom feeds this keyword reads, at most 20, each { url }: a feed's URL, or a page's (a forum, a community, a blog), in which case the feed the page advertises is used, else a usual address such as /feed or /rss. A URL with no feed behind it is a 400. Each feed is read every hour; an item is a mention of this keyword when it holds the term (with the keyword's matching rules), and only of keywords that named the feed. A newly connected feed brings its newest 10 items of the last 30 days that hold the term, billed like any mention and never sent as instant alerts.
+         */
+        feeds?: Array<{
+            /**
+             * A feed's address (https://forum.example.com/posts.rss), or a page's (https://forum.example.com): the feed the page advertises is used.
+             */
+            url: string;
         }>;
     };
     path?: never;
@@ -4100,16 +4431,42 @@ export type UpdateKeywordData = {
              * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
              */
             exactPhrase?: boolean;
+            /**
+             * Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted.
+             */
+            subreddits?: {
+                /**
+                 * Replaces the keyword's allowlist; [] clears it.
+                 */
+                only?: Array<string>;
+                /**
+                 * Replaces the keyword's deny list; [] clears it.
+                 */
+                excluded?: Array<string>;
+            };
         };
         /**
          * Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it.
          */
         cap?: {
             /**
-             * Matched mentions allowed per calendar month (UTC). Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
              */
             mentions: number;
         } | null;
+        /**
+         * Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post).
+         */
+        comments?: {
+            /**
+             * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+             */
+            enabled?: boolean;
+            /**
+             * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+             */
+            maxPerPost?: number;
+        };
         /**
          * Moves the keyword to this group (grp_...). A 409 when that group already tracks the term.
          */
@@ -4138,6 +4495,15 @@ export type UpdateKeywordData = {
              * Google Play only: the language of the reviews to read (en, es, de, pt-BR); Google Play answers one language at a time. Default: the link's hl, else en.
              */
             language?: string;
+        }>;
+        /**
+         * Replaces the feeds this keyword reads; [] disconnects them all (their mentions stay). A feed added here is checked now and brings its newest 10 matching items of the last 30 days; one already listed keeps its place.
+         */
+        feeds?: Array<{
+            /**
+             * A feed's address (https://forum.example.com/posts.rss), or a page's (https://forum.example.com): the feed the page advertises is used.
+             */
+            url: string;
         }>;
     };
     path: {
@@ -4425,7 +4791,7 @@ export type SearchMentionsData = {
         /**
          * Only posts from this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
          * Only mentions in this status. Omit for every status.
          */
@@ -4455,6 +4821,10 @@ export type SearchMentionsData = {
          */
         includeMuted?: boolean;
         /**
+         * true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.
+         */
+        includeDuplicates?: boolean;
+        /**
          * Only mentions assigned to this workspace member (user id).
          */
         assigneeId?: string;
@@ -4483,6 +4853,10 @@ export type SearchMentionsData = {
          */
         maxFollowers?: number | null;
         /**
+         * Only posts (post) or only comments (comment). Omitted: both.
+         */
+        kind?: 'post' | 'comment';
+        /**
          * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
          */
         isReply?: boolean;
@@ -4509,11 +4883,11 @@ export type SearchMentionsData = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Only matches of any of these keywords.
          */
@@ -4550,6 +4924,14 @@ export type SearchMentionsData = {
          * Never posts linking to these hosts, the host itself or a subdomain of it.
          */
         notLinkHosts?: Array<string> | null;
+        /**
+         * Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated.
+         */
+        subreddits?: Array<string> | null;
+        /**
+         * Never Reddit posts from these subreddits; posts from other platforms still pass.
+         */
+        notSubreddits?: Array<string> | null;
         /**
          * Never authors your workspace tagged with any of these.
          */
@@ -4665,7 +5047,7 @@ export type ExportMentionsCsvData = {
         /**
          * Only posts from this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
          * Only mentions in this status. Omit for every status.
          */
@@ -4695,6 +5077,10 @@ export type ExportMentionsCsvData = {
          */
         includeMuted?: boolean;
         /**
+         * true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.
+         */
+        includeDuplicates?: boolean;
+        /**
          * Only mentions assigned to this workspace member (user id).
          */
         assigneeId?: string;
@@ -4723,6 +5109,10 @@ export type ExportMentionsCsvData = {
          */
         maxFollowers?: number | null;
         /**
+         * Only posts (post) or only comments (comment). Omitted: both.
+         */
+        kind?: 'post' | 'comment';
+        /**
          * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
          */
         isReply?: boolean;
@@ -4749,11 +5139,11 @@ export type ExportMentionsCsvData = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Only matches of any of these keywords.
          */
@@ -4790,6 +5180,14 @@ export type ExportMentionsCsvData = {
          * Never posts linking to these hosts, the host itself or a subdomain of it.
          */
         notLinkHosts?: Array<string> | null;
+        /**
+         * Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated.
+         */
+        subreddits?: Array<string> | null;
+        /**
+         * Never Reddit posts from these subreddits; posts from other platforms still pass.
+         */
+        notSubreddits?: Array<string> | null;
         /**
          * Never authors your workspace tagged with any of these.
          */
@@ -4880,6 +5278,59 @@ export type ExportMentionsCsvResponses = {
 
 export type ExportMentionsCsvResponse = ExportMentionsCsvResponses[keyof ExportMentionsCsvResponses];
 
+export type ListMentionCommentsData = {
+    body?: never;
+    path: {
+        /**
+         * Mention id (mm_...).
+         */
+        id: string;
+    };
+    query?: {
+        /**
+         * nextCursor from the previous page.
+         */
+        cursor?: string;
+        /**
+         * Page size, 1 to 100.
+         */
+        limit?: number;
+    };
+    url: '/v1/mentions/{id}/comments';
+};
+
+export type ListMentionCommentsErrors = {
+    /**
+     * Invalid pagination cursor
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Mention not found
+     */
+    404: ErrorResponse;
+};
+
+export type ListMentionCommentsError = ListMentionCommentsErrors[keyof ListMentionCommentsErrors];
+
+export type ListMentionCommentsResponses = {
+    /**
+     * One page of the thread, newest first
+     */
+    200: {
+        data: Array<MentionComment>;
+        /**
+         * Pass as cursor for the next page; null on the last page.
+         */
+        nextCursor: string | null;
+    };
+};
+
+export type ListMentionCommentsResponse = ListMentionCommentsResponses[keyof ListMentionCommentsResponses];
+
 export type ExportMentionsJsonData = {
     body?: never;
     path?: never;
@@ -4891,7 +5342,7 @@ export type ExportMentionsJsonData = {
         /**
          * Only posts from this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
          * Only mentions in this status. Omit for every status.
          */
@@ -4921,6 +5372,10 @@ export type ExportMentionsJsonData = {
          */
         includeMuted?: boolean;
         /**
+         * true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.
+         */
+        includeDuplicates?: boolean;
+        /**
          * Only mentions assigned to this workspace member (user id).
          */
         assigneeId?: string;
@@ -4949,6 +5404,10 @@ export type ExportMentionsJsonData = {
          */
         maxFollowers?: number | null;
         /**
+         * Only posts (post) or only comments (comment). Omitted: both.
+         */
+        kind?: 'post' | 'comment';
+        /**
          * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
          */
         isReply?: boolean;
@@ -4975,11 +5434,11 @@ export type ExportMentionsJsonData = {
         /**
          * Only posts from any of these platforms.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Never posts from these platforms.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Only matches of any of these keywords.
          */
@@ -5016,6 +5475,14 @@ export type ExportMentionsJsonData = {
          * Never posts linking to these hosts, the host itself or a subdomain of it.
          */
         notLinkHosts?: Array<string> | null;
+        /**
+         * Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated.
+         */
+        subreddits?: Array<string> | null;
+        /**
+         * Never Reddit posts from these subreddits; posts from other platforms still pass.
+         */
+        notSubreddits?: Array<string> | null;
         /**
          * Never authors your workspace tagged with any of these.
          */
@@ -5122,7 +5589,7 @@ export type ExportPeopleCsvData = {
         /**
          * People with an account on this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
          * Matches the display name or the profile handle or URL, case-insensitively.
          */
@@ -5150,7 +5617,7 @@ export type ExportPeopleCsvData = {
         /**
          * People with an account on any of these platforms. Repeatable, or comma-separated.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * People carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -5178,7 +5645,7 @@ export type ExportPeopleCsvData = {
         /**
          * Nobody with an account on these platforms. Repeatable, or comma-separated.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Nobody carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -5260,7 +5727,7 @@ export type ListPeopleData = {
         /**
          * People with an account on this platform.
          */
-        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+        platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
          * Matches the display name or the profile handle or URL, case-insensitively.
          */
@@ -5288,7 +5755,7 @@ export type ListPeopleData = {
         /**
          * People with an account on any of these platforms. Repeatable, or comma-separated.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * People carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -5316,7 +5783,7 @@ export type ListPeopleData = {
         /**
          * Nobody with an account on these platforms. Repeatable, or comma-separated.
          */
-        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Nobody carrying any of these tags. Repeatable, or comma-separated.
          */
@@ -5399,7 +5866,7 @@ export type ListPeopleResponses = {
             /**
              * Platform of the canonical account; `accounts` lists every account.
              */
-            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
             /**
              * Display name as of their newest post; null when the platform has none.
              */
@@ -5422,9 +5889,9 @@ export type ListPeopleResponses = {
                  */
                 id: string;
                 /**
-                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place).
+                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
                  */
-                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps';
+                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
                 /**
                  * Display name as the platform reports it.
                  */
@@ -5904,7 +6371,7 @@ export type ListSegmentsResponses = {
                 /**
                  * People with an account on any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
                 /**
                  * People carrying any of these tags.
                  */
@@ -5940,7 +6407,7 @@ export type ListSegmentsResponses = {
                 /**
                  * Nobody with an account on these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
                 /**
                  * Nobody carrying any of these tags.
                  */
@@ -5998,7 +6465,7 @@ export type ListSegmentsResponses = {
                 /**
                  * People with an account on any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
                 /**
                  * People carrying any of these tags.
                  */
@@ -6034,7 +6501,7 @@ export type ListSegmentsResponses = {
                 /**
                  * Nobody with an account on these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
                 /**
                  * Nobody carrying any of these tags.
                  */
@@ -6082,7 +6549,7 @@ export type CreateSegmentData = {
             /**
              * People with an account on any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * People carrying any of these tags.
              */
@@ -6118,7 +6585,7 @@ export type CreateSegmentData = {
             /**
              * Nobody with an account on these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * Nobody carrying any of these tags.
              */
@@ -6266,7 +6733,7 @@ export type UpdateSegmentData = {
             /**
              * People with an account on any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * People carrying any of these tags.
              */
@@ -6302,7 +6769,7 @@ export type UpdateSegmentData = {
             /**
              * Nobody with an account on these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * Nobody carrying any of these tags.
              */
@@ -6432,11 +6899,11 @@ export type ListViewsResponses = {
                 /**
                  * Only posts from any of these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
                 /**
                  * Never posts from these platforms.
                  */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
                 /**
                  * Only mentions in this status: open, ignored, done.
                  */
@@ -6498,6 +6965,14 @@ export type ListViewsResponses = {
                  */
                 notLinkHosts?: Array<string>;
                 /**
+                 * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+                 */
+                subreddits?: Array<string>;
+                /**
+                 * Never Reddit posts from these subreddits; posts from other platforms still pass.
+                 */
+                notSubreddits?: Array<string>;
+                /**
                  * Only authors with at least this many followers; unknown reach never passes.
                  */
                 minFollowers?: number;
@@ -6509,6 +6984,10 @@ export type ListViewsResponses = {
                  * true: only replies and comments; false: only top-level posts.
                  */
                 isReply?: boolean;
+                /**
+                 * Only posts (post) or only comments (comment).
+                 */
+                kind?: 'post' | 'comment';
                 /**
                  * Never these authors: display names, handles or profile URLs.
                  */
@@ -6605,11 +7084,11 @@ export type CreateViewData = {
             /**
              * Only posts from any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * Never posts from these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * Only mentions in this status: open, ignored, done.
              */
@@ -6671,6 +7150,14 @@ export type CreateViewData = {
              */
             notLinkHosts?: Array<string>;
             /**
+             * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+             */
+            subreddits?: Array<string>;
+            /**
+             * Never Reddit posts from these subreddits; posts from other platforms still pass.
+             */
+            notSubreddits?: Array<string>;
+            /**
              * Only authors with at least this many followers; unknown reach never passes.
              */
             minFollowers?: number;
@@ -6682,6 +7169,10 @@ export type CreateViewData = {
              * true: only replies and comments; false: only top-level posts.
              */
             isReply?: boolean;
+            /**
+             * Only posts (post) or only comments (comment).
+             */
+            kind?: 'post' | 'comment';
             /**
              * Never these authors: display names, handles or profile URLs.
              */
@@ -6858,11 +7349,11 @@ export type UpdateViewData = {
             /**
              * Only posts from any of these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * Never posts from these platforms.
              */
-            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * Only mentions in this status: open, ignored, done.
              */
@@ -6924,6 +7415,14 @@ export type UpdateViewData = {
              */
             notLinkHosts?: Array<string>;
             /**
+             * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+             */
+            subreddits?: Array<string>;
+            /**
+             * Never Reddit posts from these subreddits; posts from other platforms still pass.
+             */
+            notSubreddits?: Array<string>;
+            /**
              * Only authors with at least this many followers; unknown reach never passes.
              */
             minFollowers?: number;
@@ -6935,6 +7434,10 @@ export type UpdateViewData = {
              * true: only replies and comments; false: only top-level posts.
              */
             isReply?: boolean;
+            /**
+             * Only posts (post) or only comments (comment).
+             */
+            kind?: 'post' | 'comment';
             /**
              * Never these authors: display names, handles or profile URLs.
              */
@@ -8140,7 +8643,7 @@ export type UpdateAlertData = {
             /**
              * Only posts from these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
              */
@@ -8317,7 +8820,7 @@ export type ListAlertsResponses = {
                 /**
                  * Only posts from these platforms.
                  */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
                 /**
                  * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
                  */
@@ -8464,7 +8967,7 @@ export type CreateAlertData = {
             /**
              * Only posts from these platforms.
              */
-            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
              * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
              */
@@ -8792,7 +9295,7 @@ export type GetAnalyticsSummaryData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -8850,7 +9353,7 @@ export type GetAnalyticsSeriesData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -8916,7 +9419,7 @@ export type GetAnalyticsBreakdownData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -8926,9 +9429,9 @@ export type GetAnalyticsBreakdownData = {
          */
         timezone?: string;
         /**
-         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; "unknown" for posts without one).
+         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; "unknown" for posts without one), subreddit (Reddit posts only, most active first; `share` stays a percent of the whole window, every platform included).
          */
-        by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language';
+        by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'subreddit';
     };
     url: '/v1/analytics/breakdown';
 };
@@ -8978,7 +9481,7 @@ export type GetShareOfVoiceData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -9036,7 +9539,7 @@ export type GetReviewsReportData = {
         /**
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
-        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps'>;
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
