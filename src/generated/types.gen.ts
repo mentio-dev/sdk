@@ -92,13 +92,21 @@ export type Keyword = {
      */
     pausedForCap: boolean;
     /**
-     * The monthly mention cap, or null for none.
+     * The mention cap and its period, or null for none.
      */
     cap: {
         /**
-         * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+         * Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
          */
         mentions: number;
+        /**
+         * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+         */
+        per?: 'day' | 'week' | 'month';
+        /**
+         * Charged items (matches plus thread comments) counted in the current period: today, this week from Monday or this month, UTC. The keyword pauses when it reaches mentions.
+         */
+        used: number;
         /**
          * Set by Mentio, not you: a workspace on its welcome credit collects at most 200 mentions a keyword a month. The first top-up removes it.
          */
@@ -107,6 +115,14 @@ export type Keyword = {
          * Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing.
          */
         own: number | null;
+        /**
+         * The period of your own cap (null when own is null); with welcome false, the same as per.
+         */
+        ownPer: 'day' | 'week' | 'month';
+        /**
+         * While paused for its cap (pausedForCap): when its next period starts and it matches again. Null otherwise.
+         */
+        resumesAt: string | null;
     } | null;
     /**
      * Comments under this keyword's mentions: when enabled, the comments of every mention scored relevant are read from 30 minutes after the post, on a schedule per platform (for a day on Reddit, Hacker News and Bluesky, a week on GitHub, Stack Overflow and DEV, a month on YouTube) (new comments only, at most maxPerPost a thread, comments of fewer than three words dropped), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments.
@@ -433,13 +449,17 @@ export type KeywordSuggestion = {
             };
         };
         /**
-         * Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it.
+         * Replaces the mention cap and its period (per, default month); null removes it. A cap above the current period's count resumes a capped keyword at once, one at or under it pauses it.
          */
         cap?: {
             /**
-             * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             * Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
              */
             mentions: number;
+            /**
+             * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+             */
+            per?: 'day' | 'week' | 'month';
         } | null;
         /**
          * Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post).
@@ -4014,13 +4034,21 @@ export type ListKeywordsResponses = {
              */
             pausedForCap: boolean;
             /**
-             * The monthly mention cap, or null for none.
+             * The mention cap and its period, or null for none.
              */
             cap: {
                 /**
-                 * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+                 * Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
                  */
                 mentions: number;
+                /**
+                 * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+                 */
+                per?: 'day' | 'week' | 'month';
+                /**
+                 * Charged items (matches plus thread comments) counted in the current period: today, this week from Monday or this month, UTC. The keyword pauses when it reaches mentions.
+                 */
+                used: number;
                 /**
                  * Set by Mentio, not you: a workspace on its welcome credit collects at most 200 mentions a keyword a month. The first top-up removes it.
                  */
@@ -4029,6 +4057,14 @@ export type ListKeywordsResponses = {
                  * Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing.
                  */
                 own: number | null;
+                /**
+                 * The period of your own cap (null when own is null); with welcome false, the same as per.
+                 */
+                ownPer: 'day' | 'week' | 'month';
+                /**
+                 * While paused for its cap (pausedForCap): when its next period starts and it matches again. Null otherwise.
+                 */
+                resumesAt: string | null;
             } | null;
             /**
              * Comments under this keyword's mentions: when enabled, the comments of every mention scored relevant are read from 30 minutes after the post, on a schedule per platform (for a day on Reddit, Hacker News and Bluesky, a week on GitHub, Stack Overflow and DEV, a month on YouTube) (new comments only, at most maxPerPost a thread, comments of fewer than three words dropped), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments.
@@ -4320,13 +4356,17 @@ export type CreateKeywordData = {
             };
         };
         /**
-         * A monthly mention cap; omit or null for none.
+         * A mention cap per day, week or month (per, default month); omit or null for none.
          */
         cap?: {
             /**
-             * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             * Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
              */
             mentions: number;
+            /**
+             * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+             */
+            per?: 'day' | 'week' | 'month';
         } | null;
         /**
          * Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post).
@@ -4564,13 +4604,17 @@ export type UpdateKeywordData = {
             };
         };
         /**
-         * Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it.
+         * Replaces the mention cap and its period (per, default month); null removes it. A cap above the current period's count resumes a capped keyword at once, one at or under it pauses it.
          */
         cap?: {
             /**
-             * Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+             * Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
              */
             mentions: number;
+            /**
+             * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+             */
+            per?: 'day' | 'week' | 'month';
         } | null;
         /**
          * Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post).

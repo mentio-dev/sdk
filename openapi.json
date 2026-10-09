@@ -160,7 +160,22 @@
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 1000000,
-                "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                "description": "Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+              },
+              "per": {
+                "type": "string",
+                "enum": [
+                  "day",
+                  "week",
+                  "month"
+                ],
+                "default": "month",
+                "description": "The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend."
+              },
+              "used": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Charged items (matches plus thread comments) counted in the current period: today, this week from Monday or this month, UTC. The keyword pauses when it reaches mentions."
               },
               "welcome": {
                 "type": "boolean",
@@ -170,14 +185,32 @@
                 "type": "integer",
                 "nullable": true,
                 "description": "Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing."
+              },
+              "ownPer": {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                  "day",
+                  "week",
+                  "month"
+                ],
+                "description": "The period of your own cap (null when own is null); with welcome false, the same as per."
+              },
+              "resumesAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "While paused for its cap (pausedForCap): when its next period starts and it matches again. Null otherwise."
               }
             },
             "required": [
               "mentions",
+              "used",
               "welcome",
-              "own"
+              "own",
+              "ownPer",
+              "resumesAt"
             ],
-            "description": "The monthly mention cap, or null for none."
+            "description": "The mention cap and its period, or null for none."
           },
           "comments": {
             "type": "object",
@@ -860,13 +893,23 @@
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 1000000,
-                    "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                    "description": "Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                  },
+                  "per": {
+                    "type": "string",
+                    "enum": [
+                      "day",
+                      "week",
+                      "month"
+                    ],
+                    "default": "month",
+                    "description": "The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend."
                   }
                 },
                 "required": [
                   "mentions"
                 ],
-                "description": "Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it."
+                "description": "Replaces the mention cap and its period (per, default month); null removes it. A cap above the current period's count resumes a capped keyword at once, one at or under it pauses it."
               },
               "comments": {
                 "type": "object",
@@ -7741,13 +7784,23 @@
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 1000000,
-                        "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                        "description": "Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                      },
+                      "per": {
+                        "type": "string",
+                        "enum": [
+                          "day",
+                          "week",
+                          "month"
+                        ],
+                        "default": "month",
+                        "description": "The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend."
                       }
                     },
                     "required": [
                       "mentions"
                     ],
-                    "description": "A monthly mention cap; omit or null for none."
+                    "description": "A mention cap per day, week or month (per, default month); omit or null for none."
                   },
                   "comments": {
                     "type": "object",
@@ -8105,7 +8158,22 @@
                                 "type": "integer",
                                 "minimum": 1,
                                 "maximum": 1000000,
-                                "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                                "description": "Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                              },
+                              "per": {
+                                "type": "string",
+                                "enum": [
+                                  "day",
+                                  "week",
+                                  "month"
+                                ],
+                                "default": "month",
+                                "description": "The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend."
+                              },
+                              "used": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Charged items (matches plus thread comments) counted in the current period: today, this week from Monday or this month, UTC. The keyword pauses when it reaches mentions."
                               },
                               "welcome": {
                                 "type": "boolean",
@@ -8115,14 +8183,32 @@
                                 "type": "integer",
                                 "nullable": true,
                                 "description": "Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing."
+                              },
+                              "ownPer": {
+                                "type": "string",
+                                "nullable": true,
+                                "enum": [
+                                  "day",
+                                  "week",
+                                  "month"
+                                ],
+                                "description": "The period of your own cap (null when own is null); with welcome false, the same as per."
+                              },
+                              "resumesAt": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "While paused for its cap (pausedForCap): when its next period starts and it matches again. Null otherwise."
                               }
                             },
                             "required": [
                               "mentions",
+                              "used",
                               "welcome",
-                              "own"
+                              "own",
+                              "ownPer",
+                              "resumesAt"
                             ],
-                            "description": "The monthly mention cap, or null for none."
+                            "description": "The mention cap and its period, or null for none."
                           },
                           "comments": {
                             "type": "object",
@@ -8832,13 +8918,23 @@
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 1000000,
-                        "description": "Charged items allowed per calendar month (UTC): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                        "description": "Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                      },
+                      "per": {
+                        "type": "string",
+                        "enum": [
+                          "day",
+                          "week",
+                          "month"
+                        ],
+                        "default": "month",
+                        "description": "The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend."
                       }
                     },
                     "required": [
                       "mentions"
                     ],
-                    "description": "Replaces the monthly mention cap; null removes it. A cap above this month's count resumes a capped keyword at once, one at or under it pauses it."
+                    "description": "Replaces the mention cap and its period (per, default month); null removes it. A cap above the current period's count resumes a capped keyword at once, one at or under it pauses it."
                   },
                   "comments": {
                     "type": "object",
