@@ -206,7 +206,7 @@ export const exportMentionsJson = <ThrowOnError extends boolean = false>(options
 /**
  * Export people as CSV
  *
- * The same list as GET /v1/people (segmentId included) as CSV, one row per person with their contact columns: handle, followers, email, website, company, location, tags, then outreach stage, owner and last contacted. Capped at 5,000 people. At most 6 exports per minute per workspace; a 429 carries Retry-After.
+ * The same list as GET /v1/people (segmentId included) as CSV, one row per person with their contact columns: handle, followers, email, website, company, location, tags, then outreach stage, owner and last contacted. Capped at 5,000 people. `groupId` scopes the export like the list. At most 6 exports per minute per workspace; a 429 carries Retry-After.
  */
 export const exportPeopleCsv = <ThrowOnError extends boolean = false>(options?: Options<ExportPeopleCsvData, ThrowOnError>): RequestResult<ExportPeopleCsvResponses, ExportPeopleCsvErrors, ThrowOnError> => (options?.client ?? client).get<ExportPeopleCsvResponses, ExportPeopleCsvErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -217,7 +217,7 @@ export const exportPeopleCsv = <ThrowOnError extends boolean = false>(options?: 
 /**
  * List people
  *
- * The people behind your mentions: one row per person, with their accounts, reach, public profile, per-workspace stats, your annotations and where your outreach stands. Filter by platform, tag, follower range, mention counts, intents seen, keyword kinds mentioned or never mentioned, outreach stage, owner, automated (bot accounts, whose matched posts are mostly machine-made), or a saved segment. Offset-paginated with a total.
+ * The people behind your mentions: one row per person, with their accounts, reach, public profile, per-workspace stats, your annotations and where your outreach stands. Filter by platform, tag, follower range, mention counts, intents seen, keyword kinds mentioned or never mentioned, outreach stage, owner, automated (bot accounts, whose matched posts are mostly machine-made), or a saved segment. Offset-paginated with a total. With `groupId`, only the people who mentioned that keyword group's keywords, counted over those mentions, with that group's own annotations, merges, outreach and segments.
  */
 export const listPeople = <ThrowOnError extends boolean = false>(options?: Options<ListPeopleData, ThrowOnError>): RequestResult<ListPeopleResponses, ListPeopleErrors, ThrowOnError> => (options?.client ?? client).get<ListPeopleResponses, ListPeopleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -228,7 +228,7 @@ export const listPeople = <ThrowOnError extends boolean = false>(options?: Optio
 /**
  * Get a person
  *
- * One person as your workspace sees them. An account merged into someone resolves to that person.
+ * One person as your workspace sees them. An account merged into someone resolves to that person. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
  */
 export const getPerson = <ThrowOnError extends boolean = false>(options: Options<GetPersonData, ThrowOnError>): RequestResult<GetPersonResponses, GetPersonErrors, ThrowOnError> => (options.client ?? client).get<GetPersonResponses, GetPersonErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -239,7 +239,7 @@ export const getPerson = <ThrowOnError extends boolean = false>(options: Options
 /**
  * Update your annotations on a person
  *
- * Tags, notes, mute, and the outreach owner (a workspace member; null clears) and stage, for your workspace only. Mute hides their posts from your feed and every channel; ingest and billing never change.
+ * Tags, notes, mute, and the outreach owner (a workspace member; null clears) and stage, for your workspace only. Mute hides their posts from your feed and every channel; ingest and billing never change. With `groupId` the annotations are that keyword group's own; `muted` is not supported there yet and is a 400.
  */
 export const updatePerson = <ThrowOnError extends boolean = false>(options: Options<UpdatePersonData, ThrowOnError>): RequestResult<UpdatePersonResponses, UpdatePersonErrors, ThrowOnError> => (options.client ?? client).patch<UpdatePersonResponses, UpdatePersonErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -254,7 +254,7 @@ export const updatePerson = <ThrowOnError extends boolean = false>(options: Opti
 /**
  * Merge an account into a person
  *
- * Declare that this account and another person are the same human, for your workspace only. Their mentions, tags, notes and outreach activities combine under the person named by `into`, which keeps its owner and stage unless it had none.
+ * Declare that this account and another person are the same human, for your workspace only. Their mentions, tags, notes and outreach activities combine under the person named by `into`, which keeps its owner and stage unless it had none. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
  */
 export const mergePeople = <ThrowOnError extends boolean = false>(options: Options<MergePeopleData, ThrowOnError>): RequestResult<MergePeopleResponses, MergePeopleErrors, ThrowOnError> => (options.client ?? client).post<MergePeopleResponses, MergePeopleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -269,7 +269,7 @@ export const mergePeople = <ThrowOnError extends boolean = false>(options: Optio
 /**
  * Undo a merge
  *
- * The account becomes its own person again.
+ * The account becomes its own person again. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
  */
 export const splitPerson = <ThrowOnError extends boolean = false>(options: Options<SplitPersonData, ThrowOnError>): RequestResult<SplitPersonResponses, SplitPersonErrors, ThrowOnError> => (options.client ?? client).post<SplitPersonResponses, SplitPersonErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -280,7 +280,7 @@ export const splitPerson = <ThrowOnError extends boolean = false>(options: Optio
 /**
  * List outreach activities
  *
- * Every logged contact with this person across all their accounts, newest first (at most 200): who reached out, the channel, when, and a short note. Read it before reaching out so two teammates never contact the same person without knowing.
+ * Every logged contact with this person across all their accounts, newest first (at most 200): who reached out, the channel, when, and a short note. Read it before reaching out so two teammates never contact the same person without knowing. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
  */
 export const listPersonActivities = <ThrowOnError extends boolean = false>(options: Options<ListPersonActivitiesData, ThrowOnError>): RequestResult<ListPersonActivitiesResponses, ListPersonActivitiesErrors, ThrowOnError> => (options.client ?? client).get<ListPersonActivitiesResponses, ListPersonActivitiesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -291,7 +291,7 @@ export const listPersonActivities = <ThrowOnError extends boolean = false>(optio
 /**
  * Log an outreach activity
  *
- * Record that a teammate reached out to this person: an email, a DM, a call. The first activity claims an unowned person for whoever reached out and moves not_contacted to contacted; an existing owner and a later stage are kept. `memberId` defaults to the signed-in member; an API key that omits it logs an unattributed activity, which claims nobody.
+ * Record that a teammate reached out to this person: an email, a DM, a call. The first activity claims an unowned person for whoever reached out and moves not_contacted to contacted; an existing owner and a later stage are kept. `memberId` defaults to the signed-in member; an API key that omits it logs an unattributed activity, which claims nobody. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
  */
 export const logPersonActivity = <ThrowOnError extends boolean = false>(options: Options<LogPersonActivityData, ThrowOnError>): RequestResult<LogPersonActivityResponses, LogPersonActivityErrors, ThrowOnError> => (options.client ?? client).post<LogPersonActivityResponses, LogPersonActivityErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -306,7 +306,7 @@ export const logPersonActivity = <ThrowOnError extends boolean = false>(options:
 /**
  * Delete an outreach activity
  *
- * Remove a contact logged by mistake. The person's owner and stage stay as they are.
+ * Remove a contact logged by mistake. The person's owner and stage stay as they are. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
  */
 export const deletePersonActivity = <ThrowOnError extends boolean = false>(options: Options<DeletePersonActivityData, ThrowOnError>): RequestResult<DeletePersonActivityResponses, DeletePersonActivityErrors, ThrowOnError> => (options.client ?? client).delete<DeletePersonActivityResponses, DeletePersonActivityErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -317,7 +317,7 @@ export const deletePersonActivity = <ThrowOnError extends boolean = false>(optio
 /**
  * List segments
  *
- * Your saved segments, each with the number of people in it right now (segments are evaluated on every read, never materialized), plus presets you can save as a starting point. Pass a segment id to GET /v1/people to list its members.
+ * Your saved segments, each with the number of people in it right now (segments are evaluated on every read, never materialized), plus presets you can save as a starting point. Pass a segment id to GET /v1/people to list its members. With `groupId`, that keyword group's own segments, counted over its own people; without it, the workspace's. A segment belongs to one scope and is not visible from another.
  */
 export const listSegments = <ThrowOnError extends boolean = false>(options?: Options<ListSegmentsData, ThrowOnError>): RequestResult<ListSegmentsResponses, ListSegmentsErrors, ThrowOnError> => (options?.client ?? client).get<ListSegmentsResponses, ListSegmentsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -327,6 +327,8 @@ export const listSegments = <ThrowOnError extends boolean = false>(options?: Opt
 
 /**
  * Create a segment
+ *
+ * Save a named filter over your people. With `groupId` the segment belongs to that keyword group: it is listed, counted and changed only there, and its name only has to be unique in the group.
  */
 export const createSegment = <ThrowOnError extends boolean = false>(options: Options<CreateSegmentData, ThrowOnError>): RequestResult<CreateSegmentResponses, CreateSegmentErrors, ThrowOnError> => (options.client ?? client).post<CreateSegmentResponses, CreateSegmentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -341,7 +343,7 @@ export const createSegment = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * Delete a segment
  *
- * Nobody in it is affected.
+ * Nobody in it is affected. Pass the `groupId` the segment was saved in.
  */
 export const deleteSegment = <ThrowOnError extends boolean = false>(options: Options<DeleteSegmentData, ThrowOnError>): RequestResult<DeleteSegmentResponses, DeleteSegmentErrors, ThrowOnError> => (options.client ?? client).delete<DeleteSegmentResponses, DeleteSegmentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -351,6 +353,8 @@ export const deleteSegment = <ThrowOnError extends boolean = false>(options: Opt
 
 /**
  * Get a segment
+ *
+ * One segment of the scope the call names: the workspace, or the keyword group in `groupId`. A segment saved in another scope is a 404.
  */
 export const getSegment = <ThrowOnError extends boolean = false>(options: Options<GetSegmentData, ThrowOnError>): RequestResult<GetSegmentResponses, GetSegmentErrors, ThrowOnError> => (options.client ?? client).get<GetSegmentResponses, GetSegmentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -360,6 +364,8 @@ export const getSegment = <ThrowOnError extends boolean = false>(options: Option
 
 /**
  * Update a segment
+ *
+ * Only the fields sent change. Pass the `groupId` the segment was saved in; a segment cannot move between scopes.
  */
 export const updateSegment = <ThrowOnError extends boolean = false>(options: Options<UpdateSegmentData, ThrowOnError>): RequestResult<UpdateSegmentResponses, UpdateSegmentErrors, ThrowOnError> => (options.client ?? client).patch<UpdateSegmentResponses, UpdateSegmentErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

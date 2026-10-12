@@ -1502,6 +1502,10 @@ export type Segment = {
         ownerIds?: Array<string>;
     };
     /**
+     * The group this segment belongs to, or null for a workspace segment.
+     */
+    groupId: string | null;
+    /**
      * People in the segment right now; it is evaluated on every read.
      */
     count: number;
@@ -5816,6 +5820,10 @@ export type ExportPeopleCsvData = {
     path?: never;
     query?: {
         /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+        /**
          * People with an account on this platform.
          */
         platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
@@ -5929,7 +5937,7 @@ export type ExportPeopleCsvErrors = {
      */
     401: ErrorResponse;
     /**
-     * No such segment for your workspace
+     * No such segment in this scope, or no such group
      */
     404: ErrorResponse;
     /**
@@ -5953,6 +5961,10 @@ export type ListPeopleData = {
     body?: never;
     path?: never;
     query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
         /**
          * People with an account on this platform.
          */
@@ -6075,7 +6087,7 @@ export type ListPeopleErrors = {
      */
     401: ErrorResponse;
     /**
-     * No such segment for your workspace
+     * No such segment in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6245,7 +6257,12 @@ export type GetPersonData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/people/{id}';
 };
 
@@ -6255,7 +6272,7 @@ export type GetPersonErrors = {
      */
     401: ErrorResponse;
     /**
-     * No mention by this person for your workspace
+     * No mention by this person in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6297,13 +6314,18 @@ export type UpdatePersonData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/people/{id}';
 };
 
 export type UpdatePersonErrors = {
     /**
-     * Invalid body, or the owner is not a workspace member
+     * Invalid body, the owner is not a workspace member, or `muted` sent with `groupId`
      */
     400: ErrorResponse;
     /**
@@ -6311,7 +6333,7 @@ export type UpdatePersonErrors = {
      */
     401: ErrorResponse;
     /**
-     * No mention by this person for your workspace
+     * No mention by this person in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6340,7 +6362,12 @@ export type MergePeopleData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/people/{id}/merge';
 };
 
@@ -6350,7 +6377,7 @@ export type MergePeopleErrors = {
      */
     401: ErrorResponse;
     /**
-     * Either side is unknown to your workspace
+     * Either side is unknown in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6374,7 +6401,12 @@ export type SplitPersonData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/people/{id}/split';
 };
 
@@ -6384,7 +6416,7 @@ export type SplitPersonErrors = {
      */
     401: ErrorResponse;
     /**
-     * This account was not merged into anyone
+     * This account was not merged into anyone in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6408,7 +6440,12 @@ export type ListPersonActivitiesData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/people/{id}/activities';
 };
 
@@ -6418,7 +6455,7 @@ export type ListPersonActivitiesErrors = {
      */
     401: ErrorResponse;
     /**
-     * No mention by this person for your workspace
+     * No mention by this person in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6500,7 +6537,12 @@ export type LogPersonActivityData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/people/{id}/activities';
 };
 
@@ -6514,7 +6556,7 @@ export type LogPersonActivityErrors = {
      */
     401: ErrorResponse;
     /**
-     * No mention by this person for your workspace
+     * No mention by this person in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6542,7 +6584,12 @@ export type DeletePersonActivityData = {
          */
         activityId: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/people/{id}/activities/{activityId}';
 };
 
@@ -6552,7 +6599,7 @@ export type DeletePersonActivityErrors = {
      */
     401: ErrorResponse;
     /**
-     * No such activity on this person for your workspace
+     * No such activity on this person in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6571,7 +6618,12 @@ export type DeletePersonActivityResponse = DeletePersonActivityResponses[keyof D
 export type ListSegmentsData = {
     body?: never;
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/segments';
 };
 
@@ -6580,6 +6632,10 @@ export type ListSegmentsErrors = {
      * Missing or invalid API key
      */
     401: ErrorResponse;
+    /**
+     * No such group
+     */
+    404: ErrorResponse;
 };
 
 export type ListSegmentsError = ListSegmentsErrors[keyof ListSegmentsErrors];
@@ -6670,6 +6726,10 @@ export type ListSegmentsResponses = {
                  */
                 ownerIds?: Array<string>;
             };
+            /**
+             * The group this segment belongs to, or null for a workspace segment.
+             */
+            groupId: string | null;
             /**
              * People in the segment right now; it is evaluated on every read.
              */
@@ -6850,7 +6910,12 @@ export type CreateSegmentData = {
         };
     };
     path?: never;
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/segments';
 };
 
@@ -6864,7 +6929,11 @@ export type CreateSegmentErrors = {
      */
     401: ErrorResponse;
     /**
-     * A segment with this name already exists
+     * No such group
+     */
+    404: ErrorResponse;
+    /**
+     * A segment with this name already exists in this scope
      */
     409: ErrorResponse;
 };
@@ -6888,7 +6957,12 @@ export type DeleteSegmentData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/segments/{id}';
 };
 
@@ -6898,7 +6972,7 @@ export type DeleteSegmentErrors = {
      */
     401: ErrorResponse;
     /**
-     * No such segment for your workspace
+     * No such segment in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -6922,7 +6996,12 @@ export type GetSegmentData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/segments/{id}';
 };
 
@@ -6932,7 +7011,7 @@ export type GetSegmentErrors = {
      */
     401: ErrorResponse;
     /**
-     * No such segment for your workspace
+     * No such segment in this scope, or no such group
      */
     404: ErrorResponse;
 };
@@ -7039,7 +7118,12 @@ export type UpdateSegmentData = {
          */
         id: string;
     };
-    query?: never;
+    query?: {
+        /**
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         */
+        groupId?: string;
+    };
     url: '/v1/segments/{id}';
 };
 
@@ -7049,11 +7133,11 @@ export type UpdateSegmentErrors = {
      */
     401: ErrorResponse;
     /**
-     * No such segment for your workspace
+     * No such segment in this scope, or no such group
      */
     404: ErrorResponse;
     /**
-     * A segment with this name already exists
+     * A segment with this name already exists in this scope
      */
     409: ErrorResponse;
 };
