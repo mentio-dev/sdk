@@ -5080,6 +5080,15 @@
                 "type": "integer",
                 "description": "How much to add per automatic charge (same bounds as a manual top-up)."
               },
+              "weeklyLimitCents": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Most the saved card may be charged automatically over any 7 days, before tax; null = no limit."
+              },
+              "spentThisWeekCents": {
+                "type": "integer",
+                "description": "What counts against the weekly limit over the last 7 days, before tax: automatic charges made plus any still settling."
+              },
               "lastRunAt": {
                 "type": "string",
                 "nullable": true,
@@ -5096,6 +5105,8 @@
               "enabled",
               "thresholdCents",
               "amountCents",
+              "weeklyLimitCents",
+              "spentThisWeekCents",
               "lastRunAt",
               "lastError"
             ]

@@ -2683,6 +2683,14 @@ export type Wallet = {
          */
         amountCents: number;
         /**
+         * Most the saved card may be charged automatically over any 7 days, before tax; null = no limit.
+         */
+        weeklyLimitCents: number | null;
+        /**
+         * What counts against the weekly limit over the last 7 days, before tax: automatic charges made plus any still settling.
+         */
+        spentThisWeekCents: number;
+        /**
          * Newest successful automatic charge.
          */
         lastRunAt: string | null;
