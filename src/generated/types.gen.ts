@@ -985,7 +985,7 @@ export type Mention = {
          */
         followers: number | null;
         /**
-         * Your workspace tags on this person.
+         * Your tags on this person: the workspace's, then those the mention's own keyword group gave them (set with groupId on /v1/people), each once.
          */
         tags: Array<string>;
     } | null;
@@ -1352,7 +1352,7 @@ export type Person = {
         tags: Array<string>;
         notes: string;
         /**
-         * Their posts stay out of the feed and every channel; ingest and billing are untouched.
+         * Their posts stay out of the feed and every channel; ingest and billing are untouched. Read with groupId it is that group's own mute, which hides them from the mentions of that group's keywords only.
          */
         muted: boolean;
     };
@@ -1600,11 +1600,11 @@ export type FilterGroup = {
      */
     notLanguages?: Array<string>;
     /**
-     * Only authors your workspace tagged with any of these.
+     * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
      */
     tags?: Array<string>;
     /**
-     * Never authors tagged with any of these.
+     * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
      */
     notTags?: Array<string>;
     /**
@@ -1762,11 +1762,11 @@ export type View = {
          */
         notLanguages?: Array<string>;
         /**
-         * Only authors your workspace tagged with any of these.
+         * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         tags?: Array<string>;
         /**
-         * Never authors tagged with any of these.
+         * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         notTags?: Array<string>;
         /**
@@ -2834,7 +2834,7 @@ export type Alert = {
          */
         minFollowers?: number;
         /**
-         * Only authors your workspace tagged with any of these.
+         * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         tags?: Array<string>;
         /**
@@ -5050,7 +5050,7 @@ export type SearchMentionsData = {
          */
         personId?: string;
         /**
-         * true: include mentions by people you muted, hidden by default.
+         * true: include mentions by people you muted, hidden by default: muted for the workspace, or for the mention's own keyword group.
          */
         includeMuted?: boolean;
         /**
@@ -5106,7 +5106,7 @@ export type SearchMentionsData = {
          */
         keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
-         * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
+         * Only authors tagged with any of these (exact, case-sensitive), in the workspace's tags or those of the mention's own keyword group. Repeatable, or comma-separated.
          */
         tags?: Array<string> | null;
         /**
@@ -5166,7 +5166,7 @@ export type SearchMentionsData = {
          */
         notSubreddits?: Array<string> | null;
         /**
-         * Never authors your workspace tagged with any of these.
+         * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         notTags?: Array<string> | null;
         /**
@@ -5306,7 +5306,7 @@ export type ExportMentionsCsvData = {
          */
         personId?: string;
         /**
-         * true: include mentions by people you muted, hidden by default.
+         * true: include mentions by people you muted, hidden by default: muted for the workspace, or for the mention's own keyword group.
          */
         includeMuted?: boolean;
         /**
@@ -5362,7 +5362,7 @@ export type ExportMentionsCsvData = {
          */
         keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
-         * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
+         * Only authors tagged with any of these (exact, case-sensitive), in the workspace's tags or those of the mention's own keyword group. Repeatable, or comma-separated.
          */
         tags?: Array<string> | null;
         /**
@@ -5422,7 +5422,7 @@ export type ExportMentionsCsvData = {
          */
         notSubreddits?: Array<string> | null;
         /**
-         * Never authors your workspace tagged with any of these.
+         * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         notTags?: Array<string> | null;
         /**
@@ -5601,7 +5601,7 @@ export type ExportMentionsJsonData = {
          */
         personId?: string;
         /**
-         * true: include mentions by people you muted, hidden by default.
+         * true: include mentions by people you muted, hidden by default: muted for the workspace, or for the mention's own keyword group.
          */
         includeMuted?: boolean;
         /**
@@ -5657,7 +5657,7 @@ export type ExportMentionsJsonData = {
          */
         keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
-         * Only authors your workspace tagged with any of these (exact, case-sensitive). Repeatable, or comma-separated.
+         * Only authors tagged with any of these (exact, case-sensitive), in the workspace's tags or those of the mention's own keyword group. Repeatable, or comma-separated.
          */
         tags?: Array<string> | null;
         /**
@@ -5717,7 +5717,7 @@ export type ExportMentionsJsonData = {
          */
         notSubreddits?: Array<string> | null;
         /**
-         * Never authors your workspace tagged with any of these.
+         * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         notTags?: Array<string> | null;
         /**
@@ -5820,7 +5820,7 @@ export type ExportPeopleCsvData = {
     path?: never;
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
         /**
@@ -5962,7 +5962,7 @@ export type ListPeopleData = {
     path?: never;
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
         /**
@@ -6211,7 +6211,7 @@ export type ListPeopleResponses = {
                 tags: Array<string>;
                 notes: string;
                 /**
-                 * Their posts stay out of the feed and every channel; ingest and billing are untouched.
+                 * Their posts stay out of the feed and every channel; ingest and billing are untouched. Read with groupId it is that group's own mute, which hides them from the mentions of that group's keywords only.
                  */
                 muted: boolean;
             };
@@ -6259,7 +6259,7 @@ export type GetPersonData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6298,6 +6298,9 @@ export type UpdatePersonData = {
          */
         tags?: Array<string>;
         notes?: string;
+        /**
+         * true hides their posts from the feed, the alerts and the digests; false shows them again. Without groupId, for every keyword of the workspace; with groupId, for the mentions of that group's keywords only, leaving the workspace's mute as it is.
+         */
         muted?: boolean;
         /**
          * The member who owns the contact (user id); null clears.
@@ -6316,7 +6319,7 @@ export type UpdatePersonData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6325,7 +6328,7 @@ export type UpdatePersonData = {
 
 export type UpdatePersonErrors = {
     /**
-     * Invalid body, the owner is not a workspace member, or `muted` sent with `groupId`
+     * Invalid body, or the owner is not a workspace member
      */
     400: ErrorResponse;
     /**
@@ -6364,7 +6367,7 @@ export type MergePeopleData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6403,7 +6406,7 @@ export type SplitPersonData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6442,7 +6445,7 @@ export type ListPersonActivitiesData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6539,7 +6542,7 @@ export type LogPersonActivityData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6586,7 +6589,7 @@ export type DeletePersonActivityData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6620,7 +6623,7 @@ export type ListSegmentsData = {
     path?: never;
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6912,7 +6915,7 @@ export type CreateSegmentData = {
     path?: never;
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6959,7 +6962,7 @@ export type DeleteSegmentData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -6998,7 +7001,7 @@ export type GetSegmentData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -7120,7 +7123,7 @@ export type UpdateSegmentData = {
     };
     query?: {
         /**
-         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, merges, activities and segments. Omit for the whole workspace.
+         * Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.
          */
         groupId?: string;
     };
@@ -7262,11 +7265,11 @@ export type ListViewsResponses = {
                  */
                 notLanguages?: Array<string>;
                 /**
-                 * Only authors your workspace tagged with any of these.
+                 * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
                  */
                 tags?: Array<string>;
                 /**
-                 * Never authors tagged with any of these.
+                 * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
                  */
                 notTags?: Array<string>;
                 /**
@@ -7447,11 +7450,11 @@ export type CreateViewData = {
              */
             notLanguages?: Array<string>;
             /**
-             * Only authors your workspace tagged with any of these.
+             * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
             tags?: Array<string>;
             /**
-             * Never authors tagged with any of these.
+             * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
             notTags?: Array<string>;
             /**
@@ -7712,11 +7715,11 @@ export type UpdateViewData = {
              */
             notLanguages?: Array<string>;
             /**
-             * Only authors your workspace tagged with any of these.
+             * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
             tags?: Array<string>;
             /**
-             * Never authors tagged with any of these.
+             * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
             notTags?: Array<string>;
             /**
@@ -9002,7 +9005,7 @@ export type UpdateAlertData = {
              */
             minFollowers?: number;
             /**
-             * Only authors your workspace tagged with any of these.
+             * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
             tags?: Array<string>;
             /**
@@ -9179,7 +9182,7 @@ export type ListAlertsResponses = {
                  */
                 minFollowers?: number;
                 /**
-                 * Only authors your workspace tagged with any of these.
+                 * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
                  */
                 tags?: Array<string>;
                 /**
@@ -9326,7 +9329,7 @@ export type CreateAlertData = {
              */
             minFollowers?: number;
             /**
-             * Only authors your workspace tagged with any of these.
+             * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
             tags?: Array<string>;
             /**

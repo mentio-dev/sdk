@@ -228,7 +228,7 @@ export const listPeople = <ThrowOnError extends boolean = false>(options?: Optio
 /**
  * Get a person
  *
- * One person as your workspace sees them. An account merged into someone resolves to that person. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
+ * One person as your workspace sees them. An account merged into someone resolves to that person. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, mute, merges and activities, apart from the workspace's and from every other group's.
  */
 export const getPerson = <ThrowOnError extends boolean = false>(options: Options<GetPersonData, ThrowOnError>): RequestResult<GetPersonResponses, GetPersonErrors, ThrowOnError> => (options.client ?? client).get<GetPersonResponses, GetPersonErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -239,7 +239,7 @@ export const getPerson = <ThrowOnError extends boolean = false>(options: Options
 /**
  * Update your annotations on a person
  *
- * Tags, notes, mute, and the outreach owner (a workspace member; null clears) and stage, for your workspace only. Mute hides their posts from your feed and every channel; ingest and billing never change. With `groupId` the annotations are that keyword group's own; `muted` is not supported there yet and is a 400.
+ * Tags, notes, mute, and the outreach owner (a workspace member; null clears) and stage, for your workspace only. Mute hides their posts from your feed and every channel; ingest and billing never change. With `groupId` the annotations are that keyword group's own: `muted` hides the person, and the accounts that group merged into them, from the mentions of that group's keywords only (feed, alerts and digests), and the group's tags show on those mentions next to the workspace's. A mute set without `groupId` hides them everywhere.
  */
 export const updatePerson = <ThrowOnError extends boolean = false>(options: Options<UpdatePersonData, ThrowOnError>): RequestResult<UpdatePersonResponses, UpdatePersonErrors, ThrowOnError> => (options.client ?? client).patch<UpdatePersonResponses, UpdatePersonErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -254,7 +254,7 @@ export const updatePerson = <ThrowOnError extends boolean = false>(options: Opti
 /**
  * Merge an account into a person
  *
- * Declare that this account and another person are the same human, for your workspace only. Their mentions, tags, notes and outreach activities combine under the person named by `into`, which keeps its owner and stage unless it had none. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
+ * Declare that this account and another person are the same human, for your workspace only. Their mentions, tags, notes and outreach activities combine under the person named by `into`, which keeps its owner and stage unless it had none. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, mute, merges and activities, apart from the workspace's and from every other group's.
  */
 export const mergePeople = <ThrowOnError extends boolean = false>(options: Options<MergePeopleData, ThrowOnError>): RequestResult<MergePeopleResponses, MergePeopleErrors, ThrowOnError> => (options.client ?? client).post<MergePeopleResponses, MergePeopleErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -269,7 +269,7 @@ export const mergePeople = <ThrowOnError extends boolean = false>(options: Optio
 /**
  * Undo a merge
  *
- * The account becomes its own person again. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
+ * The account becomes its own person again. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, mute, merges and activities, apart from the workspace's and from every other group's.
  */
 export const splitPerson = <ThrowOnError extends boolean = false>(options: Options<SplitPersonData, ThrowOnError>): RequestResult<SplitPersonResponses, SplitPersonErrors, ThrowOnError> => (options.client ?? client).post<SplitPersonResponses, SplitPersonErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -280,7 +280,7 @@ export const splitPerson = <ThrowOnError extends boolean = false>(options: Optio
 /**
  * List outreach activities
  *
- * Every logged contact with this person across all their accounts, newest first (at most 200): who reached out, the channel, when, and a short note. Read it before reaching out so two teammates never contact the same person without knowing. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
+ * Every logged contact with this person across all their accounts, newest first (at most 200): who reached out, the channel, when, and a short note. Read it before reaching out so two teammates never contact the same person without knowing. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, mute, merges and activities, apart from the workspace's and from every other group's.
  */
 export const listPersonActivities = <ThrowOnError extends boolean = false>(options: Options<ListPersonActivitiesData, ThrowOnError>): RequestResult<ListPersonActivitiesResponses, ListPersonActivitiesErrors, ThrowOnError> => (options.client ?? client).get<ListPersonActivitiesResponses, ListPersonActivitiesErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -291,7 +291,7 @@ export const listPersonActivities = <ThrowOnError extends boolean = false>(optio
 /**
  * Log an outreach activity
  *
- * Record that a teammate reached out to this person: an email, a DM, a call. The first activity claims an unowned person for whoever reached out and moves not_contacted to contacted; an existing owner and a later stage are kept. `memberId` defaults to the signed-in member; an API key that omits it logs an unattributed activity, which claims nobody. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
+ * Record that a teammate reached out to this person: an email, a DM, a call. The first activity claims an unowned person for whoever reached out and moves not_contacted to contacted; an existing owner and a later stage are kept. `memberId` defaults to the signed-in member; an API key that omits it logs an unattributed activity, which claims nobody. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, mute, merges and activities, apart from the workspace's and from every other group's.
  */
 export const logPersonActivity = <ThrowOnError extends boolean = false>(options: Options<LogPersonActivityData, ThrowOnError>): RequestResult<LogPersonActivityResponses, LogPersonActivityErrors, ThrowOnError> => (options.client ?? client).post<LogPersonActivityResponses, LogPersonActivityErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -306,7 +306,7 @@ export const logPersonActivity = <ThrowOnError extends boolean = false>(options:
 /**
  * Delete an outreach activity
  *
- * Remove a contact logged by mistake. The person's owner and stage stay as they are. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, merges and activities, apart from the workspace's and from every other group's.
+ * Remove a contact logged by mistake. The person's owner and stage stay as they are. With `groupId`, the call works inside that keyword group: its people, and its own tags, notes, mute, merges and activities, apart from the workspace's and from every other group's.
  */
 export const deletePersonActivity = <ThrowOnError extends boolean = false>(options: Options<DeletePersonActivityData, ThrowOnError>): RequestResult<DeletePersonActivityResponses, DeletePersonActivityErrors, ThrowOnError> => (options.client ?? client).delete<DeletePersonActivityResponses, DeletePersonActivityErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
