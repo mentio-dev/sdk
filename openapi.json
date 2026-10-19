@@ -288,7 +288,7 @@
                   "maxLength": 80
                 },
                 "maxItems": 50,
-                "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement."
               },
               "requiredMode": {
                 "type": "string",
@@ -297,6 +297,21 @@
                   "all"
                 ],
                 "description": "any: at least one required term must appear. all: every one must."
+              },
+              "requiredGroups": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  },
+                  "minItems": 1,
+                  "maxItems": 10
+                },
+                "maxItems": 50,
+                "description": "Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [[\"weather\", \"alert*\"], [\"tsunami\"], [\"flash flood\"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations."
               },
               "excludedTerms": {
                 "type": "array",
@@ -398,6 +413,7 @@
             "required": [
               "requiredTerms",
               "requiredMode",
+              "requiredGroups",
               "excludedTerms",
               "excludedAuthors",
               "caseSensitive",
@@ -785,7 +801,7 @@
                       "maxLength": 80
                     },
                     "maxItems": 50,
-                    "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                    "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement."
                   },
                   "requiredMode": {
                     "type": "string",
@@ -794,6 +810,21 @@
                       "all"
                     ],
                     "description": "any: at least one required term must appear. all: every one must."
+                  },
+                  "requiredGroups": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80
+                      },
+                      "minItems": 1,
+                      "maxItems": 10
+                    },
+                    "maxItems": 50,
+                    "description": "Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [[\"weather\", \"alert*\"], [\"tsunami\"], [\"flash flood\"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations."
                   },
                   "excludedTerms": {
                     "type": "array",
@@ -8137,7 +8168,7 @@
                           "maxLength": 80
                         },
                         "maxItems": 50,
-                        "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                        "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement."
                       },
                       "requiredMode": {
                         "type": "string",
@@ -8146,6 +8177,21 @@
                           "all"
                         ],
                         "description": "any: at least one required term must appear. all: every one must."
+                      },
+                      "requiredGroups": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "minItems": 1,
+                          "maxItems": 10
+                        },
+                        "maxItems": 50,
+                        "description": "Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [[\"weather\", \"alert*\"], [\"tsunami\"], [\"flash flood\"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations."
                       },
                       "excludedTerms": {
                         "type": "array",
@@ -8747,7 +8793,7 @@
                                   "maxLength": 80
                                 },
                                 "maxItems": 50,
-                                "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                                "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement."
                               },
                               "requiredMode": {
                                 "type": "string",
@@ -8756,6 +8802,21 @@
                                   "all"
                                 ],
                                 "description": "any: at least one required term must appear. all: every one must."
+                              },
+                              "requiredGroups": {
+                                "type": "array",
+                                "items": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 80
+                                  },
+                                  "minItems": 1,
+                                  "maxItems": 10
+                                },
+                                "maxItems": 50,
+                                "description": "Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [[\"weather\", \"alert*\"], [\"tsunami\"], [\"flash flood\"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations."
                               },
                               "excludedTerms": {
                                 "type": "array",
@@ -8857,6 +8918,7 @@
                             "required": [
                               "requiredTerms",
                               "requiredMode",
+                              "requiredGroups",
                               "excludedTerms",
                               "excludedAuthors",
                               "caseSensitive",
@@ -9271,7 +9333,7 @@
                           "maxLength": 80
                         },
                         "maxItems": 50,
-                        "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement."
+                        "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement."
                       },
                       "requiredMode": {
                         "type": "string",
@@ -9280,6 +9342,21 @@
                           "all"
                         ],
                         "description": "any: at least one required term must appear. all: every one must."
+                      },
+                      "requiredGroups": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "minItems": 1,
+                          "maxItems": 10
+                        },
+                        "maxItems": 50,
+                        "description": "Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [[\"weather\", \"alert*\"], [\"tsunami\"], [\"flash flood\"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations."
                       },
                       "excludedTerms": {
                         "type": "array",

@@ -159,13 +159,17 @@ export type Keyword = {
      */
     matching: {
         /**
-         * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+         * The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement.
          */
         requiredTerms: Array<string>;
         /**
          * any: at least one required term must appear. all: every one must.
          */
         requiredMode: 'any' | 'all';
+        /**
+         * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+         */
+        requiredGroups: Array<Array<string>>;
         /**
          * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
          */
@@ -394,13 +398,17 @@ export type KeywordSuggestion = {
          */
         matching?: {
             /**
-             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement.
              */
             requiredTerms?: Array<string>;
             /**
              * any: at least one required term must appear. all: every one must.
              */
             requiredMode?: 'any' | 'all';
+            /**
+             * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+             */
+            requiredGroups?: Array<Array<string>>;
             /**
              * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
              */
@@ -4157,13 +4165,17 @@ export type ListKeywordsResponses = {
              */
             matching: {
                 /**
-                 * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+                 * The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement.
                  */
                 requiredTerms: Array<string>;
                 /**
                  * any: at least one required term must appear. all: every one must.
                  */
                 requiredMode: 'any' | 'all';
+                /**
+                 * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+                 */
+                requiredGroups: Array<Array<string>>;
                 /**
                  * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
                  */
@@ -4357,13 +4369,17 @@ export type CreateKeywordData = {
          */
         matching?: {
             /**
-             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement.
              */
             requiredTerms?: Array<string>;
             /**
              * any: at least one required term must appear. all: every one must.
              */
             requiredMode?: 'any' | 'all';
+            /**
+             * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+             */
+            requiredGroups?: Array<Array<string>>;
             /**
              * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
              */
@@ -4605,13 +4621,17 @@ export type UpdateKeywordData = {
          */
         matching?: {
             /**
-             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. Empty: no requirement.
+             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement.
              */
             requiredTerms?: Array<string>;
             /**
              * any: at least one required term must appear. all: every one must.
              */
             requiredMode?: 'any' | 'all';
+            /**
+             * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+             */
+            requiredGroups?: Array<Array<string>>;
             /**
              * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
              */
