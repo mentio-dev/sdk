@@ -147,6 +147,10 @@ export type Keyword = {
      */
     feeds: Array<KeywordFeed>;
     /**
+     * true (the default): the keyword also reads every feed of the workspace (GET /v1/feeds), on top of its own `feeds`. false: its own feeds alone.
+     */
+    readsWorkspaceFeeds: boolean;
+    /**
      * Where this keyword collects reviews from (App Store and Google Play apps, Trustpilot pages, Google Maps places); empty for none.
      */
     reviewSources: Array<ReviewSource>;
@@ -340,7 +344,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -520,6 +524,10 @@ export type KeywordSuggestion = {
              */
             url: string;
         }>;
+        /**
+         * true: the keyword also reads the workspace's feeds (GET /v1/feeds), live from now on. false: its own feeds alone.
+         */
+        readsWorkspaceFeeds?: boolean;
     };
     /**
      * What the change would have done over the window, measured with the matcher's own rules. Null for a context, which changes scores, not matches.
@@ -789,6 +797,79 @@ export type KeywordHealth = {
      * When the report was computed; it is cached for 5 minutes, and a change to the keyword starts a fresh one.
      */
     generatedAt: string;
+};
+
+/**
+ * An RSS or Atom feed every keyword of the workspace reads.
+ */
+export type Feed = {
+    /**
+     * Feed id (fd_...).
+     */
+    id: string;
+    /**
+     * The feed itself (after redirects, or the one the page advertised): what is polled.
+     */
+    url: string;
+    /**
+     * The feed's own title, when it has one.
+     */
+    title: string | null;
+    /**
+     * When the workspace connected it.
+     */
+    connectedAt: string;
+    /**
+     * Nothing published before this is a live mention: the connection, or the last time its sign-in was added or removed (signed in and signed out, a post is read as two different posts, so the switch starts over rather than bill one twice).
+     */
+    readingSince: string;
+    /**
+     * The sign-in the feed is read with, or null for a public feed. PATCH { auth } replaces it, { auth: null } removes it.
+     */
+    auth: {
+        /**
+         * cookie or header. The value is never shown.
+         */
+        type: 'cookie' | 'header';
+    } | null;
+    /**
+     * Whether the hourly read works.
+     */
+    health: {
+        /**
+         * failing: the last 3 hourly reads or more failed (a feed.failing event went out); ok otherwise.
+         */
+        status: 'ok' | 'failing';
+        /**
+         * Why the last read failed; null when it read well.
+         */
+        reason: 'login_required' | 'login_expired' | 'blocked' | 'not_found' | 'not_a_feed' | 'unreachable';
+        /**
+         * What the last failed read saw.
+         */
+        detail: string | null;
+        /**
+         * Failed hourly reads in a row.
+         */
+        failures: number;
+        /**
+         * While failing: since when.
+         */
+        since: string | null;
+    };
+    /**
+     * How the hourly poll of this feed is going.
+     */
+    stats: {
+        /**
+         * When the feed was last read; null until its first poll (within the hour).
+         */
+        lastPolledAt: string | null;
+        /**
+         * Polls in a row that brought nothing new; a feed that keeps reading empty may have moved.
+         */
+        emptyPolls: number;
+    };
 };
 
 /**
@@ -2136,15 +2217,59 @@ export type ChannelFailingEventData = {
     since: string;
 };
 
+export type FeedFailingEventData = {
+    /**
+     * The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away.
+     */
+    attentionId: string;
+    /**
+     * Where to look in the dashboard.
+     */
+    url: string;
+    /**
+     * The workspace feed (GET /v1/feeds/{id}).
+     */
+    feed: {
+        /**
+         * Feed id (fd_...).
+         */
+        id: string;
+        /**
+         * The feed address.
+         */
+        url: string;
+        /**
+         * The feed's own title, when it has one.
+         */
+        title: string | null;
+    };
+    /**
+     * login_required: the feed answers a sign-in or access-denied page (connect it with the forum's sign-in, auth). login_expired: the same on a feed that has a sign-in: copy a fresh cookie. blocked: a 403, a 429 or a bot check. not_found: the feed is gone. not_a_feed: the address answers a page, not RSS or Atom. unreachable: no answer or a server error.
+     */
+    reason: 'login_required' | 'login_expired' | 'blocked' | 'not_found' | 'not_a_feed' | 'unreachable';
+    /**
+     * What the last failed read saw, in a few words.
+     */
+    detail: string | null;
+    /**
+     * When it started failing: the third failed read in a row.
+     */
+    failingSince: string;
+    /**
+     * Live keywords of the workspace that read workspace feeds: what misses its posts while it fails.
+     */
+    keywordsAffected: number;
+};
+
 export type AttentionItem = {
     /**
      * Attention item id (att_...).
      */
     id: string;
     /**
-     * mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed.
+     * mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed. feed.failing: a workspace feed failed its last 3 hourly reads. feed.recovered: it read again after failing.
      */
-    kind: 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing';
+    kind: 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered';
     /**
      * open: the condition holds. resolved: it no longer does. dismissed: a person put it away; it does not come back for the same episode.
      */
@@ -2154,11 +2279,11 @@ export type AttentionItem = {
      */
     subject: {
         /**
-         * keyword or channel.
+         * keyword, channel or feed.
          */
-        type: 'keyword' | 'channel';
+        type: 'keyword' | 'channel' | 'feed';
         /**
-         * The keyword (kw_...) or the channel (dest_...).
+         * The keyword (kw_...), the channel (dest_...) or the feed (fd_...).
          */
         id: string;
     };
@@ -2181,7 +2306,7 @@ export type AttentionItem = {
     /**
      * The facts as they stood when it opened: the same object the account event of the same name carries as `data`.
      */
-    data: MentionSpikeEventData | NegativeSpikeEventData | KeywordNoisyEventData | ChannelFailingEventData;
+    data: MentionSpikeEventData | NegativeSpikeEventData | KeywordNoisyEventData | ChannelFailingEventData | FeedFailingEventData;
 };
 
 /**
@@ -3776,7 +3901,7 @@ export type SlackChannel = {
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
     };
 };
 
@@ -3829,7 +3954,7 @@ export type EmailChannel = {
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
     };
 };
 
@@ -3882,7 +4007,7 @@ export type WebhookChannel = {
         /**
          * The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes and the attention events. Empty when it receives none; mention and digest deliveries come through rules as before.
          */
-        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
+        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
         /**
          * Only on creation and rotation. Signs every request: X-Mentions-Signature-V2 is v2= plus the hex HMAC-SHA256 of "<X-Mentions-Timestamp>.<raw body>" (reject a timestamp older than a few minutes); X-Mentions-Signature, the hex HMAC-SHA256 of the raw body alone, stays for older verifiers.
          */
@@ -3934,7 +4059,7 @@ export type TelegramChannel = {
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
     };
 };
 
@@ -3961,7 +4086,7 @@ export type CreateSlackChannel = {
     /**
      * Attention events to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
 };
 
 export type CreateEmailChannel = {
@@ -3973,7 +4098,7 @@ export type CreateEmailChannel = {
     /**
      * Attention events to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
 };
 
 export type CreateWebhookChannel = {
@@ -3995,7 +4120,7 @@ export type CreateWebhookChannel = {
     /**
      * Account events to receive at this endpoint (keyword and wallet state changes, attention events), on top of whatever rules send here. Omit for none.
      */
-    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
+    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
 };
 
 export type GetHealthData = {
@@ -4152,6 +4277,10 @@ export type ListKeywordsResponses = {
              * RSS and Atom feeds this keyword reads; empty for none.
              */
             feeds: Array<KeywordFeed>;
+            /**
+             * true (the default): the keyword also reads every feed of the workspace (GET /v1/feeds), on top of its own `feeds`. false: its own feeds alone.
+             */
+            readsWorkspaceFeeds: boolean;
             /**
              * Where this keyword collects reviews from (App Store and Google Play apps, Trustpilot pages, Google Maps places); empty for none.
              */
@@ -4491,6 +4620,10 @@ export type CreateKeywordData = {
              */
             url: string;
         }>;
+        /**
+         * Whether the keyword also reads the workspace's feeds (GET /v1/feeds); default true. A new keyword reading them gets the look-back of the 8 most recently connected.
+         */
+        readsWorkspaceFeeds?: boolean;
     };
     path?: never;
     query?: never;
@@ -4743,6 +4876,10 @@ export type UpdateKeywordData = {
              */
             url: string;
         }>;
+        /**
+         * true: the keyword also reads the workspace's feeds (GET /v1/feeds), live from now on. false: its own feeds alone.
+         */
+        readsWorkspaceFeeds?: boolean;
     };
     path: {
         /**
@@ -4889,6 +5026,498 @@ export type DuplicateKeywordResponses = {
 };
 
 export type DuplicateKeywordResponse = DuplicateKeywordResponses[keyof DuplicateKeywordResponses];
+
+export type ListFeedsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Only feeds whose address or title contains this text, case-insensitive.
+         */
+        q?: string;
+        /**
+         * Feeds per page, at most 500; default 100.
+         */
+        limit?: number;
+        /**
+         * Feeds to skip, for the next page.
+         */
+        offset?: number | null;
+    };
+    url: '/v1/feeds';
+};
+
+export type ListFeedsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListFeedsError = ListFeedsErrors[keyof ListFeedsErrors];
+
+export type ListFeedsResponses = {
+    /**
+     * A page of feeds
+     */
+    200: {
+        /**
+         * The page, newest connection first.
+         */
+        data: Array<{
+            /**
+             * Feed id (fd_...).
+             */
+            id: string;
+            /**
+             * The feed itself (after redirects, or the one the page advertised): what is polled.
+             */
+            url: string;
+            /**
+             * The feed's own title, when it has one.
+             */
+            title: string | null;
+            /**
+             * When the workspace connected it.
+             */
+            connectedAt: string;
+            /**
+             * Nothing published before this is a live mention: the connection, or the last time its sign-in was added or removed (signed in and signed out, a post is read as two different posts, so the switch starts over rather than bill one twice).
+             */
+            readingSince: string;
+            /**
+             * The sign-in the feed is read with, or null for a public feed. PATCH { auth } replaces it, { auth: null } removes it.
+             */
+            auth: {
+                /**
+                 * cookie or header. The value is never shown.
+                 */
+                type: 'cookie' | 'header';
+            } | null;
+            /**
+             * Whether the hourly read works.
+             */
+            health: {
+                /**
+                 * failing: the last 3 hourly reads or more failed (a feed.failing event went out); ok otherwise.
+                 */
+                status: 'ok' | 'failing';
+                /**
+                 * Why the last read failed; null when it read well.
+                 */
+                reason: 'login_required' | 'login_expired' | 'blocked' | 'not_found' | 'not_a_feed' | 'unreachable';
+                /**
+                 * What the last failed read saw.
+                 */
+                detail: string | null;
+                /**
+                 * Failed hourly reads in a row.
+                 */
+                failures: number;
+                /**
+                 * While failing: since when.
+                 */
+                since: string | null;
+            };
+            /**
+             * How the hourly poll of this feed is going.
+             */
+            stats: {
+                /**
+                 * When the feed was last read; null until its first poll (within the hour).
+                 */
+                lastPolledAt: string | null;
+                /**
+                 * Polls in a row that brought nothing new; a feed that keeps reading empty may have moved.
+                 */
+                emptyPolls: number;
+            };
+        }>;
+        /**
+         * Feeds matching the query, across pages.
+         */
+        total: number;
+    };
+};
+
+export type ListFeedsResponse = ListFeedsResponses[keyof ListFeedsResponses];
+
+export type CreateFeedData = {
+    /**
+     * One feed to connect, with a sign-in when it is members-only.
+     */
+    body: {
+        /**
+         * A feed's address (https://forum.example.com/posts.rss), or a page's (https://forum.example.com): the feed the page advertises is used.
+         */
+        url: string;
+        /**
+         * A sign-in for a members-only feed: a cookie, or one header. Write-only: stored encrypted, sent to the feed's own site alone, never shown again. A feed with a sign-in is read for this workspace alone.
+         */
+        auth?: {
+            type: 'cookie';
+            /**
+             * The Cookie header your browser sends to the forum (devtools, Network, the feed's request, Request Headers, cookie).
+             */
+            value: string;
+        } | {
+            type: 'header';
+            /**
+             * The header name, e.g. Api-Key (Discourse) or Authorization.
+             */
+            name: string;
+            /**
+             * Its value.
+             */
+            value: string;
+        };
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/feeds';
+};
+
+export type CreateFeedErrors = {
+    /**
+     * feed_login_required: a sign-in wall, send auth. feed_login_expired: the auth sent does not read it. feed_unreadable: no feed there, or the site blocks readers (the message says which).
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * feed_limit_reached: the workspace reads 500 feeds already
+     */
+    409: ErrorResponse;
+    /**
+     * More than 30 feeds checked in a minute
+     */
+    429: ErrorResponse;
+    /**
+     * feed_auth_not_configured: a sign-in was sent and this deployment cannot store one
+     */
+    503: ErrorResponse;
+};
+
+export type CreateFeedError = CreateFeedErrors[keyof CreateFeedErrors];
+
+export type CreateFeedResponses = {
+    /**
+     * The workspace reads this feed already
+     */
+    200: Feed;
+    /**
+     * The feed, connected now
+     */
+    201: Feed;
+};
+
+export type CreateFeedResponse = CreateFeedResponses[keyof CreateFeedResponses];
+
+export type ImportFeedsData = {
+    body: {
+        /**
+         * Up to 100 feeds, each { url } or { url, auth } for a members-only one. Each is checked on its own: one that fails never stops the others.
+         */
+        feeds: Array<{
+            /**
+             * A feed's address (https://forum.example.com/posts.rss), or a page's (https://forum.example.com): the feed the page advertises is used.
+             */
+            url: string;
+            /**
+             * A sign-in for a members-only feed: a cookie, or one header. Write-only: stored encrypted, sent to the feed's own site alone, never shown again. A feed with a sign-in is read for this workspace alone.
+             */
+            auth?: {
+                type: 'cookie';
+                /**
+                 * The Cookie header your browser sends to the forum (devtools, Network, the feed's request, Request Headers, cookie).
+                 */
+                value: string;
+            } | {
+                type: 'header';
+                /**
+                 * The header name, e.g. Api-Key (Discourse) or Authorization.
+                 */
+                name: string;
+                /**
+                 * Its value.
+                 */
+                value: string;
+            };
+        }>;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/feeds/import';
+};
+
+export type ImportFeedsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * More than 5 imports in a minute
+     */
+    429: ErrorResponse;
+};
+
+export type ImportFeedsError = ImportFeedsErrors[keyof ImportFeedsErrors];
+
+export type ImportFeedsResponses = {
+    /**
+     * One result per address
+     */
+    200: {
+        /**
+         * One result per address sent, in order.
+         */
+        data: Array<{
+            /**
+             * The address as it was sent.
+             */
+            url: string;
+            /**
+             * added: connected now. already: the workspace reads this feed already. failed: not connected, see error.
+             */
+            status: 'added' | 'already' | 'failed';
+            /**
+             * The feed, when added or already there; null when failed.
+             */
+            feed: {
+                /**
+                 * Feed id (fd_...).
+                 */
+                id: string;
+                /**
+                 * The feed itself (after redirects, or the one the page advertised): what is polled.
+                 */
+                url: string;
+                /**
+                 * The feed's own title, when it has one.
+                 */
+                title: string | null;
+                /**
+                 * When the workspace connected it.
+                 */
+                connectedAt: string;
+                /**
+                 * Nothing published before this is a live mention: the connection, or the last time its sign-in was added or removed (signed in and signed out, a post is read as two different posts, so the switch starts over rather than bill one twice).
+                 */
+                readingSince: string;
+                /**
+                 * The sign-in the feed is read with, or null for a public feed. PATCH { auth } replaces it, { auth: null } removes it.
+                 */
+                auth: {
+                    /**
+                     * cookie or header. The value is never shown.
+                     */
+                    type: 'cookie' | 'header';
+                } | null;
+                /**
+                 * Whether the hourly read works.
+                 */
+                health: {
+                    /**
+                     * failing: the last 3 hourly reads or more failed (a feed.failing event went out); ok otherwise.
+                     */
+                    status: 'ok' | 'failing';
+                    /**
+                     * Why the last read failed; null when it read well.
+                     */
+                    reason: 'login_required' | 'login_expired' | 'blocked' | 'not_found' | 'not_a_feed' | 'unreachable';
+                    /**
+                     * What the last failed read saw.
+                     */
+                    detail: string | null;
+                    /**
+                     * Failed hourly reads in a row.
+                     */
+                    failures: number;
+                    /**
+                     * While failing: since when.
+                     */
+                    since: string | null;
+                };
+                /**
+                 * How the hourly poll of this feed is going.
+                 */
+                stats: {
+                    /**
+                     * When the feed was last read; null until its first poll (within the hour).
+                     */
+                    lastPolledAt: string | null;
+                    /**
+                     * Polls in a row that brought nothing new; a feed that keeps reading empty may have moved.
+                     */
+                    emptyPolls: number;
+                };
+            } | null;
+            /**
+             * Why it was not connected; null unless failed.
+             */
+            error: {
+                /**
+                 * The same code POST /v1/feeds answers for this address: feed_login_required (send it again with auth), feed_login_expired (a fresh cookie), feed_unreadable (no feed, or the site blocks readers), feed_limit_reached, feed_auth_not_configured, validation_error (an address that is not one), internal_error (ours: send it again).
+                 */
+                code: 'feed_login_required' | 'feed_login_expired' | 'feed_unreadable' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'validation_error' | 'internal_error';
+                /**
+                 * What was seen, for a person.
+                 */
+                message: string;
+            } | null;
+        }>;
+    };
+};
+
+export type ImportFeedsResponse = ImportFeedsResponses[keyof ImportFeedsResponses];
+
+export type DeleteFeedData = {
+    body?: never;
+    path: {
+        /**
+         * Feed id (fd_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/feeds/{id}';
+};
+
+export type DeleteFeedErrors = {
+    /**
+     * It is the last feed and a keyword reads nothing else (validation_error, naming the keyword): give it a platform first
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such feed in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteFeedError = DeleteFeedErrors[keyof DeleteFeedErrors];
+
+export type DeleteFeedResponses = {
+    /**
+     * Disconnected
+     */
+    204: void;
+};
+
+export type DeleteFeedResponse = DeleteFeedResponses[keyof DeleteFeedResponses];
+
+export type GetFeedData = {
+    body?: never;
+    path: {
+        /**
+         * Feed id (fd_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/feeds/{id}';
+};
+
+export type GetFeedErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such feed in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type GetFeedError = GetFeedErrors[keyof GetFeedErrors];
+
+export type GetFeedResponses = {
+    /**
+     * The feed
+     */
+    200: Feed;
+};
+
+export type GetFeedResponse = GetFeedResponses[keyof GetFeedResponses];
+
+export type UpdateFeedData = {
+    /**
+     * Omitted fields are untouched.
+     */
+    body: {
+        /**
+         * Your name for the feed; null clears it.
+         */
+        title?: string | null;
+        /**
+         * Replaces the sign-in (checked by reading the feed with it first); null removes it and the feed is read signed out again.
+         */
+        auth?: {
+            type: 'cookie';
+            /**
+             * The Cookie header your browser sends to the forum (devtools, Network, the feed's request, Request Headers, cookie).
+             */
+            value: string;
+        } | {
+            type: 'header';
+            /**
+             * The header name, e.g. Api-Key (Discourse) or Authorization.
+             */
+            name: string;
+            /**
+             * Its value.
+             */
+            value: string;
+        } | unknown;
+    };
+    path: {
+        /**
+         * Feed id (fd_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/feeds/{id}';
+};
+
+export type UpdateFeedErrors = {
+    /**
+     * feed_login_expired or feed_login_required: the sign-in does not read the feed; feed_unreadable: the feed cannot be read at all
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such feed in this workspace
+     */
+    404: ErrorResponse;
+    /**
+     * More than 30 feeds checked in a minute
+     */
+    429: ErrorResponse;
+    /**
+     * feed_auth_not_configured: this deployment cannot store a sign-in
+     */
+    503: ErrorResponse;
+};
+
+export type UpdateFeedError = UpdateFeedErrors[keyof UpdateFeedErrors];
+
+export type UpdateFeedResponses = {
+    /**
+     * The updated feed
+     */
+    200: Feed;
+};
+
+export type UpdateFeedResponse = UpdateFeedResponses[keyof UpdateFeedResponses];
 
 export type GetFiltersData = {
     body?: never;
@@ -7977,7 +8606,7 @@ export type ListAttentionData = {
          */
         status?: 'open' | 'resolved' | 'dismissed' | 'all';
         /**
-         * Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing.
+         * Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing (feed.recovered never opens an item).
          */
         kind?: string;
         /**
@@ -10171,9 +10800,9 @@ export type UpdateChannelData = {
             [key: string]: string;
         };
         /**
-         * Replaces the whole set of account events the channel receives. A webhook takes any of them; a Slack, email or Telegram channel the attention events only (mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing). An empty list unsubscribes it from all of them.
+         * Replaces the whole set of account events the channel receives. A webhook takes any of them; a Slack, email or Telegram channel the attention events only (mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered). An empty list unsubscribes it from all of them.
          */
-        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing'>;
+        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
     };
     path: {
         /**
