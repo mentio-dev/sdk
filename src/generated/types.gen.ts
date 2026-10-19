@@ -1068,6 +1068,14 @@ export type Mention = {
          */
         language: string | null;
         /**
+         * Where the author is, as a lowercase ISO 3166-1 alpha-2 code (us, in, de): the classifier's reading of the author's profile location and the post. A best guess, not a fact the platform gave; null when nothing tells, or classified before countries were recorded.
+         */
+        country: string | null;
+        /**
+         * The author is a company, brand or organization account rather than a person: a LinkedIn company page, a GitHub organization, an account that speaks for a business. A label only, like automated. false while unjudged.
+         */
+        organization: boolean;
+        /**
          * How sure the classifier is of its relevance verdict, 0 to 1. null when the verdict came without one: the fallback model judged, or the row was scored before confidence was recorded.
          */
         confidence: number | null;
@@ -1600,6 +1608,18 @@ export type FilterGroup = {
      */
     notLanguages?: Array<string>;
     /**
+     * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+     */
+    countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+    /**
+     * Never posts whose author is in these countries; an unknown country still passes.
+     */
+    notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+    /**
+     * true: only posts by companies, brands and organizations; false: only posts by people.
+     */
+    organization?: boolean;
+    /**
      * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
      */
     tags?: Array<string>;
@@ -1761,6 +1781,18 @@ export type View = {
          * Never posts in these languages; an unknown language still passes.
          */
         notLanguages?: Array<string>;
+        /**
+         * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+         */
+        countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
+         * Never posts whose author is in these countries; an unknown country still passes.
+         */
+        notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
+         * true: only posts by companies, brands and organizations; false: only posts by people.
+         */
+        organization?: boolean;
         /**
          * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
@@ -2846,9 +2878,21 @@ export type Alert = {
          */
         languages?: Array<string>;
         /**
+         * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). A post whose country is unknown never passes.
+         */
+        countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
+         * Never posts whose author is in these countries: ["in"]. A post whose country is unknown still passes.
+         */
+        notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
          * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
          */
         automated?: boolean;
+        /**
+         * true: only posts by companies, brands and organizations; false: only posts by people. Omit for both.
+         */
+        organization?: boolean;
         /**
          * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
          */
@@ -3318,7 +3362,7 @@ export type AnalyticsBreakdown = {
     /**
      * The dimension the rows are grouped by.
      */
-    by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'subreddit';
+    by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'country' | 'subreddit';
     /**
      * Most matched first, at most 50 groups. by=hour is chronological and unlimited (168 cells at most).
      */
@@ -5046,6 +5090,10 @@ export type SearchMentionsData = {
          */
         automated?: boolean;
         /**
+         * true: only posts by companies, brands and organizations (a LinkedIn company page, a GitHub organization, a business account); false: only posts by people, mentions judged before this existed included. Omitted: everything.
+         */
+        organization?: boolean;
+        /**
          * Only this person (an id from /v1/people), merged accounts included. Implies includeMuted.
          */
         personId?: string;
@@ -5177,6 +5225,14 @@ export type SearchMentionsData = {
          * Never posts in these languages. A post whose language is unknown still passes.
          */
         notLanguages?: Array<string>;
+        /**
+         * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de), as the classifier read the author's profile and the post. A post whose country is unknown never passes.
+         */
+        countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
+         * Never posts whose author is in these countries: notCountries=in. A post whose country is unknown still passes.
+         */
+        notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
         /**
          * Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.
          */
@@ -5302,6 +5358,10 @@ export type ExportMentionsCsvData = {
          */
         automated?: boolean;
         /**
+         * true: only posts by companies, brands and organizations (a LinkedIn company page, a GitHub organization, a business account); false: only posts by people, mentions judged before this existed included. Omitted: everything.
+         */
+        organization?: boolean;
+        /**
          * Only this person (an id from /v1/people), merged accounts included. Implies includeMuted.
          */
         personId?: string;
@@ -5433,6 +5493,14 @@ export type ExportMentionsCsvData = {
          * Never posts in these languages. A post whose language is unknown still passes.
          */
         notLanguages?: Array<string>;
+        /**
+         * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de), as the classifier read the author's profile and the post. A post whose country is unknown never passes.
+         */
+        countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
+         * Never posts whose author is in these countries: notCountries=in. A post whose country is unknown still passes.
+         */
+        notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
         /**
          * Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.
          */
@@ -5597,6 +5665,10 @@ export type ExportMentionsJsonData = {
          */
         automated?: boolean;
         /**
+         * true: only posts by companies, brands and organizations (a LinkedIn company page, a GitHub organization, a business account); false: only posts by people, mentions judged before this existed included. Omitted: everything.
+         */
+        organization?: boolean;
+        /**
          * Only this person (an id from /v1/people), merged accounts included. Implies includeMuted.
          */
         personId?: string;
@@ -5728,6 +5800,14 @@ export type ExportMentionsJsonData = {
          * Never posts in these languages. A post whose language is unknown still passes.
          */
         notLanguages?: Array<string>;
+        /**
+         * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de), as the classifier read the author's profile and the post. A post whose country is unknown never passes.
+         */
+        countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
+         * Never posts whose author is in these countries: notCountries=in. A post whose country is unknown still passes.
+         */
+        notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
         /**
          * Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.
          */
@@ -7265,6 +7345,18 @@ export type ListViewsResponses = {
                  */
                 notLanguages?: Array<string>;
                 /**
+                 * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+                 */
+                countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
+                 * Never posts whose author is in these countries; an unknown country still passes.
+                 */
+                notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
+                 * true: only posts by companies, brands and organizations; false: only posts by people.
+                 */
+                organization?: boolean;
+                /**
                  * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
                  */
                 tags?: Array<string>;
@@ -7449,6 +7541,18 @@ export type CreateViewData = {
              * Never posts in these languages; an unknown language still passes.
              */
             notLanguages?: Array<string>;
+            /**
+             * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+             */
+            countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * Never posts whose author is in these countries; an unknown country still passes.
+             */
+            notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * true: only posts by companies, brands and organizations; false: only posts by people.
+             */
+            organization?: boolean;
             /**
              * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
@@ -7714,6 +7818,18 @@ export type UpdateViewData = {
              * Never posts in these languages; an unknown language still passes.
              */
             notLanguages?: Array<string>;
+            /**
+             * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+             */
+            countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * Never posts whose author is in these countries; an unknown country still passes.
+             */
+            notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * true: only posts by companies, brands and organizations; false: only posts by people.
+             */
+            organization?: boolean;
             /**
              * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
@@ -9017,9 +9133,21 @@ export type UpdateAlertData = {
              */
             languages?: Array<string>;
             /**
+             * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). A post whose country is unknown never passes.
+             */
+            countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * Never posts whose author is in these countries: ["in"]. A post whose country is unknown still passes.
+             */
+            notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
              * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
              */
             automated?: boolean;
+            /**
+             * true: only posts by companies, brands and organizations; false: only posts by people. Omit for both.
+             */
+            organization?: boolean;
             /**
              * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
              */
@@ -9194,9 +9322,21 @@ export type ListAlertsResponses = {
                  */
                 languages?: Array<string>;
                 /**
+                 * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). A post whose country is unknown never passes.
+                 */
+                countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
+                 * Never posts whose author is in these countries: ["in"]. A post whose country is unknown still passes.
+                 */
+                notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
                  * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
                  */
                 automated?: boolean;
+                /**
+                 * true: only posts by companies, brands and organizations; false: only posts by people. Omit for both.
+                 */
+                organization?: boolean;
                 /**
                  * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
                  */
@@ -9341,9 +9481,21 @@ export type CreateAlertData = {
              */
             languages?: Array<string>;
             /**
+             * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). A post whose country is unknown never passes.
+             */
+            countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * Never posts whose author is in these countries: ["in"]. A post whose country is unknown still passes.
+             */
+            notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
              * true: only posts that read as machine-made (bots, templated posts); false: only the rest. Omit for both.
              */
             automated?: boolean;
+            /**
+             * true: only posts by companies, brands and organizations; false: only posts by people. Omit for both.
+             */
+            organization?: boolean;
             /**
              * Only app store reviews with any of these star ratings (1 to 5): [1, 2] sends the unhappy ones. Every other post fails it.
              */
@@ -9765,9 +9917,9 @@ export type GetAnalyticsBreakdownData = {
          */
         timezone?: string;
         /**
-         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; "unknown" for posts without one), subreddit (Reddit posts only, most active first; `share` stays a percent of the whole window, every platform included).
+         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; "unknown" for posts without one), country (where the author is, ISO 3166-1 alpha-2; "unknown" for posts without one), subreddit (Reddit posts only, most active first; `share` stays a percent of the whole window, every platform included).
          */
-        by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'subreddit';
+        by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'country' | 'subreddit';
     };
     url: '/v1/analytics/breakdown';
 };
