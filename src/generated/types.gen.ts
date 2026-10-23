@@ -137,6 +137,37 @@ export type Keyword = {
          */
         maxPerPost: number;
     };
+    /**
+     * Which of this keyword's mentions you see, by language and country. Both are read by the classifier, so a hidden post is still matched, classified and billed like any other; it is kept out of the mentions list, the exports, MCP search, alerts and digests (includeHidden=true on GET /v1/mentions shows it). Read when the mentions are read, so changing a list applies to older mentions too.
+     */
+    display: {
+        /**
+         * By the language the post is written in.
+         */
+        languages: {
+            /**
+             * When non-empty, a post whose language (ISO 639-1) is known and not listed is hidden, a language (ISO 639-1) the classifier recognises but does not name included. A post whose language (ISO 639-1) nobody could tell is always shown.
+             */
+            only: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+            /**
+             * A post whose language (ISO 639-1) is listed is hidden.
+             */
+            excluded: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+        };
+        /**
+         * By where the author is, as the classifier read their profile and the post.
+         */
+        countries: {
+            /**
+             * When non-empty, a post whose author's country (ISO 3166-1 alpha-2) is known and not listed is hidden, a author's country (ISO 3166-1 alpha-2) the classifier recognises but does not name included. A post whose author's country (ISO 3166-1 alpha-2) nobody could tell is always shown.
+             */
+            only: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * A post whose author's country (ISO 3166-1 alpha-2) is listed is hidden.
+             */
+            excluded: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        };
+    };
     group: GroupRef;
     /**
      * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
@@ -485,6 +516,37 @@ export type KeywordSuggestion = {
              * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
              */
             maxPerPost?: number;
+        };
+        /**
+         * Which of this keyword's mentions you see, by language and country; each list is replaced when sent, kept when omitted. Hidden mentions are still billed.
+         */
+        display?: {
+            /**
+             * By the language of the post (ISO 639-1); omitted: untouched.
+             */
+            languages?: {
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                only?: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                excluded?: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+            };
+            /**
+             * By where the author is (ISO 3166-1 alpha-2); omitted: untouched.
+             */
+            countries?: {
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                only?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                excluded?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            };
         };
         /**
          * Moves the keyword to this group (grp_...). A 409 when that group already tracks the term.
@@ -1153,11 +1215,11 @@ export type Mention = {
          */
         automated: boolean;
         /**
-         * The language the post is written in, as an ISO 639-1 code (en, es, de); null when unknown or classified before languages were recorded.
+         * The language the post is written in, as an ISO 639-1 code (en, es, de); null when unknown, not one of the 20 the classifier names, or classified before languages were recorded.
          */
         language: string | null;
         /**
-         * Where the author is, as a lowercase ISO 3166-1 alpha-2 code (us, in, de): the classifier's reading of the author's profile location and the post. A best guess, not a fact the platform gave; null when nothing tells, or classified before countries were recorded.
+         * Where the author is, as a lowercase ISO 3166-1 alpha-2 code (us, in, de): the classifier's reading of the author's profile location and the post. A best guess, not a fact the platform gave; null when nothing tells, when it is not one of the 60 the classifier names, or when classified before countries were recorded.
          */
         country: string | null;
         /**
@@ -4268,6 +4330,37 @@ export type ListKeywordsResponses = {
                  */
                 maxPerPost: number;
             };
+            /**
+             * Which of this keyword's mentions you see, by language and country. Both are read by the classifier, so a hidden post is still matched, classified and billed like any other; it is kept out of the mentions list, the exports, MCP search, alerts and digests (includeHidden=true on GET /v1/mentions shows it). Read when the mentions are read, so changing a list applies to older mentions too.
+             */
+            display: {
+                /**
+                 * By the language the post is written in.
+                 */
+                languages: {
+                    /**
+                     * When non-empty, a post whose language (ISO 639-1) is known and not listed is hidden, a language (ISO 639-1) the classifier recognises but does not name included. A post whose language (ISO 639-1) nobody could tell is always shown.
+                     */
+                    only: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                    /**
+                     * A post whose language (ISO 639-1) is listed is hidden.
+                     */
+                    excluded: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                };
+                /**
+                 * By where the author is, as the classifier read their profile and the post.
+                 */
+                countries: {
+                    /**
+                     * When non-empty, a post whose author's country (ISO 3166-1 alpha-2) is known and not listed is hidden, a author's country (ISO 3166-1 alpha-2) the classifier recognises but does not name included. A post whose author's country (ISO 3166-1 alpha-2) nobody could tell is always shown.
+                     */
+                    only: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                    /**
+                     * A post whose author's country (ISO 3166-1 alpha-2) is listed is hidden.
+                     */
+                    excluded: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                };
+            };
             group: GroupRef;
             /**
              * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
@@ -4583,6 +4676,37 @@ export type CreateKeywordData = {
             maxPerPost?: number;
         };
         /**
+         * Which of this keyword's mentions you see, by language and country; each list is replaced when sent, kept when omitted. Hidden mentions are still billed.
+         */
+        display?: {
+            /**
+             * By the language of the post (ISO 639-1); omitted: untouched.
+             */
+            languages?: {
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                only?: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                excluded?: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+            };
+            /**
+             * By where the author is (ISO 3166-1 alpha-2); omitted: untouched.
+             */
+            countries?: {
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                only?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                excluded?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            };
+        };
+        /**
          * The group to track it in (grp_...); omit for the workspace's default group. A term may be tracked once per group.
          */
         groupId?: string;
@@ -4837,6 +4961,37 @@ export type UpdateKeywordData = {
              * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
              */
             maxPerPost?: number;
+        };
+        /**
+         * Which of this keyword's mentions you see, by language and country; each list is replaced when sent, kept when omitted. Hidden mentions are still billed.
+         */
+        display?: {
+            /**
+             * By the language of the post (ISO 639-1); omitted: untouched.
+             */
+            languages?: {
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                only?: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                excluded?: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+            };
+            /**
+             * By where the author is (ISO 3166-1 alpha-2); omitted: untouched.
+             */
+            countries?: {
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                only?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
+                 * Replaces the list; [] clears it.
+                 */
+                excluded?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            };
         };
         /**
          * Moves the keyword to this group (grp_...). A 409 when that group already tracks the term.
@@ -5751,6 +5906,10 @@ export type SearchMentionsData = {
          */
         includeMuted?: boolean;
         /**
+         * true: include mentions their keyword's display lists hide (a language or country it does not show), hidden by default.
+         */
+        includeHidden?: boolean;
+        /**
          * true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.
          */
         includeDuplicates?: boolean;
@@ -6018,6 +6177,10 @@ export type ExportMentionsCsvData = {
          * true: include mentions by people you muted, hidden by default: muted for the workspace, or for the mention's own keyword group.
          */
         includeMuted?: boolean;
+        /**
+         * true: include mentions their keyword's display lists hide (a language or country it does not show), hidden by default.
+         */
+        includeHidden?: boolean;
         /**
          * true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.
          */
@@ -6325,6 +6488,10 @@ export type ExportMentionsJsonData = {
          * true: include mentions by people you muted, hidden by default: muted for the workspace, or for the mention's own keyword group.
          */
         includeMuted?: boolean;
+        /**
+         * true: include mentions their keyword's display lists hide (a language or country it does not show), hidden by default.
+         */
+        includeHidden?: boolean;
         /**
          * true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.
          */
@@ -10566,7 +10733,7 @@ export type GetAnalyticsBreakdownData = {
          */
         timezone?: string;
         /**
-         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; "unknown" for posts without one), country (where the author is, ISO 3166-1 alpha-2; "unknown" for posts without one), subreddit (Reddit posts only, most active first; `share` stays a percent of the whole window, every platform included).
+         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; "unknown" for posts without one, "other" for a language the classifier recognised but does not name), country (where the author is, ISO 3166-1 alpha-2; "unknown" for posts nobody could place, "other" for a place it does not name), subreddit (Reddit posts only, most active first; `share` stays a percent of the whole window, every platform included).
          */
         by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'country' | 'subreddit';
     };
