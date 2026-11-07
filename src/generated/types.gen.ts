@@ -1850,6 +1850,10 @@ export type FilterGroup = {
     /**
      * Never these authors: display names, handles or profile URLs.
      */
+    notAuthors?: Array<string>;
+    /**
+     * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
+     */
     excludeAuthors?: Array<string>;
     /**
      * Only app store reviews with any of these star ratings; every other post fails it.
@@ -2023,6 +2027,10 @@ export type View = {
         kind?: 'post' | 'comment' | 'repository';
         /**
          * Never these authors: display names, handles or profile URLs.
+         */
+        notAuthors?: Array<string>;
+        /**
+         * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
          */
         excludeAuthors?: Array<string>;
         /**
@@ -5940,11 +5948,15 @@ export type SearchMentionsData = {
     path?: never;
     query?: {
         /**
-         * Only matches of this keyword.
+         * Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.
+         *
+         * @deprecated
          */
         keywordId?: string;
         /**
-         * Only posts from this platform.
+         * Deprecated: use platforms. Only posts from this platform; combines with platforms as either.
+         *
+         * @deprecated
          */
         platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
@@ -5956,11 +5968,15 @@ export type SearchMentionsData = {
          */
         relevant?: boolean;
         /**
-         * Only this sentiment.
+         * Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.
+         *
+         * @deprecated
          */
         sentiment?: 'positive' | 'neutral' | 'negative';
         /**
-         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
+         * Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
+         *
+         * @deprecated
          */
         intent?: string;
         /**
@@ -5997,6 +6013,12 @@ export type SearchMentionsData = {
         snoozed?: boolean;
         /**
          * Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.
+         */
+        notAuthors?: Array<string> | null;
+        /**
+         * Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.
+         *
+         * @deprecated
          */
         excludeAuthors?: Array<string> | null;
         /**
@@ -6156,11 +6178,31 @@ export type SearchMentionsData = {
          */
         q?: string;
         /**
-         * Only posts published at or after this instant (ISO 8601, or epoch ms).
+         * A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.
+         */
+        range?: '7d' | '30d' | '90d' | '365d';
+        /**
+         * Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        from?: string;
+        /**
+         * End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        to?: string;
+        /**
+         * IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.
+         */
+        timezone?: string;
+        /**
+         * Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).
+         *
+         * @deprecated
          */
         since?: string;
         /**
-         * Only posts published at or before this instant (ISO 8601, or epoch ms).
+         * Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).
+         *
+         * @deprecated
          */
         until?: string;
         /**
@@ -6172,7 +6214,7 @@ export type SearchMentionsData = {
          */
         cursor?: string;
         /**
-         * Page size, 1 to 100.
+         * Page size, 1 to 100 (default 50).
          */
         limit?: number;
     };
@@ -6212,11 +6254,15 @@ export type ExportMentionsCsvData = {
     path?: never;
     query?: {
         /**
-         * Only matches of this keyword.
+         * Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.
+         *
+         * @deprecated
          */
         keywordId?: string;
         /**
-         * Only posts from this platform.
+         * Deprecated: use platforms. Only posts from this platform; combines with platforms as either.
+         *
+         * @deprecated
          */
         platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
@@ -6228,11 +6274,15 @@ export type ExportMentionsCsvData = {
          */
         relevant?: boolean;
         /**
-         * Only this sentiment.
+         * Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.
+         *
+         * @deprecated
          */
         sentiment?: 'positive' | 'neutral' | 'negative';
         /**
-         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
+         * Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
+         *
+         * @deprecated
          */
         intent?: string;
         /**
@@ -6269,6 +6319,12 @@ export type ExportMentionsCsvData = {
         snoozed?: boolean;
         /**
          * Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.
+         */
+        notAuthors?: Array<string> | null;
+        /**
+         * Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.
+         *
+         * @deprecated
          */
         excludeAuthors?: Array<string> | null;
         /**
@@ -6428,11 +6484,31 @@ export type ExportMentionsCsvData = {
          */
         q?: string;
         /**
-         * Only posts published at or after this instant (ISO 8601, or epoch ms).
+         * A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.
+         */
+        range?: '7d' | '30d' | '90d' | '365d';
+        /**
+         * Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        from?: string;
+        /**
+         * End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        to?: string;
+        /**
+         * IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.
+         */
+        timezone?: string;
+        /**
+         * Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).
+         *
+         * @deprecated
          */
         since?: string;
         /**
-         * Only posts published at or before this instant (ISO 8601, or epoch ms).
+         * Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).
+         *
+         * @deprecated
          */
         until?: string;
     };
@@ -6523,11 +6599,15 @@ export type ExportMentionsJsonData = {
     path?: never;
     query?: {
         /**
-         * Only matches of this keyword.
+         * Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.
+         *
+         * @deprecated
          */
         keywordId?: string;
         /**
-         * Only posts from this platform.
+         * Deprecated: use platforms. Only posts from this platform; combines with platforms as either.
+         *
+         * @deprecated
          */
         platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
@@ -6539,11 +6619,15 @@ export type ExportMentionsJsonData = {
          */
         relevant?: boolean;
         /**
-         * Only this sentiment.
+         * Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.
+         *
+         * @deprecated
          */
         sentiment?: 'positive' | 'neutral' | 'negative';
         /**
-         * Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
+         * Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
+         *
+         * @deprecated
          */
         intent?: string;
         /**
@@ -6580,6 +6664,12 @@ export type ExportMentionsJsonData = {
         snoozed?: boolean;
         /**
          * Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.
+         */
+        notAuthors?: Array<string> | null;
+        /**
+         * Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.
+         *
+         * @deprecated
          */
         excludeAuthors?: Array<string> | null;
         /**
@@ -6739,11 +6829,31 @@ export type ExportMentionsJsonData = {
          */
         q?: string;
         /**
-         * Only posts published at or after this instant (ISO 8601, or epoch ms).
+         * A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.
+         */
+        range?: '7d' | '30d' | '90d' | '365d';
+        /**
+         * Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        from?: string;
+        /**
+         * End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        to?: string;
+        /**
+         * IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.
+         */
+        timezone?: string;
+        /**
+         * Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).
+         *
+         * @deprecated
          */
         since?: string;
         /**
-         * Only posts published at or before this instant (ISO 8601, or epoch ms).
+         * Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).
+         *
+         * @deprecated
          */
         until?: string;
     };
@@ -6794,7 +6904,9 @@ export type ExportPeopleCsvData = {
          */
         groupId?: string;
         /**
-         * People with an account on this platform.
+         * Deprecated: use platforms. People with an account on this platform; combines with platforms as either.
+         *
+         * @deprecated
          */
         platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
@@ -6806,7 +6918,9 @@ export type ExportPeopleCsvData = {
          */
         handle?: string;
         /**
-         * Only people carrying this tag (exact, case-sensitive).
+         * Deprecated: use tags. Only people carrying this tag (exact, case-sensitive); combines with tags as either.
+         *
+         * @deprecated
          */
         tag?: string;
         /**
@@ -6814,7 +6928,25 @@ export type ExportPeopleCsvData = {
          */
         muted?: boolean;
         /**
-         * Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).
+         * A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.
+         */
+        range?: '7d' | '30d' | '90d' | '365d';
+        /**
+         * Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        from?: string;
+        /**
+         * End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        to?: string;
+        /**
+         * IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.
+         */
+        timezone?: string;
+        /**
+         * Deprecated: use from. Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).
+         *
+         * @deprecated
          */
         since?: string;
         /**
@@ -6936,7 +7068,9 @@ export type ListPeopleData = {
          */
         groupId?: string;
         /**
-         * People with an account on this platform.
+         * Deprecated: use platforms. People with an account on this platform; combines with platforms as either.
+         *
+         * @deprecated
          */
         platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
@@ -6948,7 +7082,9 @@ export type ListPeopleData = {
          */
         handle?: string;
         /**
-         * Only people carrying this tag (exact, case-sensitive).
+         * Deprecated: use tags. Only people carrying this tag (exact, case-sensitive); combines with tags as either.
+         *
+         * @deprecated
          */
         tag?: string;
         /**
@@ -6956,7 +7092,25 @@ export type ListPeopleData = {
          */
         muted?: boolean;
         /**
-         * Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).
+         * A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.
+         */
+        range?: '7d' | '30d' | '90d' | '365d';
+        /**
+         * Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        from?: string;
+        /**
+         * End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        to?: string;
+        /**
+         * IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.
+         */
+        timezone?: string;
+        /**
+         * Deprecated: use from. Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).
+         *
+         * @deprecated
          */
         since?: string;
         /**
@@ -8289,6 +8443,10 @@ export type ListViewsResponses = {
                 /**
                  * Never these authors: display names, handles or profile URLs.
                  */
+                notAuthors?: Array<string>;
+                /**
+                 * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
+                 */
                 excludeAuthors?: Array<string>;
                 /**
                  * Only app store reviews with any of these star ratings; every other post fails it.
@@ -8485,6 +8643,10 @@ export type CreateViewData = {
             kind?: 'post' | 'comment' | 'repository';
             /**
              * Never these authors: display names, handles or profile URLs.
+             */
+            notAuthors?: Array<string>;
+            /**
+             * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
              */
             excludeAuthors?: Array<string>;
             /**
@@ -8762,6 +8924,10 @@ export type UpdateViewData = {
             kind?: 'post' | 'comment' | 'repository';
             /**
              * Never these authors: display names, handles or profile URLs.
+             */
+            notAuthors?: Array<string>;
+            /**
+             * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
              */
             excludeAuthors?: Array<string>;
             /**
@@ -9797,7 +9963,7 @@ export type ListLedgerData = {
          */
         cursor?: string;
         /**
-         * Page size, 1 to 100 (default 25).
+         * Page size, 1 to 100 (default 50).
          */
         limit?: number;
     };
@@ -11179,6 +11345,13 @@ export type ListChannelDeliveriesData = {
         id: string;
     };
     query?: {
+        /**
+         * Opaque cursor from a previous page (`nextCursor`).
+         */
+        cursor?: string;
+        /**
+         * How many deliveries, newest first, 1 to 200 (default 50).
+         */
         limit?: number;
     };
     url: '/v1/channels/{id}/deliveries';
@@ -11244,6 +11417,10 @@ export type ListChannelDeliveriesResponses = {
                 text: string;
             } | null;
         }>;
+        /**
+         * Pass back as `cursor` for the next page; null on the last page.
+         */
+        nextCursor: string | null;
     };
 };
 

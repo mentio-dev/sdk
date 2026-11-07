@@ -4106,7 +4106,7 @@
             ],
             "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
           },
-          "excludeAuthors": {
+          "notAuthors": {
             "type": "array",
             "items": {
               "type": "string",
@@ -4115,6 +4115,16 @@
             },
             "maxItems": 200,
             "description": "Never these authors: display names, handles or profile URLs."
+          },
+          "excludeAuthors": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "maxItems": 200,
+            "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
           },
           "ratings": {
             "type": "array",
@@ -4621,7 +4631,7 @@
                 ],
                 "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
               },
-              "excludeAuthors": {
+              "notAuthors": {
                 "type": "array",
                 "items": {
                   "type": "string",
@@ -4630,6 +4640,16 @@
                 },
                 "maxItems": 200,
                 "description": "Never these authors: display names, handles or profile URLs."
+              },
+              "excludeAuthors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 200,
+                "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
               },
               "ratings": {
                 "type": "array",
@@ -8763,6 +8783,7 @@
     "/v1/health": {
       "get": {
         "operationId": "getHealth",
+        "summary": "Check the API is up",
         "tags": [
           "System"
         ],
@@ -12631,10 +12652,12 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only matches of this keyword."
+              "description": "Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only matches of this keyword.",
+            "description": "Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.",
+            "deprecated": true,
             "name": "keywordId",
             "in": "query"
           },
@@ -12661,10 +12684,12 @@
                 "googlemaps",
                 "rss"
               ],
-              "description": "Only posts from this platform."
+              "description": "Deprecated: use platforms. Only posts from this platform; combines with platforms as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only posts from this platform.",
+            "description": "Deprecated: use platforms. Only posts from this platform; combines with platforms as either.",
+            "deprecated": true,
             "name": "platform",
             "in": "query"
           },
@@ -12701,20 +12726,24 @@
                 "neutral",
                 "negative"
               ],
-              "description": "Only this sentiment."
+              "description": "Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only this sentiment.",
+            "description": "Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.",
+            "deprecated": true,
             "name": "sentiment",
             "in": "query"
           },
           {
             "schema": {
               "type": "string",
-              "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback)."
+              "description": "Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+            "description": "Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+            "deprecated": true,
             "name": "intent",
             "in": "query"
           },
@@ -12814,6 +12843,25 @@
             },
             "required": false,
             "description": "Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.",
+            "name": "notAuthors",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 200,
+              "description": "Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.",
+            "deprecated": true,
             "name": "excludeAuthors",
             "in": "query"
           },
@@ -13556,22 +13604,73 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only posts published at or after this instant (ISO 8601, or epoch ms).",
-              "format": "date-time"
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "365d"
+              ],
+              "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window."
             },
             "required": false,
-            "description": "Only posts published at or after this instant (ISO 8601, or epoch ms).",
+            "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC."
+            },
+            "required": false,
+            "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.",
+            "name": "timezone",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).",
+              "format": "date-time",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).",
+            "deprecated": true,
             "name": "since",
             "in": "query"
           },
           {
             "schema": {
               "type": "string",
-              "description": "Only posts published at or before this instant (ISO 8601, or epoch ms).",
-              "format": "date-time"
+              "description": "Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).",
+              "format": "date-time",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only posts published at or before this instant (ISO 8601, or epoch ms).",
+            "description": "Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).",
+            "deprecated": true,
             "name": "until",
             "in": "query"
           },
@@ -13605,11 +13704,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 100,
-              "default": 25,
-              "description": "Page size, 1 to 100."
+              "default": 50,
+              "description": "Page size, 1 to 100 (default 50)."
             },
             "required": false,
-            "description": "Page size, 1 to 100.",
+            "description": "Page size, 1 to 100 (default 50).",
             "name": "limit",
             "in": "query"
           }
@@ -13682,10 +13781,12 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only matches of this keyword."
+              "description": "Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only matches of this keyword.",
+            "description": "Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.",
+            "deprecated": true,
             "name": "keywordId",
             "in": "query"
           },
@@ -13712,10 +13813,12 @@
                 "googlemaps",
                 "rss"
               ],
-              "description": "Only posts from this platform."
+              "description": "Deprecated: use platforms. Only posts from this platform; combines with platforms as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only posts from this platform.",
+            "description": "Deprecated: use platforms. Only posts from this platform; combines with platforms as either.",
+            "deprecated": true,
             "name": "platform",
             "in": "query"
           },
@@ -13752,20 +13855,24 @@
                 "neutral",
                 "negative"
               ],
-              "description": "Only this sentiment."
+              "description": "Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only this sentiment.",
+            "description": "Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.",
+            "deprecated": true,
             "name": "sentiment",
             "in": "query"
           },
           {
             "schema": {
               "type": "string",
-              "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback)."
+              "description": "Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+            "description": "Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+            "deprecated": true,
             "name": "intent",
             "in": "query"
           },
@@ -13865,6 +13972,25 @@
             },
             "required": false,
             "description": "Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.",
+            "name": "notAuthors",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 200,
+              "description": "Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.",
+            "deprecated": true,
             "name": "excludeAuthors",
             "in": "query"
           },
@@ -14607,22 +14733,73 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only posts published at or after this instant (ISO 8601, or epoch ms).",
-              "format": "date-time"
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "365d"
+              ],
+              "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window."
             },
             "required": false,
-            "description": "Only posts published at or after this instant (ISO 8601, or epoch ms).",
+            "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC."
+            },
+            "required": false,
+            "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.",
+            "name": "timezone",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).",
+              "format": "date-time",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).",
+            "deprecated": true,
             "name": "since",
             "in": "query"
           },
           {
             "schema": {
               "type": "string",
-              "description": "Only posts published at or before this instant (ISO 8601, or epoch ms).",
-              "format": "date-time"
+              "description": "Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).",
+              "format": "date-time",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only posts published at or before this instant (ISO 8601, or epoch ms).",
+            "description": "Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).",
+            "deprecated": true,
             "name": "until",
             "in": "query"
           }
@@ -14800,10 +14977,12 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only matches of this keyword."
+              "description": "Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only matches of this keyword.",
+            "description": "Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.",
+            "deprecated": true,
             "name": "keywordId",
             "in": "query"
           },
@@ -14830,10 +15009,12 @@
                 "googlemaps",
                 "rss"
               ],
-              "description": "Only posts from this platform."
+              "description": "Deprecated: use platforms. Only posts from this platform; combines with platforms as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only posts from this platform.",
+            "description": "Deprecated: use platforms. Only posts from this platform; combines with platforms as either.",
+            "deprecated": true,
             "name": "platform",
             "in": "query"
           },
@@ -14870,20 +15051,24 @@
                 "neutral",
                 "negative"
               ],
-              "description": "Only this sentiment."
+              "description": "Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only this sentiment.",
+            "description": "Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.",
+            "deprecated": true,
             "name": "sentiment",
             "in": "query"
           },
           {
             "schema": {
               "type": "string",
-              "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback)."
+              "description": "Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only mentions carrying this intent or topic tag (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+            "description": "Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).",
+            "deprecated": true,
             "name": "intent",
             "in": "query"
           },
@@ -14983,6 +15168,25 @@
             },
             "required": false,
             "description": "Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.",
+            "name": "notAuthors",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 200,
+              "description": "Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.",
+            "deprecated": true,
             "name": "excludeAuthors",
             "in": "query"
           },
@@ -15725,22 +15929,73 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only posts published at or after this instant (ISO 8601, or epoch ms).",
-              "format": "date-time"
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "365d"
+              ],
+              "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window."
             },
             "required": false,
-            "description": "Only posts published at or after this instant (ISO 8601, or epoch ms).",
+            "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC."
+            },
+            "required": false,
+            "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.",
+            "name": "timezone",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).",
+              "format": "date-time",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).",
+            "deprecated": true,
             "name": "since",
             "in": "query"
           },
           {
             "schema": {
               "type": "string",
-              "description": "Only posts published at or before this instant (ISO 8601, or epoch ms).",
-              "format": "date-time"
+              "description": "Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).",
+              "format": "date-time",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only posts published at or before this instant (ISO 8601, or epoch ms).",
+            "description": "Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).",
+            "deprecated": true,
             "name": "until",
             "in": "query"
           }
@@ -15854,10 +16109,12 @@
                 "googlemaps",
                 "rss"
               ],
-              "description": "People with an account on this platform."
+              "description": "Deprecated: use platforms. People with an account on this platform; combines with platforms as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "People with an account on this platform.",
+            "description": "Deprecated: use platforms. People with an account on this platform; combines with platforms as either.",
+            "deprecated": true,
             "name": "platform",
             "in": "query"
           },
@@ -15890,10 +16147,12 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 40,
-              "description": "Only people carrying this tag (exact, case-sensitive)."
+              "description": "Deprecated: use tags. Only people carrying this tag (exact, case-sensitive); combines with tags as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only people carrying this tag (exact, case-sensitive).",
+            "description": "Deprecated: use tags. Only people carrying this tag (exact, case-sensitive); combines with tags as either.",
+            "deprecated": true,
             "name": "tag",
             "in": "query"
           },
@@ -15910,11 +16169,60 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).",
-              "format": "date-time"
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "365d"
+              ],
+              "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window."
             },
             "required": false,
-            "description": "Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).",
+            "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC."
+            },
+            "required": false,
+            "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.",
+            "name": "timezone",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deprecated: use from. Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).",
+              "format": "date-time",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use from. Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).",
+            "deprecated": true,
             "name": "since",
             "in": "query"
           },
@@ -16350,10 +16658,12 @@
                 "googlemaps",
                 "rss"
               ],
-              "description": "People with an account on this platform."
+              "description": "Deprecated: use platforms. People with an account on this platform; combines with platforms as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "People with an account on this platform.",
+            "description": "Deprecated: use platforms. People with an account on this platform; combines with platforms as either.",
+            "deprecated": true,
             "name": "platform",
             "in": "query"
           },
@@ -16386,10 +16696,12 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 40,
-              "description": "Only people carrying this tag (exact, case-sensitive)."
+              "description": "Deprecated: use tags. Only people carrying this tag (exact, case-sensitive); combines with tags as either.",
+              "deprecated": true
             },
             "required": false,
-            "description": "Only people carrying this tag (exact, case-sensitive).",
+            "description": "Deprecated: use tags. Only people carrying this tag (exact, case-sensitive); combines with tags as either.",
+            "deprecated": true,
             "name": "tag",
             "in": "query"
           },
@@ -16406,11 +16718,60 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).",
-              "format": "date-time"
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "365d"
+              ],
+              "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window."
             },
             "required": false,
-            "description": "Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).",
+            "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC."
+            },
+            "required": false,
+            "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.",
+            "name": "timezone",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Deprecated: use from. Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).",
+              "format": "date-time",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use from. Only people whose first matched mention is at or after this instant (ISO 8601, or epoch ms).",
+            "deprecated": true,
             "name": "since",
             "in": "query"
           },
@@ -19641,7 +20002,7 @@
                                 ],
                                 "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
                               },
-                              "excludeAuthors": {
+                              "notAuthors": {
                                 "type": "array",
                                 "items": {
                                   "type": "string",
@@ -19650,6 +20011,16 @@
                                 },
                                 "maxItems": 200,
                                 "description": "Never these authors: display names, handles or profile URLs."
+                              },
+                              "excludeAuthors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 200,
+                                "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
                               },
                               "ratings": {
                                 "type": "array",
@@ -20221,7 +20592,7 @@
                         ],
                         "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
                       },
-                      "excludeAuthors": {
+                      "notAuthors": {
                         "type": "array",
                         "items": {
                           "type": "string",
@@ -20230,6 +20601,16 @@
                         },
                         "maxItems": 200,
                         "description": "Never these authors: display names, handles or profile URLs."
+                      },
+                      "excludeAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 200,
+                        "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
                       },
                       "ratings": {
                         "type": "array",
@@ -20885,7 +21266,7 @@
                         ],
                         "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
                       },
-                      "excludeAuthors": {
+                      "notAuthors": {
                         "type": "array",
                         "items": {
                           "type": "string",
@@ -20894,6 +21275,16 @@
                         },
                         "maxItems": 200,
                         "description": "Never these authors: display names, handles or profile URLs."
+                      },
+                      "excludeAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 200,
+                        "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
                       },
                       "ratings": {
                         "type": "array",
@@ -22897,11 +23288,12 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 100,
-              "description": "Page size, 1 to 100 (default 25).",
-              "example": 25
+              "default": 50,
+              "description": "Page size, 1 to 100 (default 50).",
+              "example": 50
             },
             "required": false,
-            "description": "Page size, 1 to 100 (default 25).",
+            "description": "Page size, 1 to 100 (default 50).",
             "name": "limit",
             "in": "query"
           }
@@ -26284,11 +26676,24 @@
           },
           {
             "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200
+              "type": "string",
+              "description": "Opaque cursor from a previous page (`nextCursor`)."
             },
             "required": false,
+            "description": "Opaque cursor from a previous page (`nextCursor`).",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "description": "How many deliveries, newest first, 1 to 200 (default 50)."
+            },
+            "required": false,
+            "description": "How many deliveries, newest first, 1 to 200 (default 50).",
             "name": "limit",
             "in": "query"
           }
@@ -26396,10 +26801,16 @@
                           "mention"
                         ]
                       }
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Pass back as `cursor` for the next page; null on the last page."
                     }
                   },
                   "required": [
-                    "data"
+                    "data",
+                    "nextCursor"
                   ]
                 }
               }
