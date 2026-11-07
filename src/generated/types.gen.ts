@@ -84,7 +84,7 @@ export type Keyword = {
      */
     pausedForBalance: boolean;
     /**
-     * Muted by the noise brake: on a workspace running on its welcome credit, at least 20 of its matches were scored and under 30% were relevant. A change of its required or excluded terms, platforms or context resumes it (when the balance covers another day), and so does unmuting; a top-up does not.
+     * Muted by the noise brake: under 30% of 20 or more scored matches were relevant, on welcome credit. Changing its rules, platforms or context, or unmuting, resumes it (balance permitting); a top-up does not. See [Billing](/billing).
      */
     pausedForNoise: boolean;
     /**
@@ -100,7 +100,7 @@ export type Keyword = {
          */
         mentions: number;
         /**
-         * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+         * The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts.
          */
         per?: 'day' | 'week' | 'month';
         /**
@@ -125,45 +125,45 @@ export type Keyword = {
         resumesAt: string | null;
     } | null;
     /**
-     * Comments under this keyword's mentions: when enabled, the comments of every mention scored relevant are read from 30 minutes after the post, on a schedule per platform (for a day on Reddit, Hacker News and Bluesky, a week on GitHub, Stack Overflow and DEV, a month on YouTube) (new comments only, at most maxPerPost a thread, comments of fewer than three words dropped), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments.
+     * Comments under this keyword's relevant mentions, read several times per thread on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments; see [Comments](/guides/comments).
      */
     comments: {
         /**
-         * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+         * Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments).
          */
         enabled: boolean;
         /**
-         * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+         * The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these.
          */
         maxPerPost: number;
     };
     /**
-     * Which of this keyword's mentions you see, by language and country. Both are read by the classifier, so a hidden post is still matched, classified and billed like any other; it is kept out of the mentions list, the exports, MCP search, alerts and digests (includeHidden=true on GET /v1/mentions shows it). Read when the mentions are read, so changing a list applies to older mentions too.
+     * Which of this keyword's mentions you see, by language and country. A hidden post is still matched, classified and billed, but kept out of lists, exports, search, alerts and digests (includeHidden=true shows it). See [Keywords](/guides/keywords#show-only-some-languages-or-countries).
      */
     display: {
         /**
-         * By the language the post is written in.
+         * By the language the post is written in (ISO 639-1).
          */
         languages: {
             /**
-             * When non-empty, a post whose language (ISO 639-1) is known and not listed is hidden, a language (ISO 639-1) the classifier recognises but does not name included. A post whose language (ISO 639-1) nobody could tell is always shown.
+             * When non-empty, a post whose language is known and not listed is hidden, one the classifier cannot name included. A post whose language nobody could tell is always shown.
              */
             only: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
             /**
-             * A post whose language (ISO 639-1) is listed is hidden.
+             * A post whose language is listed is hidden.
              */
             excluded: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
         };
         /**
-         * By where the author is, as the classifier read their profile and the post.
+         * By where the author is (ISO 3166-1 alpha-2), as the classifier read their profile and the post.
          */
         countries: {
             /**
-             * When non-empty, a post whose author's country (ISO 3166-1 alpha-2) is known and not listed is hidden, a author's country (ISO 3166-1 alpha-2) the classifier recognises but does not name included. A post whose author's country (ISO 3166-1 alpha-2) nobody could tell is always shown.
+             * When non-empty, a post whose author's country is known and not listed is hidden, one the classifier cannot name included. A post whose author's country nobody could tell is always shown.
              */
             only: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
             /**
-             * A post whose author's country (ISO 3166-1 alpha-2) is listed is hidden.
+             * A post whose author's country is listed is hidden.
              */
             excluded: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
         };
@@ -186,7 +186,7 @@ export type Keyword = {
      */
     reviewSources: Array<ReviewSource>;
     /**
-     * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+     * A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
      */
     context: string | null;
     /**
@@ -202,7 +202,7 @@ export type Keyword = {
          */
         requiredMode: 'any' | 'all';
         /**
-         * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+         * Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword).
          */
         requiredGroups: Array<Array<string>>;
         /**
@@ -218,7 +218,7 @@ export type Keyword = {
          */
         caseSensitive: boolean;
         /**
-         * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+         * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
          */
         exactPhrase: boolean;
         /**
@@ -239,7 +239,12 @@ export type Keyword = {
          */
         repositories: {
             /**
-             * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+             * The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).
+             *
+             * - traction: under 30 days old, it reached 10 stars.
+             * - stars: it passed a milestone (100, 250, 500, 1,000 ...).
+             * - growth: it gained stars fast in a week.
+             * - new: every repository created; opt in, mostly noise.
              */
             events: Array<'new' | 'traction' | 'stars' | 'growth'>;
             /**
@@ -247,7 +252,7 @@ export type Keyword = {
              */
             minStars: number | null;
             /**
-             * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+             * Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing.
              */
             minWeeklyStars: number | null;
         };
@@ -307,11 +312,18 @@ export type Keyword = {
             noisy: boolean;
         };
         /**
-         * The keyword's health over the same 14 days as `noise`, by the rule GET /v1/keywords/{id}/health applies to its own window: paused (muted), capped (at its mention cap), noisy (20 or more scored matches, under 30% relevant), new (under 7 days old and not noisy, or changed in the last 7 days with under 20 scored matches since), quiet (7 days or older, nothing relevant), else healthy. Judged on the matches since the keyword's last change to its matching rules, platforms or context (or its unmute) when that is inside the 14 days, so a keyword tightened today is not flagged on the noise the change removed; `noise` itself keeps the whole 14 days. Always 14 days, while the endpoint reads 30 by default, so the two can differ for the same keyword. The health endpoint says why and what to change.
+         * The first status that applies over the last 14 days; see [Keyword health](/guides/keyword-health).
+         *
+         * - paused: muted.
+         * - capped: at its mention cap.
+         * - noisy: 20 or more scored matches, under 30% relevant.
+         * - new: under 7 days old, or changed lately with few scored matches.
+         * - quiet: 7 days or older, nothing relevant.
+         * - healthy: none of the above.
          */
         health: 'healthy' | 'noisy' | 'quiet' | 'capped' | 'paused' | 'new';
         /**
-         * What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding.
+         * What this keyword has cost this calendar month (UTC) at list price: its row in GET /v1/usage/breakdown?month=<this month>. The ledger differs only by cumulative rounding.
          */
         cost: {
             /**
@@ -409,7 +421,7 @@ export type KeywordSuggestion = {
      */
     patch: {
         /**
-         * Renames the keyword: the new term is tracked from now on, with no look-back, and the keyword keeps its id, its settings and the mentions the old term found. Wrap it in double quotes for the exact phrase only. A 409 when its group already tracks the new term.
+         * Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it.
          */
         term?: string;
         /**
@@ -425,7 +437,7 @@ export type KeywordSuggestion = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook'> | null;
         /**
-         * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+         * A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
          */
         context?: string | null;
         /**
@@ -441,7 +453,7 @@ export type KeywordSuggestion = {
              */
             requiredMode?: 'any' | 'all';
             /**
-             * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+             * Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword).
              */
             requiredGroups?: Array<Array<string>>;
             /**
@@ -457,7 +469,7 @@ export type KeywordSuggestion = {
              */
             caseSensitive?: boolean;
             /**
-             * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+             * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
              */
             exactPhrase?: boolean;
             /**
@@ -465,7 +477,12 @@ export type KeywordSuggestion = {
              */
             repositories?: {
                 /**
-                 * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+                 * The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).
+                 *
+                 * - traction: under 30 days old, it reached 10 stars.
+                 * - stars: it passed a milestone (100, 250, 500, 1,000 ...).
+                 * - growth: it gained stars fast in a week.
+                 * - new: every repository created; opt in, mostly noise.
                  */
                 events?: Array<'new' | 'traction' | 'stars' | 'growth'>;
                 /**
@@ -473,7 +490,7 @@ export type KeywordSuggestion = {
                  */
                 minStars?: number | null;
                 /**
-                 * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+                 * Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing.
                  */
                 minWeeklyStars?: number | null;
             };
@@ -500,7 +517,7 @@ export type KeywordSuggestion = {
              */
             mentions: number;
             /**
-             * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+             * The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts.
              */
             per?: 'day' | 'week' | 'month';
         } | null;
@@ -509,11 +526,11 @@ export type KeywordSuggestion = {
          */
         comments?: {
             /**
-             * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+             * Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments).
              */
             enabled?: boolean;
             /**
-             * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+             * The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these.
              */
             maxPerPost?: number;
         };
@@ -569,7 +586,7 @@ export type KeywordSuggestion = {
              */
             id?: string;
             /**
-             * App Store and Google Play only: storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention. Trustpilot and Google Maps have one page for everyone and take none.
+             * App Store and Google Play storefronts to read, as two-letter codes; default the link's, else us. Each adds a daily poll; a review seen in two is one mention. Trustpilot and Google Maps take none.
              */
             countries?: Array<string>;
             /**
@@ -672,7 +689,14 @@ export type KeywordHealth = {
         days: number;
     };
     /**
-     * healthy: nothing to fix. noisy: 20 or more scored matches in the window and under 30% of them relevant. quiet: 7 days or older with no relevant match in the window. capped: at its monthly mention cap. paused: muted (by you, the wallet or the noise brake). new: under 7 days old and not noisy yet, or changed in the last 7 days with under 20 scored matches since the change. When the keyword's matching rules, platforms or context changed (or it was unmuted) inside the window, the status reads only the matches since then (stats.judgedSince).
+     * The status over the window; see [Keyword health](/guides/keyword-health#status).
+     *
+     * - healthy: nothing to fix.
+     * - noisy: 20 or more scored matches, under 30% relevant.
+     * - quiet: 7 days or older, nothing relevant.
+     * - capped: at its mention cap.
+     * - paused: muted by you, the wallet or the noise brake.
+     * - new: under 7 days old, or changed lately with few scored matches.
      */
     status: 'healthy' | 'noisy' | 'quiet' | 'capped' | 'paused' | 'new';
     /**
@@ -708,7 +732,7 @@ export type KeywordHealth = {
          */
         workspaceShare: number | null;
         /**
-         * When the keyword last changed its matching rules, platforms or context (or was unmuted), when that is inside the window: the status, the reasons, noiseTerms, noiseAuthors and suggestions read only the matches since then, while these numbers keep the whole window. Null: everything reads the whole window.
+         * When the keyword last changed its rules, platforms or context (or was unmuted), inside the window: status, reasons, noise and suggestions read only matches since, the numbers the whole window. Null: no change inside it.
          */
         judgedSince: string | null;
         /**
@@ -882,7 +906,7 @@ export type Feed = {
      */
     connectedAt: string;
     /**
-     * Nothing published before this is a live mention: the connection, or the last time its sign-in was added or removed (signed in and signed out, a post is read as two different posts, so the switch starts over rather than bill one twice).
+     * Nothing published before this is a live mention: the connection, or the last sign-in change (signed in or out, a post reads as a new one, so it starts over rather than bill twice).
      */
     readingSince: string;
     /**
@@ -1018,7 +1042,7 @@ export type Mention = {
          */
         platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
         /**
-         * post: a top-level post. comment: an item that answers a post or another comment (a Reddit or Hacker News comment, an X or Bluesky reply, a Stack Overflow answer, a YouTube comment). repository: an event about a GitHub repository naming the keyword (see post.repository).
+         * post: a top-level post. comment: answers a post or comment (Reddit, Hacker News or YouTube comments, X or Bluesky replies, Stack Overflow answers). repository: a GitHub repository event (see post.repository).
          */
         kind: 'post' | 'comment' | 'repository';
         /**
@@ -1030,7 +1054,7 @@ export type Mention = {
          */
         text: string;
         /**
-         * The post's own title where the platform has one: a Hacker News story, a Reddit thread, a GitHub issue or pull request, a Stack Overflow question, a DEV article, a YouTube video, a news article, a titled review. Null for platforms without titles (X, Bluesky, LinkedIn) and for posts ingested before October 2026.
+         * The post's own title where the platform has one (a story, thread, issue, question, article, video or titled review). Null on X, Bluesky and LinkedIn, and for posts ingested before October 2026.
          */
         title: string | null;
         /**
@@ -1054,7 +1078,13 @@ export type Mention = {
              */
             name: string;
             /**
-             * What happened. new: it was created. traction: under 30 days old, it reached 10 stars. stars: it passed a star milestone. growth: it gained stars fast in a week. top: one of the most starred repositories naming the keyword, brought by a new keyword's look-back.
+             * What happened:
+             *
+             * - new: it was created.
+             * - traction: under 30 days old, it reached 10 stars.
+             * - stars: it passed a star milestone.
+             * - growth: it gained stars fast in a week.
+             * - top: among the most starred naming the keyword, from a look-back.
              */
             event: 'new' | 'traction' | 'stars' | 'growth' | 'top';
             /**
@@ -1075,7 +1105,7 @@ export type Mention = {
          */
         publishedAt: string;
         /**
-         * Engagement counts as the platform reported them when the post was ingested, usually minutes after it was written; a count the platform does not have is null. Null as a whole for platforms that report none and for posts ingested before September 2026. X carries all six.
+         * Counts as the platform reported them at ingest, usually minutes after posting; a missing count is null. Null as a whole when a platform reports none, or before September 2026. X carries all six.
          */
         engagement: {
             likes: number | null;
@@ -1207,11 +1237,18 @@ export type Mention = {
          */
         sentiment: 'positive' | 'neutral' | 'negative';
         /**
-         * Intent and topic tags: buy_intent, question, complaint, praise, comparison, churn_intent (leaving or replacing the keyword), bug_report, pricing, hiring, event, promotional, testimonial (a customer vouching for it from their own use), industry_insight (analysis or data about the field), launch (a product or feature launch announcement), feedback (a suggestion or request about it).
+         * Intent and topic tags:
+         *
+         * - buy_intent, question, complaint, praise, comparison, bug_report, pricing, hiring, event, promotional.
+         * - churn_intent: leaving or replacing the keyword.
+         * - testimonial: a customer vouching for it from their own use.
+         * - industry_insight: analysis or data about the field.
+         * - launch: a product or feature launch announcement.
+         * - feedback: a suggestion or request about it.
          */
         intents: Array<string>;
         /**
-         * The post reads as machine-made: a bot or app account, a scheduled or templated post, an obvious AI-written summary. A label only: automated mentions stay in the feed, are delivered as usual and are billed like any other match. false while unjudged.
+         * The post reads as machine-made (a bot or app account, a scheduled or templated post, an AI-written summary). A label only: it stays in the feed, delivered and billed as usual. false while unjudged.
          */
         automated: boolean;
         /**
@@ -1219,7 +1256,7 @@ export type Mention = {
          */
         language: string | null;
         /**
-         * Where the author is, as a lowercase ISO 3166-1 alpha-2 code (us, in, de): the classifier's reading of the author's profile location and the post. A best guess, not a fact the platform gave; null when nothing tells, when it is not one of the 60 the classifier names, or when classified before countries were recorded.
+         * Where the author is (lowercase ISO 3166-1 alpha-2): the classifier's best guess from profile and post. Null when unknown, outside the 60 it names, or classified before countries were recorded.
          */
         country: string | null;
         /**
@@ -1292,7 +1329,7 @@ export type Mention = {
         note: string | null;
     };
     /**
-     * Set on a cross-post: the id of the mention this one copies (the same author posting the same text again for the same keyword within three days, like one announcement pasted into five subreddits). A copy is billed like any mention but is listed only under its original and never alerted on its own. null for an original.
+     * On a cross-post (same author, text and keyword within three days), the original's id. Billed like any mention, listed only under its original, never alerted alone. null for an original. See [Cross-posts](/how-it-works#cross-posts).
      */
     duplicateOf: string | null;
     /**
@@ -1370,7 +1407,7 @@ export type MentionComment = {
      */
     parentCommentId: string | null;
     /**
-     * Engagement counts as the platform reported them when the post was ingested, usually minutes after it was written; a count the platform does not have is null. Null as a whole for platforms that report none and for posts ingested before September 2026. X carries all six.
+     * Counts as the platform reported them at ingest, usually minutes after posting; a missing count is null. Null as a whole when a platform reports none, or before September 2026. X carries all six.
      */
     engagement: {
         likes: number | null;
@@ -2021,7 +2058,7 @@ export type View = {
          */
         minBookmarks?: number;
         /**
-         * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+         * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
          */
         anyOf?: Array<FilterGroup>;
     };
@@ -2306,7 +2343,12 @@ export type FeedFailingEventData = {
         title: string | null;
     };
     /**
-     * login_required: the feed answers a sign-in or access-denied page (connect it with the forum's sign-in, auth). login_expired: the same on a feed that has a sign-in: copy a fresh cookie. blocked: a 403, a 429 or a bot check. not_found: the feed is gone. not_a_feed: the address answers a page, not RSS or Atom. unreachable: no answer or a server error.
+     * - login_required: a sign-in or access-denied page; add the forum's sign-in.
+     * - login_expired: the same with a sign-in; copy a fresh cookie.
+     * - blocked: a 403, a 429 or a bot check.
+     * - not_found: the feed is gone.
+     * - not_a_feed: the address answers a page, not RSS or Atom.
+     * - unreachable: no answer or a server error.
      */
     reason: 'login_required' | 'login_expired' | 'blocked' | 'not_found' | 'not_a_feed' | 'unreachable';
     /**
@@ -2329,7 +2371,12 @@ export type AttentionItem = {
      */
     id: string;
     /**
-     * mention.spike: far more mentions in the last hour than the keyword usually gets. sentiment.negative_spike: the negative share of the last 24 hours jumped. keyword.noisy: most scored matches are noise. channel.failing: the channel's last sends all failed. feed.failing: a workspace feed failed its last 3 hourly reads. feed.recovered: it read again after failing.
+     * - mention.spike: far more mentions in the last hour than usual.
+     * - sentiment.negative_spike: the negative share of the last 24 hours jumped.
+     * - keyword.noisy: most scored matches are noise.
+     * - channel.failing: the channel's last sends all failed.
+     * - feed.failing: a workspace feed failed its last 3 hourly reads.
+     * - feed.recovered: it read again after failing.
      */
     kind: 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered';
     /**
@@ -2697,7 +2744,7 @@ export type UsageBreakdown = {
          */
         billableMentions: number;
         /**
-         * Matches recorded in the window that are never charged: no score yet (still being scored, or classification failed), or a free review from the look-back of a newly connected app. Every other match is charged, on the mentions line or, for a comment, on the comments line.
+         * Matches in the window that are never charged: not scored yet, classification failed, or a free review from a new app's look-back. Every other match is charged, on the mentions or comments line.
          */
         unclassifiedMentions: number;
         /**
@@ -2717,11 +2764,11 @@ export type UsageBreakdown = {
          */
         totalCents: number;
         /**
-         * What the ledger has debited so far for the days of the window, each debit by the day it settled, for the whole workspace whatever the filters. Mentions settle the morning after their day, so a window ending today lags totalCents by today's mentions (and yesterday's before the tick at 00:05 UTC); a closed month differs from totalCents only by cumulative rounding.
+         * What the ledger has debited for the window's days, by the day each debit settled, for the whole workspace whatever the filters. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger).
          */
         ledgerDebitCents: number;
         /**
-         * Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row can claim them. Charged all the same. Comments carry their keyword and platform on the billed row, so they are never unattributed (by=group puts a deleted keyword's comments on the no-group row).
+         * Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row claims them; charged all the same. Comments never are (by=group puts a deleted keyword's comments on the no-group row).
          */
         unattributedBillable: number;
     };
@@ -2772,7 +2819,7 @@ export type UsageBreakdown = {
             removed: boolean;
         } | null;
         /**
-         * Keyword-days metered in this group: the days the daily tick charged for. Null for by=platform (a keyword-day belongs to no platform) and for a day before the first recorded tick (unknown, not zero); a keyword row counts only the days on record, so before window.keywordDaysFrom it is a floor, not a zero.
+         * Keyword-days the daily tick charged in this row. Null for by=platform and for days before the first recorded tick (unknown, not zero); before window.keywordDaysFrom a keyword row is a floor.
          */
         keywordDays: number | null;
         /**
@@ -2788,7 +2835,7 @@ export type UsageBreakdown = {
          */
         billableMentions: number;
         /**
-         * Matches recorded in the window that are never charged: no score yet (still being scored, or classification failed), or a free review from the look-back of a newly connected app. Every other match is charged, on the mentions line or, for a comment, on the comments line.
+         * Matches in the window that are never charged: not scored yet, classification failed, or a free review from a new app's look-back. Every other match is charged, on the mentions or comments line.
          */
         unclassifiedMentions: number;
         /**
@@ -3020,7 +3067,12 @@ export type Alert = {
     name: string;
     enabled: boolean;
     /**
-     * instant: each matching mention as it happens. hourly: one digest each UTC hour (five minutes past, so the last mentions of the hour are scored) covering the previous full hour, nothing when that hour has no mention at or over the rule's relevance floor; Slack, Telegram and webhook channels only. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday.
+     * When it sends; see [Alerts](/alerts).
+     *
+     * - instant: each matching mention as it happens.
+     * - hourly: the previous UTC hour, at five past; never email.
+     * - daily: one digest at the scheduled local time.
+     * - weekly: one digest a week, on schedule.weekday.
      */
     mode: 'instant' | 'hourly' | 'daily' | 'weekly';
     filter: {
@@ -3037,7 +3089,7 @@ export type Alert = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
-         * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
+         * The rule's relevance floor. Absent: relevant mentions only (40 and up); lower, down to 0, it also gets noise; higher, less. Email channels keep the 40 line. Unclassified mentions never pass.
          */
         minRelevance?: number;
         /**
@@ -3121,7 +3173,7 @@ export type Alert = {
          */
         minBookmarks?: number;
         /**
-         * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+         * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
          */
         anyOf?: Array<FilterGroup>;
     };
@@ -4277,7 +4329,7 @@ export type ListKeywordsResponses = {
              */
             pausedForBalance: boolean;
             /**
-             * Muted by the noise brake: on a workspace running on its welcome credit, at least 20 of its matches were scored and under 30% were relevant. A change of its required or excluded terms, platforms or context resumes it (when the balance covers another day), and so does unmuting; a top-up does not.
+             * Muted by the noise brake: under 30% of 20 or more scored matches were relevant, on welcome credit. Changing its rules, platforms or context, or unmuting, resumes it (balance permitting); a top-up does not. See [Billing](/billing).
              */
             pausedForNoise: boolean;
             /**
@@ -4293,7 +4345,7 @@ export type ListKeywordsResponses = {
                  */
                 mentions: number;
                 /**
-                 * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+                 * The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts.
                  */
                 per?: 'day' | 'week' | 'month';
                 /**
@@ -4318,45 +4370,45 @@ export type ListKeywordsResponses = {
                 resumesAt: string | null;
             } | null;
             /**
-             * Comments under this keyword's mentions: when enabled, the comments of every mention scored relevant are read from 30 minutes after the post, on a schedule per platform (for a day on Reddit, Hacker News and Bluesky, a week on GitHub, Stack Overflow and DEV, a month on YouTube) (new comments only, at most maxPerPost a thread, comments of fewer than three words dropped), on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments.
+             * Comments under this keyword's relevant mentions, read several times per thread on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments; see [Comments](/guides/comments).
              */
             comments: {
                 /**
-                 * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+                 * Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments).
                  */
                 enabled: boolean;
                 /**
-                 * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+                 * The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these.
                  */
                 maxPerPost: number;
             };
             /**
-             * Which of this keyword's mentions you see, by language and country. Both are read by the classifier, so a hidden post is still matched, classified and billed like any other; it is kept out of the mentions list, the exports, MCP search, alerts and digests (includeHidden=true on GET /v1/mentions shows it). Read when the mentions are read, so changing a list applies to older mentions too.
+             * Which of this keyword's mentions you see, by language and country. A hidden post is still matched, classified and billed, but kept out of lists, exports, search, alerts and digests (includeHidden=true shows it). See [Keywords](/guides/keywords#show-only-some-languages-or-countries).
              */
             display: {
                 /**
-                 * By the language the post is written in.
+                 * By the language the post is written in (ISO 639-1).
                  */
                 languages: {
                     /**
-                     * When non-empty, a post whose language (ISO 639-1) is known and not listed is hidden, a language (ISO 639-1) the classifier recognises but does not name included. A post whose language (ISO 639-1) nobody could tell is always shown.
+                     * When non-empty, a post whose language is known and not listed is hidden, one the classifier cannot name included. A post whose language nobody could tell is always shown.
                      */
                     only: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
                     /**
-                     * A post whose language (ISO 639-1) is listed is hidden.
+                     * A post whose language is listed is hidden.
                      */
                     excluded: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
                 };
                 /**
-                 * By where the author is, as the classifier read their profile and the post.
+                 * By where the author is (ISO 3166-1 alpha-2), as the classifier read their profile and the post.
                  */
                 countries: {
                     /**
-                     * When non-empty, a post whose author's country (ISO 3166-1 alpha-2) is known and not listed is hidden, a author's country (ISO 3166-1 alpha-2) the classifier recognises but does not name included. A post whose author's country (ISO 3166-1 alpha-2) nobody could tell is always shown.
+                     * When non-empty, a post whose author's country is known and not listed is hidden, one the classifier cannot name included. A post whose author's country nobody could tell is always shown.
                      */
                     only: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
                     /**
-                     * A post whose author's country (ISO 3166-1 alpha-2) is listed is hidden.
+                     * A post whose author's country is listed is hidden.
                      */
                     excluded: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
                 };
@@ -4379,7 +4431,7 @@ export type ListKeywordsResponses = {
              */
             reviewSources: Array<ReviewSource>;
             /**
-             * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+             * A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
              */
             context: string | null;
             /**
@@ -4395,7 +4447,7 @@ export type ListKeywordsResponses = {
                  */
                 requiredMode: 'any' | 'all';
                 /**
-                 * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+                 * Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword).
                  */
                 requiredGroups: Array<Array<string>>;
                 /**
@@ -4411,7 +4463,7 @@ export type ListKeywordsResponses = {
                  */
                 caseSensitive: boolean;
                 /**
-                 * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+                 * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
                  */
                 exactPhrase: boolean;
                 /**
@@ -4432,7 +4484,12 @@ export type ListKeywordsResponses = {
                  */
                 repositories: {
                     /**
-                     * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+                     * The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).
+                     *
+                     * - traction: under 30 days old, it reached 10 stars.
+                     * - stars: it passed a milestone (100, 250, 500, 1,000 ...).
+                     * - growth: it gained stars fast in a week.
+                     * - new: every repository created; opt in, mostly noise.
                      */
                     events: Array<'new' | 'traction' | 'stars' | 'growth'>;
                     /**
@@ -4440,7 +4497,7 @@ export type ListKeywordsResponses = {
                      */
                     minStars: number | null;
                     /**
-                     * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+                     * Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing.
                      */
                     minWeeklyStars: number | null;
                 };
@@ -4500,11 +4557,18 @@ export type ListKeywordsResponses = {
                     noisy: boolean;
                 };
                 /**
-                 * The keyword's health over the same 14 days as `noise`, by the rule GET /v1/keywords/{id}/health applies to its own window: paused (muted), capped (at its mention cap), noisy (20 or more scored matches, under 30% relevant), new (under 7 days old and not noisy, or changed in the last 7 days with under 20 scored matches since), quiet (7 days or older, nothing relevant), else healthy. Judged on the matches since the keyword's last change to its matching rules, platforms or context (or its unmute) when that is inside the 14 days, so a keyword tightened today is not flagged on the noise the change removed; `noise` itself keeps the whole 14 days. Always 14 days, while the endpoint reads 30 by default, so the two can differ for the same keyword. The health endpoint says why and what to change.
+                 * The first status that applies over the last 14 days; see [Keyword health](/guides/keyword-health).
+                 *
+                 * - paused: muted.
+                 * - capped: at its mention cap.
+                 * - noisy: 20 or more scored matches, under 30% relevant.
+                 * - new: under 7 days old, or changed lately with few scored matches.
+                 * - quiet: 7 days or older, nothing relevant.
+                 * - healthy: none of the above.
                  */
                 health: 'healthy' | 'noisy' | 'quiet' | 'capped' | 'paused' | 'new';
                 /**
-                 * What this keyword has cost this calendar month (UTC) at list price: exactly its row in GET /v1/usage/breakdown?month=<this month> (same tables, same rounding). The wallet's ledger, which settles once a day, is what can differ from these list-price numbers, and only by cumulative rounding.
+                 * What this keyword has cost this calendar month (UTC) at list price: its row in GET /v1/usage/breakdown?month=<this month>. The ledger differs only by cumulative rounding.
                  */
                 cost: {
                     /**
@@ -4583,7 +4647,7 @@ export type CreateKeywordData = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook'> | null;
         /**
-         * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+         * A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
          */
         context?: string | null;
         /**
@@ -4599,7 +4663,7 @@ export type CreateKeywordData = {
              */
             requiredMode?: 'any' | 'all';
             /**
-             * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+             * Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword).
              */
             requiredGroups?: Array<Array<string>>;
             /**
@@ -4615,7 +4679,7 @@ export type CreateKeywordData = {
              */
             caseSensitive?: boolean;
             /**
-             * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+             * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
              */
             exactPhrase?: boolean;
             /**
@@ -4623,7 +4687,12 @@ export type CreateKeywordData = {
              */
             repositories?: {
                 /**
-                 * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+                 * The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).
+                 *
+                 * - traction: under 30 days old, it reached 10 stars.
+                 * - stars: it passed a milestone (100, 250, 500, 1,000 ...).
+                 * - growth: it gained stars fast in a week.
+                 * - new: every repository created; opt in, mostly noise.
                  */
                 events?: Array<'new' | 'traction' | 'stars' | 'growth'>;
                 /**
@@ -4631,7 +4700,7 @@ export type CreateKeywordData = {
                  */
                 minStars?: number | null;
                 /**
-                 * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+                 * Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing.
                  */
                 minWeeklyStars?: number | null;
             };
@@ -4658,7 +4727,7 @@ export type CreateKeywordData = {
              */
             mentions: number;
             /**
-             * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+             * The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts.
              */
             per?: 'day' | 'week' | 'month';
         } | null;
@@ -4667,11 +4736,11 @@ export type CreateKeywordData = {
          */
         comments?: {
             /**
-             * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+             * Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments).
              */
             enabled?: boolean;
             /**
-             * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+             * The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these.
              */
             maxPerPost?: number;
         };
@@ -4711,7 +4780,7 @@ export type CreateKeywordData = {
          */
         groupId?: string;
         /**
-         * Review pages this keyword collects, at most 10: App Store and Google Play apps, Trustpilot pages, Google Maps places. Every new review of one is a mention of the keyword, whatever its text says. Polled once a day (per country on the app stores). A newly connected page brings its last 30 days, the newest 100 reviews (per country), free and never sent as instant alerts; after that each review bills like any mention.
+         * Review pages this keyword collects (app store apps, Trustpilot pages, Google Maps places): every new review is a mention, whatever it says. Polled daily; a newly connected page brings 30 days back, free. See [Reviews](/platforms/reviews).
          */
         reviewSources?: Array<{
             /**
@@ -4727,7 +4796,7 @@ export type CreateKeywordData = {
              */
             id?: string;
             /**
-             * App Store and Google Play only: storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention. Trustpilot and Google Maps have one page for everyone and take none.
+             * App Store and Google Play storefronts to read, as two-letter codes; default the link's, else us. Each adds a daily poll; a review seen in two is one mention. Trustpilot and Google Maps take none.
              */
             countries?: Array<string>;
             /**
@@ -4736,7 +4805,7 @@ export type CreateKeywordData = {
             language?: string;
         }>;
         /**
-         * RSS or Atom feeds this keyword reads, at most 20, each { url }: a feed's URL, or a page's (a forum, a community, a blog), in which case the feed the page advertises is used, else a usual address such as /feed or /rss. A URL with no feed behind it is a 400. Each feed is read every hour; an item is a mention of this keyword when it holds the term (with the keyword's matching rules), and only of keywords that named the feed. A newly connected feed brings its newest 10 items of the last 30 days that hold the term, billed like any mention and never sent as instant alerts.
+         * RSS or Atom feeds only this keyword reads: a feed's URL, or a page that advertises one (else a 400). Read hourly; an item holding the term is a mention. See [RSS](/platforms/rss#a-keywords-own-feeds).
          */
         feeds?: Array<{
             /**
@@ -4854,7 +4923,7 @@ export type UpdateKeywordData = {
      */
     body: {
         /**
-         * Renames the keyword: the new term is tracked from now on, with no look-back, and the keyword keeps its id, its settings and the mentions the old term found. Wrap it in double quotes for the exact phrase only. A 409 when its group already tracks the new term.
+         * Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it.
          */
         term?: string;
         /**
@@ -4870,7 +4939,7 @@ export type UpdateKeywordData = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook'> | null;
         /**
-         * A sentence the classifier reads for this keyword only, on top of the company profile or the group's own description (at most 300 characters): what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+         * A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
          */
         context?: string | null;
         /**
@@ -4886,7 +4955,7 @@ export type UpdateKeywordData = {
              */
             requiredMode?: 'any' | 'all';
             /**
-             * Combinations of terms, at most 50 of 10 terms each: the post must ALSO contain every term of at least one group (an OR of ANDs). For the keyword inreach, [["weather", "alert*"], ["tsunami"], ["flash flood"]] keeps a post about inReach weather alerts, tsunamis or flash floods, one keyword instead of three. Same phrase and wildcard rules as requiredTerms; when both are set a post must pass both. Empty: no combinations.
+             * Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword).
              */
             requiredGroups?: Array<Array<string>>;
             /**
@@ -4902,7 +4971,7 @@ export type UpdateKeywordData = {
              */
             caseSensitive?: boolean;
             /**
-             * true: only the exact phrase matches. false (default): a multi-word keyword also matches a post holding its words close together, in any order, plurals and spellings (non-profit, nonprofit) included; such a match is kept and billed only when the classifier scores it relevant. A term sent in double quotes sets this to true.
+             * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
              */
             exactPhrase?: boolean;
             /**
@@ -4910,7 +4979,12 @@ export type UpdateKeywordData = {
              */
             repositories?: {
                 /**
-                 * The repository events this keyword takes. traction: a repository created in the last 30 days reached 10 stars. stars: one with 100 stars or more passed a milestone (100, 250, 500, 1,000, 2,000, 5,000 ...). growth: it gained stars fast in a week. new: every repository created, even with no stars (off by default: nearly all of them are noise for a broad keyword). Default: traction, stars, growth. Empty: no repository events.
+                 * The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).
+                 *
+                 * - traction: under 30 days old, it reached 10 stars.
+                 * - stars: it passed a milestone (100, 250, 500, 1,000 ...).
+                 * - growth: it gained stars fast in a week.
+                 * - new: every repository created; opt in, mostly noise.
                  */
                 events?: Array<'new' | 'traction' | 'stars' | 'growth'>;
                 /**
@@ -4918,7 +4992,7 @@ export type UpdateKeywordData = {
                  */
                 minStars?: number | null;
                 /**
-                 * Only repositories that gained at least this many stars in the last 7 days (25 or more). It applies to every event, and one whose last week is not known yet does not pass. null: a growth event needs 100 stars and 20% of the repository's stars in a week, the other events need no growth.
+                 * Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing.
                  */
                 minWeeklyStars?: number | null;
             };
@@ -4945,7 +5019,7 @@ export type UpdateKeywordData = {
              */
             mentions: number;
             /**
-             * The period the cap counts in, in UTC: day (from 00:00), week (from Monday 00:00) or month (the calendar month, the default). At the cap the keyword stops until the next period starts, so a daily cap keeps mentions coming every day with a fixed ceiling on spend.
+             * The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts.
              */
             per?: 'day' | 'week' | 'month';
         } | null;
@@ -4954,11 +5028,11 @@ export type UpdateKeywordData = {
          */
         comments?: {
             /**
-             * Read the comments under this keyword's relevant mentions, from 30 minutes after each post, as long as its platform's conversations last (a day to a month). Each comment delivered costs $0.008 (comments of fewer than three words are dropped, never billed) (the comments line of the bill). Off by default.
+             * Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments).
              */
             enabled?: boolean;
             /**
-             * The newest comments of one thread you receive, 20 by default, 100 at most: the ceiling on what one mention's comments can cost. A comment that names the keyword is a mention too, but only among these newest ones, so it is never billed past the ceiling.
+             * The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these.
              */
             maxPerPost?: number;
         };
@@ -5014,7 +5088,7 @@ export type UpdateKeywordData = {
              */
             id?: string;
             /**
-             * App Store and Google Play only: storefronts to read, two-letter codes, at most 20. Default: the one in the link, else us. Each is one more poll a day; the same review seen in two storefronts is one mention. Trustpilot and Google Maps have one page for everyone and take none.
+             * App Store and Google Play storefronts to read, as two-letter codes; default the link's, else us. Each adds a daily poll; a review seen in two is one mention. Trustpilot and Google Maps take none.
              */
             countries?: Array<string>;
             /**
@@ -5237,7 +5311,7 @@ export type ListFeedsResponses = {
              */
             connectedAt: string;
             /**
-             * Nothing published before this is a live mention: the connection, or the last time its sign-in was added or removed (signed in and signed out, a post is read as two different posts, so the switch starts over rather than bill one twice).
+             * Nothing published before this is a live mention: the connection, or the last sign-in change (signed in or out, a post reads as a new one, so it starts over rather than bill twice).
              */
             readingSince: string;
             /**
@@ -5458,7 +5532,7 @@ export type ImportFeedsResponses = {
                  */
                 connectedAt: string;
                 /**
-                 * Nothing published before this is a live mention: the connection, or the last time its sign-in was added or removed (signed in and signed out, a post is read as two different posts, so the switch starts over rather than bill one twice).
+                 * Nothing published before this is a live mention: the connection, or the last sign-in change (signed in or out, a post reads as a new one, so it starts over rather than bill twice).
                  */
                 readingSince: string;
                 /**
@@ -5514,7 +5588,7 @@ export type ImportFeedsResponses = {
              */
             error: {
                 /**
-                 * The same code POST /v1/feeds answers for this address: feed_login_required (send it again with auth), feed_login_expired (a fresh cookie), feed_unreadable (no feed, or the site blocks readers), feed_limit_reached, feed_auth_not_configured, validation_error (an address that is not one), internal_error (ours: send it again).
+                 * The code POST /v1/feeds answers for this address: feed_login_required (resend with auth), feed_login_expired (fresh cookie), feed_unreadable (no feed, or blocked), feed_limit_reached, feed_auth_not_configured, validation_error, internal_error (retry).
                  */
                 code: 'feed_login_required' | 'feed_login_expired' | 'feed_unreadable' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'validation_error' | 'internal_error';
                 /**
@@ -5813,7 +5887,7 @@ export type UpdateMentionData = {
          */
         note?: string | null;
         /**
-         * Your verdict on relevance, correcting the classifier: true sets relevance to 100 and puts a filtered mention back in the relevant feed, false sets it to 0 and takes it out; null withdraws the verdict and restores the classifier's score. Never billed or unbilled. A mention still being classified answers 409 classification_pending.
+         * Your verdict: true sets relevance to 100 (a filtered mention becomes relevant), false to 0; null restores the classifier's score. Billing never changes. 409 classification_pending while it is still being classified.
          */
         relevant?: boolean | null;
         /**
@@ -6074,7 +6148,7 @@ export type SearchMentionsData = {
          */
         minBookmarks?: number | null;
         /**
-         * OR across groups of conditions, as URL-encoded JSON: [{"platforms":["reddit"],"sentiments":["negative"]},{"intents":["buy_intent"]}] is "negative on Reddit, or buying intent anywhere". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.
+         * OR across groups of conditions, as URL-encoded JSON: a mention passes when one group holds, on top of every other filter. Each group holds view-filter conditions, no nesting. See [anyOf](/conventions#or-across-groups-anyof).
          */
         anyOf?: string;
         /**
@@ -6346,7 +6420,7 @@ export type ExportMentionsCsvData = {
          */
         minBookmarks?: number | null;
         /**
-         * OR across groups of conditions, as URL-encoded JSON: [{"platforms":["reddit"],"sentiments":["negative"]},{"intents":["buy_intent"]}] is "negative on Reddit, or buying intent anywhere". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.
+         * OR across groups of conditions, as URL-encoded JSON: a mention passes when one group holds, on top of every other filter. Each group holds view-filter conditions, no nesting. See [anyOf](/conventions#or-across-groups-anyof).
          */
         anyOf?: string;
         /**
@@ -6657,7 +6731,7 @@ export type ExportMentionsJsonData = {
          */
         minBookmarks?: number | null;
         /**
-         * OR across groups of conditions, as URL-encoded JSON: [{"platforms":["reddit"],"sentiments":["negative"]},{"intents":["buy_intent"]}] is "negative on Reddit, or buying intent anywhere". Each group holds the conditions of a view filter (lists any-of, not lists none-of, all ANDed); a mention passes when at least one group holds, and every other filter here still applies. 1 to 10 groups, none empty, no nesting.
+         * OR across groups of conditions, as URL-encoded JSON: a mention passes when one group holds, on top of every other filter. Each group holds view-filter conditions, no nesting. See [anyOf](/conventions#or-across-groups-anyof).
          */
         anyOf?: string;
         /**
@@ -7195,7 +7269,7 @@ export type UpdatePersonData = {
         tags?: Array<string>;
         notes?: string;
         /**
-         * true hides their posts from the feed, the alerts and the digests; false shows them again. Without groupId, for every keyword of the workspace; with groupId, for the mentions of that group's keywords only, leaving the workspace's mute as it is.
+         * true hides their posts from the feed, alerts and digests; false shows them again. Without groupId for the whole workspace; with it, for that group's keywords only.
          */
         muted?: boolean;
         /**
@@ -8249,7 +8323,7 @@ export type ListViewsResponses = {
                  */
                 minBookmarks?: number;
                 /**
-                 * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+                 * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
                  */
                 anyOf?: Array<FilterGroup>;
             };
@@ -8446,7 +8520,7 @@ export type CreateViewData = {
              */
             minBookmarks?: number;
             /**
-             * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+             * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
              */
             anyOf?: Array<FilterGroup>;
         };
@@ -8723,7 +8797,7 @@ export type UpdateViewData = {
              */
             minBookmarks?: number;
             /**
-             * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+             * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
              */
             anyOf?: Array<FilterGroup>;
         };
@@ -8922,7 +8996,7 @@ export type CreateGroupData = {
          */
         externalId?: string | null;
         /**
-         * What the classifier reads as "the company" for this group's keywords, in place of the WHOLE workspace profile, its relevance guidelines and competitor list included (at most 4000 characters): who the business is, what it sells, for whom, what is not it, and any rule that should apply to this group ("ignore job posts"). For a group per customer, the customer's description. Null: the workspace profile, as for every keyword before groups.
+         * What the classifier reads as "the company" for this group's keywords, instead of the WHOLE workspace profile (guidelines and competitors included). Null: the workspace profile. See [Groups](/guides/groups#a-company-description-per-group).
          */
         context?: string | null;
     };
@@ -9039,7 +9113,7 @@ export type UpdateGroupData = {
          */
         externalId?: string | null;
         /**
-         * Replaces the group's company description; null clears it (the workspace profile applies again). New mentions are judged with it at once; old ones are not rescored. Not on the default group (400 default_group_context): that one is the workspace itself and reads the profile.
+         * Replaces the group's company description; null clears it. New mentions are judged with it at once, old ones are not rescored. Not on the default group (400 default_group_context).
          */
         context?: string | null;
     };
@@ -9913,7 +9987,7 @@ export type UpdateAlertData = {
              */
             platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
-             * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
+             * The rule's relevance floor. Absent: relevant mentions only (40 and up); lower, down to 0, it also gets noise; higher, less. Email channels keep the 40 line. Unclassified mentions never pass.
              */
             minRelevance?: number;
             /**
@@ -9997,7 +10071,7 @@ export type UpdateAlertData = {
              */
             minBookmarks?: number;
             /**
-             * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+             * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
              */
             anyOf?: Array<FilterGroup>;
         };
@@ -10085,7 +10159,12 @@ export type ListAlertsResponses = {
             name: string;
             enabled: boolean;
             /**
-             * instant: each matching mention as it happens. hourly: one digest each UTC hour (five minutes past, so the last mentions of the hour are scored) covering the previous full hour, nothing when that hour has no mention at or over the rule's relevance floor; Slack, Telegram and webhook channels only. daily: one digest at the scheduled local time. weekly: one digest a week, on schedule.weekday.
+             * When it sends; see [Alerts](/alerts).
+             *
+             * - instant: each matching mention as it happens.
+             * - hourly: the previous UTC hour, at five past; never email.
+             * - daily: one digest at the scheduled local time.
+             * - weekly: one digest a week, on schedule.weekday.
              */
             mode: 'instant' | 'hourly' | 'daily' | 'weekly';
             filter: {
@@ -10102,7 +10181,7 @@ export type ListAlertsResponses = {
                  */
                 platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
                 /**
-                 * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
+                 * The rule's relevance floor. Absent: relevant mentions only (40 and up); lower, down to 0, it also gets noise; higher, less. Email channels keep the 40 line. Unclassified mentions never pass.
                  */
                 minRelevance?: number;
                 /**
@@ -10186,7 +10265,7 @@ export type ListAlertsResponses = {
                  */
                 minBookmarks?: number;
                 /**
-                 * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+                 * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
                  */
                 anyOf?: Array<FilterGroup>;
             };
@@ -10261,7 +10340,7 @@ export type CreateAlertData = {
              */
             platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
             /**
-             * The rule's relevance floor. Absent, it sends relevant mentions only (scored 40 and up, the classifier's line); lower, down to 0, it also receives the matches the classifier scored as noise; higher, it hears less. Email channels keep the 40 line whatever the rule says. Unclassified mentions never pass.
+             * The rule's relevance floor. Absent: relevant mentions only (40 and up); lower, down to 0, it also gets noise; higher, less. Email channels keep the 40 line. Unclassified mentions never pass.
              */
             minRelevance?: number;
             /**
@@ -10345,7 +10424,7 @@ export type CreateAlertData = {
              */
             minBookmarks?: number;
             /**
-             * OR across groups: a mention passes when it meets every condition of at least one group (1 to 10 groups). The other conditions still apply to every mention: the whole filter is (other conditions) AND (group 1 OR group 2 ...). A group takes the conditions of a view filter (platforms, sentiments, intents, keywordKinds, the not lists ...), with no anyOf of its own.
+             * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
              */
             anyOf?: Array<FilterGroup>;
         };
@@ -10378,7 +10457,7 @@ export type CreateAlertData = {
 
 export type CreateAlertErrors = {
     /**
-     * A daily or weekly rule without a schedule (or a weekly one without a weekday), an hourly one with a weekday or an email channel (hourly_email_unsupported), an unknown channel, or anyOf groups binding more values than one query can carry (filter_too_complex)
+     * A daily or weekly rule without a schedule or weekday, an hourly one with a weekday or email channel (hourly_email_unsupported), an unknown channel, or anyOf groups too large (filter_too_complex)
      */
     400: ErrorResponse;
     /**
@@ -10473,7 +10552,7 @@ export type RunAlertDigestResponses = {
      */
     200: {
         /**
-         * Why nothing was sent, if nothing was: the period already went out, the window had nothing to show, (hourly rules) the hour's retry window closed before it could send, or another run of the same period is sending it right now.
+         * Why nothing was sent: the period already went out, nothing to show, an hourly retry window closed, or another run is sending it now.
          */
         skipped: 'already_sent' | 'empty' | 'expired' | 'in_flight';
         matched: number;
@@ -10733,7 +10812,17 @@ export type GetAnalyticsBreakdownData = {
          */
         timezone?: string;
         /**
-         * The dimension to group by: platform, keyword, sentiment (unclassified included), intent (a mention can carry several), status (open, ignored, done), hour (weekday and hour of day in `timezone`), person (who posted; anonymous posts are left out), language (ISO 639-1; "unknown" for posts without one, "other" for a language the classifier recognised but does not name), country (where the author is, ISO 3166-1 alpha-2; "unknown" for posts nobody could place, "other" for a place it does not name), subreddit (Reddit posts only, most active first; `share` stays a percent of the whole window, every platform included).
+         * The dimension to group by:
+         *
+         * - platform or keyword.
+         * - sentiment: unclassified included.
+         * - intent: a mention can carry several.
+         * - status: open, ignored, done.
+         * - hour: weekday and hour of day in `timezone`.
+         * - person: who posted; anonymous posts are left out.
+         * - language: ISO 639-1; "unknown" if none, "other" if unnamed.
+         * - country: the author's, ISO 3166-1 alpha-2; "unknown", "other" likewise.
+         * - subreddit: Reddit posts only; `share` stays of the whole window.
          */
         by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'country' | 'subreddit';
     };
@@ -10967,7 +11056,7 @@ export type UpdateChannelData = {
             [key: string]: string;
         };
         /**
-         * Replaces the whole set of account events the channel receives. A webhook takes any of them; a Slack, email or Telegram channel the attention events only (mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered). An empty list unsubscribes it from all of them.
+         * Replaces the account events the channel receives; empty unsubscribes it from all. A webhook takes any; Slack, email and Telegram take the attention events only. See [Account events](/webhooks/account-events).
          */
         events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
     };
