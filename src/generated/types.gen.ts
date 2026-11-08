@@ -73,7 +73,13 @@ export type Keyword = {
      * Keyword id (kw_...).
      */
     id: string;
+    /**
+     * The tracked text, as typed.
+     */
     term: string;
+    /**
+     * brand (your own name), competitor, or topic.
+     */
     kind: 'brand' | 'competitor' | 'topic';
     /**
      * Not polled or matched. Paused by you, by the wallet (see pausedForBalance) or by the noise brake (see pausedForNoise). A keyword at its mention cap is not muted (see pausedForCap).
@@ -1036,6 +1042,9 @@ export type Mention = {
          */
         matchedIn: 'text' | 'speech';
     };
+    /**
+     * The post: platform, text, link, publish time and engagement.
+     */
     post: {
         /**
          * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
@@ -1108,11 +1117,29 @@ export type Mention = {
          * Counts as the platform reported them at ingest, usually minutes after posting; a missing count is null. Null as a whole when a platform reports none, or before September 2026. X carries all six.
          */
         engagement: {
+            /**
+             * Likes or upvotes when the post was ingested; null when the platform does not report them.
+             */
             likes: number | null;
+            /**
+             * Reposts or shares when ingested; null when not reported.
+             */
             reposts: number | null;
+            /**
+             * Replies or comments when ingested; null when not reported.
+             */
             replies: number | null;
+            /**
+             * Quotes when ingested; null when not reported.
+             */
             quotes: number | null;
+            /**
+             * Views when ingested; null when not reported.
+             */
             views: number | null;
+            /**
+             * Bookmarks or saves when ingested; null when not reported.
+             */
             bookmarks: number | null;
         } | null;
         /**
@@ -1233,7 +1260,7 @@ export type Mention = {
          */
         relevance: number | null;
         /**
-         * Classifier sentiment.
+         * positive, neutral or negative; null until classified.
          */
         sentiment: 'positive' | 'neutral' | 'negative';
         /**
@@ -1310,13 +1337,25 @@ export type Mention = {
             };
         } | null;
     } | null;
+    /**
+     * What your team did with it: status, assignee, snooze and notes.
+     */
     triage: {
         /**
          * Workspace member this mention is assigned to; null when unassigned.
          */
         assignee: {
+            /**
+             * User id.
+             */
             id: string;
+            /**
+             * Member name.
+             */
             name: string | null;
+            /**
+             * Member email.
+             */
             email: string | null;
         } | null;
         /**
@@ -1410,11 +1449,29 @@ export type MentionComment = {
      * Counts as the platform reported them at ingest, usually minutes after posting; a missing count is null. Null as a whole when a platform reports none, or before September 2026. X carries all six.
      */
     engagement: {
+        /**
+         * Likes or upvotes when the post was ingested; null when the platform does not report them.
+         */
         likes: number | null;
+        /**
+         * Reposts or shares when ingested; null when not reported.
+         */
         reposts: number | null;
+        /**
+         * Replies or comments when ingested; null when not reported.
+         */
         replies: number | null;
+        /**
+         * Quotes when ingested; null when not reported.
+         */
         quotes: number | null;
+        /**
+         * Views when ingested; null when not reported.
+         */
         views: number | null;
+        /**
+         * Bookmarks or saves when ingested; null when not reported.
+         */
         bookmarks: number | null;
     } | null;
     /**
@@ -1422,7 +1479,7 @@ export type MentionComment = {
      */
     classification: {
         /**
-         * Classifier sentiment.
+         * positive, neutral or negative; null until classified.
          */
         sentiment: 'positive' | 'neutral' | 'negative';
         /**
@@ -1457,6 +1514,9 @@ export type Person = {
      * Profile URL of the canonical account.
      */
     url: string | null;
+    /**
+     * Profile picture URL.
+     */
     avatarUrl: string | null;
     /**
      * Every account this workspace treats as this person, the canonical one first.
@@ -1487,17 +1547,38 @@ export type Person = {
      * Platform counts as of their newest post; null where the platform has no such number.
      */
     reach: {
+        /**
+         * Followers when last seen; null when unknown.
+         */
         followers: number | null;
+        /**
+         * Accounts they follow; null when unknown.
+         */
         following: number | null;
+        /**
+         * Posts on the platform; null when unknown.
+         */
         posts: number | null;
     };
     /**
      * Public profile facts; null until looked up.
      */
     profile: {
+        /**
+         * The profile's bio, as the platform shows it.
+         */
         bio: string | null;
+        /**
+         * Company named on the profile.
+         */
         company: string | null;
+        /**
+         * Location named on the profile.
+         */
         location: string | null;
+        /**
+         * Website linked from the profile.
+         */
         website: string | null;
         /**
          * Only when the person made it public on the platform.
@@ -1507,7 +1588,13 @@ export type Person = {
          * Other accounts the person lists on their profile.
          */
         links: Array<{
+            /**
+             * The platform or kind of the linked account (github, x, website, ...).
+             */
             provider: string;
+            /**
+             * Link to the account.
+             */
             url: string;
         }>;
         /**
@@ -1527,9 +1614,21 @@ export type Person = {
          * Of those, scored relevant.
          */
         relevant: number;
+        /**
+         * Their matched mentions by sentiment.
+         */
         sentiment: {
+            /**
+             * Scored positive.
+             */
             positive: number;
+            /**
+             * Scored neutral.
+             */
             neutral: number;
+            /**
+             * Scored negative.
+             */
             negative: number;
         };
         /**
@@ -1545,7 +1644,13 @@ export type Person = {
      * What this workspace wrote about the person.
      */
     annotations: {
+        /**
+         * Tags your team gave them.
+         */
         tags: Array<string>;
+        /**
+         * Your team's notes.
+         */
         notes: string;
         /**
          * Their posts stay out of the feed and every channel; ingest and billing are untouched. Read with groupId it is that group's own mute, which hides them from the mentions of that group's keywords only.
@@ -1564,7 +1669,13 @@ export type Person = {
              * User id of the workspace member.
              */
             id: string;
+            /**
+             * The member's name.
+             */
             name: string | null;
+            /**
+             * The member's email.
+             */
             email: string | null;
         } | null;
         /**
@@ -1603,7 +1714,13 @@ export type PersonActivity = {
          * User id of the workspace member.
          */
         id: string;
+        /**
+         * The member's name.
+         */
         name: string | null;
+        /**
+         * The member's email.
+         */
         email: string | null;
     } | null;
     /**
@@ -1698,6 +1815,18 @@ export type SegmentPreset = {
          */
         stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
         /**
+         * Nobody at these outreach stages.
+         */
+        notStages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it.
+         */
+        notLinkHosts?: Array<string>;
+        /**
+         * Nobody owned by these members (user ids); "none" drops the people nobody owns.
+         */
+        notOwnerIds?: Array<string>;
+        /**
          * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
          */
         automated?: boolean;
@@ -1713,8 +1842,17 @@ export type Segment = {
      * Segment id (seg_...).
      */
     id: string;
+    /**
+     * Segment name.
+     */
     name: string;
+    /**
+     * What the segment is for.
+     */
     description: string;
+    /**
+     * The people filter it saves (the fields of GET /v1/people).
+     */
     filter: {
         /**
          * People with an account on any of these platforms.
@@ -1781,6 +1919,18 @@ export type Segment = {
          */
         stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
         /**
+         * Nobody at these outreach stages.
+         */
+        notStages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it.
+         */
+        notLinkHosts?: Array<string>;
+        /**
+         * Nobody owned by these members (user ids); "none" drops the people nobody owns.
+         */
+        notOwnerIds?: Array<string>;
+        /**
          * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
          */
         automated?: boolean;
@@ -1827,6 +1977,10 @@ export type FilterGroup = {
      * Only matches of keywords of any of these kinds: brand, competitor, topic.
      */
     keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+    /**
+     * Never matches of keywords of these kinds.
+     */
+    notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
     /**
      * Only matches of keywords in any of these groups (grp_...).
      */
@@ -1986,8 +2140,17 @@ export type View = {
      * View id (vw_...).
      */
     id: string;
+    /**
+     * View name.
+     */
     name: string;
+    /**
+     * What the view is for.
+     */
     description: string;
+    /**
+     * The mentions filter it saves (the fields of GET /v1/mentions).
+     */
     filter: {
         /**
          * Substring in the post text or the author's name.
@@ -2005,6 +2168,10 @@ export type View = {
          * Only matches of keywords of any of these kinds: brand, competitor, topic.
          */
         keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Never matches of keywords of these kinds.
+         */
+        notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
          * Only matches of keywords in any of these groups (grp_...).
          */
@@ -2691,8 +2858,17 @@ export type Invitation = {
      * Who sent it; an API key invites on behalf of the oldest owner.
      */
     invitedBy: {
+        /**
+         * User id.
+         */
         id: string;
+        /**
+         * Their email.
+         */
         email: string;
+        /**
+         * Their name.
+         */
         name: string | null;
     } | null;
     /**
@@ -2722,6 +2898,9 @@ export type UsageSummary = {
          * cents minus pendingCents: what the stop rule and the keyword gate look at.
          */
         effectiveCents: number;
+        /**
+         * Always USD.
+         */
         currency: 'USD';
     };
     /**
@@ -3043,6 +3222,9 @@ export type Wallet = {
      * Every amount on this page is in USD cents.
      */
     currency: 'USD';
+    /**
+     * Automatic top-up: off unless set in the dashboard.
+     */
     autoRecharge: {
         /**
          * This deployment can charge saved cards; false hides the setting.
@@ -3164,7 +3346,13 @@ export type Alert = {
      * Alert id (feed_...).
      */
     id: string;
+    /**
+     * Rule name.
+     */
     name: string;
+    /**
+     * false: the rule sends nothing.
+     */
     enabled: boolean;
     /**
      * When it sends; see [Alerts](/alerts).
@@ -3175,6 +3363,9 @@ export type Alert = {
      * - weekly: one digest a week, on schedule.weekday.
      */
     mode: 'instant' | 'hourly' | 'daily' | 'weekly';
+    /**
+     * Which mentions the rule sends.
+     */
     filter: {
         /**
          * Only these keywords.
@@ -3281,9 +3472,21 @@ export type Alert = {
      * Daily and weekly alerts only; null for instant and hourly ones.
      */
     schedule: {
+        /**
+         * Hour of the day to send, 0 to 23, in timezone.
+         */
         hour: number;
+        /**
+         * Minute past the hour, 0 to 59.
+         */
         minute?: number;
+        /**
+         * IANA zone the schedule runs in (Europe/Madrid).
+         */
         timezone: string;
+        /**
+         * true: send nothing when the window had no mention.
+         */
         skipEmpty?: boolean;
         /**
          * Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules.
@@ -3298,8 +3501,17 @@ export type Alert = {
      * Where it sends.
      */
     channels: Array<{
+        /**
+         * Channel id (dest_...).
+         */
         id: string;
+        /**
+         * Channel kind.
+         */
         kind: 'slack' | 'email' | 'webhook' | 'telegram';
+        /**
+         * Channel name.
+         */
         label: string;
     }>;
     /**
@@ -3933,6 +4145,9 @@ export type ReviewsReport = {
          */
         bucket: 'day' | 'week';
     };
+    /**
+     * The window's review count and average rating.
+     */
     totals: {
         /**
          * Reviews published in the window; a review matched by two keywords counts once.
@@ -3946,10 +4161,25 @@ export type ReviewsReport = {
          * Reviews per star rating.
          */
         distribution: {
+            /**
+             * One star.
+             */
             1: number;
+            /**
+             * Two stars.
+             */
             2: number;
+            /**
+             * Three stars.
+             */
             3: number;
+            /**
+             * Four stars.
+             */
             4: number;
+            /**
+             * Five stars.
+             */
             5: number;
         };
         /**
@@ -3965,7 +4195,13 @@ export type ReviewsReport = {
      * Intent and topic tags on the 1 and 2 star reviews, most frequent first: what the unhappy ones are about.
      */
     tags: Array<{
+        /**
+         * The intent or topic tag.
+         */
         tag: string;
+        /**
+         * Reviews carrying it.
+         */
         count: number;
     }>;
     /**
@@ -3984,10 +4220,25 @@ export type ReviewsReport = {
          * Reviews per star rating.
          */
         distribution: {
+            /**
+             * One star.
+             */
             1: number;
+            /**
+             * Two stars.
+             */
             2: number;
+            /**
+             * Three stars.
+             */
             3: number;
+            /**
+             * Four stars.
+             */
             4: number;
+            /**
+             * Five stars.
+             */
             5: number;
         };
         /**
@@ -4018,6 +4269,9 @@ export type ReviewsReport = {
              * Bucket start, YYYY-MM-DD.
              */
             date: string;
+            /**
+             * Reviews in the bucket.
+             */
             reviews: number;
             /**
              * Average stars, one decimal; null with no reviews.
@@ -4028,6 +4282,9 @@ export type ReviewsReport = {
          * The period of the same length right before the window, with compare=true; else null.
          */
         previous: {
+            /**
+             * Reviews in the window.
+             */
             reviews: number;
             /**
              * Average stars, one decimal; null with no reviews.
@@ -4051,10 +4308,25 @@ export type ReviewsReport = {
          * Reviews per star rating.
          */
         distribution: {
+            /**
+             * One star.
+             */
             1: number;
+            /**
+             * Two stars.
+             */
             2: number;
+            /**
+             * Three stars.
+             */
             3: number;
+            /**
+             * Four stars.
+             */
             4: number;
+            /**
+             * Five stars.
+             */
             5: number;
         };
         /**
@@ -4073,6 +4345,9 @@ export type SlackChannel = {
      * Channel id (dest_...).
      */
     id: string;
+    /**
+     * Your name for the channel.
+     */
     label: string;
     /**
      * Computed over this workspace's deliveries.
@@ -4094,7 +4369,13 @@ export type SlackChannel = {
          * Deliveries in the last 7 days.
          */
         last7d: {
+            /**
+             * Sends attempted.
+             */
             total: number;
+            /**
+             * Sends that failed.
+             */
             failed: number;
         };
     };
@@ -4102,7 +4383,13 @@ export type SlackChannel = {
      * ISO 8601 timestamp, UTC.
      */
     createdAt: string;
+    /**
+     * Channel kind.
+     */
     kind: 'slack';
+    /**
+     * The channel's settings for its kind; secrets are never returned.
+     */
     config: {
         /**
          * Slack channel id.
@@ -4124,6 +4411,9 @@ export type EmailChannel = {
      * Channel id (dest_...).
      */
     id: string;
+    /**
+     * Your name for the channel.
+     */
     label: string;
     /**
      * Computed over this workspace's deliveries.
@@ -4145,7 +4435,13 @@ export type EmailChannel = {
          * Deliveries in the last 7 days.
          */
         last7d: {
+            /**
+             * Sends attempted.
+             */
             total: number;
+            /**
+             * Sends that failed.
+             */
             failed: number;
         };
     };
@@ -4153,12 +4449,21 @@ export type EmailChannel = {
      * ISO 8601 timestamp, UTC.
      */
     createdAt: string;
+    /**
+     * Channel kind.
+     */
     kind: 'email';
+    /**
+     * The channel's settings for its kind; secrets are never returned.
+     */
     config: {
         /**
          * Every address on the list and whether it confirmed.
          */
         recipients: Array<{
+            /**
+             * Recipient address.
+             */
             email: string;
             /**
              * Null until the address confirmed through its link; unconfirmed addresses receive nothing.
@@ -4177,6 +4482,9 @@ export type WebhookChannel = {
      * Channel id (dest_...).
      */
     id: string;
+    /**
+     * Your name for the channel.
+     */
     label: string;
     /**
      * Computed over this workspace's deliveries.
@@ -4198,7 +4506,13 @@ export type WebhookChannel = {
          * Deliveries in the last 7 days.
          */
         last7d: {
+            /**
+             * Sends attempted.
+             */
             total: number;
+            /**
+             * Sends that failed.
+             */
             failed: number;
         };
     };
@@ -4206,7 +4520,13 @@ export type WebhookChannel = {
      * ISO 8601 timestamp, UTC.
      */
     createdAt: string;
+    /**
+     * Channel kind.
+     */
     kind: 'webhook';
+    /**
+     * The channel's settings for its kind; secrets are never returned.
+     */
     config: {
         /**
          * Where the signed POSTs go.
@@ -4234,6 +4554,9 @@ export type TelegramChannel = {
      * Channel id (dest_...).
      */
     id: string;
+    /**
+     * Your name for the channel.
+     */
     label: string;
     /**
      * Computed over this workspace's deliveries.
@@ -4255,7 +4578,13 @@ export type TelegramChannel = {
          * Deliveries in the last 7 days.
          */
         last7d: {
+            /**
+             * Sends attempted.
+             */
             total: number;
+            /**
+             * Sends that failed.
+             */
             failed: number;
         };
     };
@@ -4263,12 +4592,21 @@ export type TelegramChannel = {
      * ISO 8601 timestamp, UTC.
      */
     createdAt: string;
+    /**
+     * Channel kind.
+     */
     kind: 'telegram';
+    /**
+     * The channel's settings for its kind; secrets are never returned.
+     */
     config: {
         /**
          * Telegram chat id.
          */
         chatId: string;
+        /**
+         * private, group, supergroup or channel.
+         */
         chatType: 'private' | 'group' | 'supergroup' | 'channel';
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
@@ -4288,6 +4626,9 @@ export type Channel = ({
 } & TelegramChannel);
 
 export type CreateSlackChannel = {
+    /**
+     * Channel kind.
+     */
     kind: 'slack';
     /**
      * A Slack channel id from the connected workspace.
@@ -4304,6 +4645,9 @@ export type CreateSlackChannel = {
 };
 
 export type CreateEmailChannel = {
+    /**
+     * Channel kind.
+     */
     kind: 'email';
     /**
      * Each address gets a confirmation link; workspace members are confirmed on sight.
@@ -4316,6 +4660,9 @@ export type CreateEmailChannel = {
 };
 
 export type CreateWebhookChannel = {
+    /**
+     * Channel kind.
+     */
     kind: 'webhook';
     /**
      * Where the signed POSTs go. https in production.
@@ -4349,6 +4696,9 @@ export type GetHealthResponses = {
      * API is up
      */
     200: {
+        /**
+         * Always true when the API answers.
+         */
         ok: boolean;
     };
 };
@@ -4453,12 +4803,21 @@ export type ListKeywordsResponses = {
      * The matching keywords and how many there are
      */
     200: {
+        /**
+         * The keywords.
+         */
         data: Array<{
             /**
              * Keyword id (kw_...).
              */
             id: string;
+            /**
+             * The tracked text, as typed.
+             */
             term: string;
+            /**
+             * brand (your own name), competitor, or topic.
+             */
             kind: 'brand' | 'competitor' | 'topic';
             /**
              * Not polled or matched. Paused by you, by the wallet (see pausedForBalance) or by the noise brake (see pausedForNoise). A keyword at its mention cap is not muted (see pausedForCap).
@@ -4971,6 +5330,10 @@ export type CreateKeywordData = {
 
 export type CreateKeywordErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -5268,6 +5631,10 @@ export type UpdateKeywordData = {
 
 export type UpdateKeywordErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -5380,6 +5747,10 @@ export type DuplicateKeywordData = {
 
 export type DuplicateKeywordErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -5429,6 +5800,10 @@ export type ListFeedsData = {
 };
 
 export type ListFeedsErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -5634,12 +6009,22 @@ export type ImportFeedsData = {
             };
         }>;
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path?: never;
     query?: never;
     url: '/v1/feeds/import';
 };
 
 export type ImportFeedsErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -6208,6 +6593,10 @@ export type SearchMentionsData = {
          */
         keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
+         * Never matches of keywords of these kinds. Repeatable, or comma-separated.
+         */
+        notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
          * Only authors tagged with any of these (exact, case-sensitive), in the workspace's tags or those of the mention's own keyword group. Repeatable, or comma-separated.
          */
         tags?: Array<string> | null;
@@ -6389,6 +6778,9 @@ export type SearchMentionsResponses = {
      * One page of mentions in the requested order
      */
     200: {
+        /**
+         * The page of mentions.
+         */
         data: Array<Mention>;
         /**
          * Pass as cursor for the next page; null on the last page.
@@ -6513,6 +6905,10 @@ export type ExportMentionsCsvData = {
          * Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.
          */
         keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Never matches of keywords of these kinds. Repeatable, or comma-separated.
+         */
+        notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
          * Only authors tagged with any of these (exact, case-sensitive), in the workspace's tags or those of the mention's own keyword group. Repeatable, or comma-separated.
          */
@@ -6734,6 +7130,9 @@ export type ListMentionCommentsResponses = {
      * One page of the thread, newest first
      */
     200: {
+        /**
+         * The page of comments, newest first.
+         */
         data: Array<MentionComment>;
         /**
          * Pass as cursor for the next page; null on the last page.
@@ -6858,6 +7257,10 @@ export type ExportMentionsJsonData = {
          * Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.
          */
         keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Never matches of keywords of these kinds. Repeatable, or comma-separated.
+         */
+        notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
         /**
          * Only authors tagged with any of these (exact, case-sensitive), in the workspace's tags or those of the mention's own keyword group. Repeatable, or comma-separated.
          */
@@ -7164,6 +7567,18 @@ export type ExportPeopleCsvData = {
          */
         stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
         /**
+         * Nobody at these outreach stages. Repeatable, or comma-separated.
+         */
+        notStages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.
+         */
+        notLinkHosts?: Array<string> | null;
+        /**
+         * Nobody owned by these members (user ids); `none` drops the people nobody owns. Repeatable, or comma-separated.
+         */
+        notOwnerIds?: Array<string> | null;
+        /**
          * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest; omitted: everyone.
          */
         automated?: boolean;
@@ -7328,6 +7743,18 @@ export type ListPeopleData = {
          */
         stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
         /**
+         * Nobody at these outreach stages. Repeatable, or comma-separated.
+         */
+        notStages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.
+         */
+        notLinkHosts?: Array<string> | null;
+        /**
+         * Nobody owned by these members (user ids); `none` drops the people nobody owns. Repeatable, or comma-separated.
+         */
+        notOwnerIds?: Array<string> | null;
+        /**
          * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest; omitted: everyone.
          */
         automated?: boolean;
@@ -7373,6 +7800,9 @@ export type ListPeopleResponses = {
      * One page of people
      */
     200: {
+        /**
+         * The page of people.
+         */
         data: Array<{
             /**
              * Person id (aut_...): the canonical account. An account merged into someone resolves to that person.
@@ -7394,6 +7824,9 @@ export type ListPeopleResponses = {
              * Profile URL of the canonical account.
              */
             url: string | null;
+            /**
+             * Profile picture URL.
+             */
             avatarUrl: string | null;
             /**
              * Every account this workspace treats as this person, the canonical one first.
@@ -7424,17 +7857,38 @@ export type ListPeopleResponses = {
              * Platform counts as of their newest post; null where the platform has no such number.
              */
             reach: {
+                /**
+                 * Followers when last seen; null when unknown.
+                 */
                 followers: number | null;
+                /**
+                 * Accounts they follow; null when unknown.
+                 */
                 following: number | null;
+                /**
+                 * Posts on the platform; null when unknown.
+                 */
                 posts: number | null;
             };
             /**
              * Public profile facts; null until looked up.
              */
             profile: {
+                /**
+                 * The profile's bio, as the platform shows it.
+                 */
                 bio: string | null;
+                /**
+                 * Company named on the profile.
+                 */
                 company: string | null;
+                /**
+                 * Location named on the profile.
+                 */
                 location: string | null;
+                /**
+                 * Website linked from the profile.
+                 */
                 website: string | null;
                 /**
                  * Only when the person made it public on the platform.
@@ -7444,7 +7898,13 @@ export type ListPeopleResponses = {
                  * Other accounts the person lists on their profile.
                  */
                 links: Array<{
+                    /**
+                     * The platform or kind of the linked account (github, x, website, ...).
+                     */
                     provider: string;
+                    /**
+                     * Link to the account.
+                     */
                     url: string;
                 }>;
                 /**
@@ -7464,9 +7924,21 @@ export type ListPeopleResponses = {
                  * Of those, scored relevant.
                  */
                 relevant: number;
+                /**
+                 * Their matched mentions by sentiment.
+                 */
                 sentiment: {
+                    /**
+                     * Scored positive.
+                     */
                     positive: number;
+                    /**
+                     * Scored neutral.
+                     */
                     neutral: number;
+                    /**
+                     * Scored negative.
+                     */
                     negative: number;
                 };
                 /**
@@ -7482,7 +7954,13 @@ export type ListPeopleResponses = {
              * What this workspace wrote about the person.
              */
             annotations: {
+                /**
+                 * Tags your team gave them.
+                 */
                 tags: Array<string>;
+                /**
+                 * Your team's notes.
+                 */
                 notes: string;
                 /**
                  * Their posts stay out of the feed and every channel; ingest and billing are untouched. Read with groupId it is that group's own mute, which hides them from the mentions of that group's keywords only.
@@ -7501,7 +7979,13 @@ export type ListPeopleResponses = {
                      * User id of the workspace member.
                      */
                     id: string;
+                    /**
+                     * The member's name.
+                     */
                     name: string | null;
+                    /**
+                     * The member's email.
+                     */
                     email: string | null;
                 } | null;
                 /**
@@ -7542,6 +8026,10 @@ export type GetPersonData = {
 
 export type GetPersonErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -7571,6 +8059,9 @@ export type UpdatePersonData = {
          * Replaces the whole list.
          */
         tags?: Array<string>;
+        /**
+         * Notes, up to 2,000 characters; replaces the current notes.
+         */
         notes?: string;
         /**
          * true hides their posts from the feed, alerts and digests; false shows them again. Without groupId for the whole workspace; with it, for that group's keywords only.
@@ -7633,6 +8124,12 @@ export type MergePeopleData = {
          */
         into: string;
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Person id (aut_...).
@@ -7649,6 +8146,10 @@ export type MergePeopleData = {
 };
 
 export type MergePeopleErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -7672,6 +8173,12 @@ export type MergePeopleResponse = MergePeopleResponses[keyof MergePeopleResponse
 
 export type SplitPersonData = {
     body?: never;
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Person id (aut_...).
@@ -7688,6 +8195,10 @@ export type SplitPersonData = {
 };
 
 export type SplitPersonErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -7727,6 +8238,10 @@ export type ListPersonActivitiesData = {
 };
 
 export type ListPersonActivitiesErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -7772,7 +8287,13 @@ export type ListPersonActivitiesResponses = {
                  * User id of the workspace member.
                  */
                 id: string;
+                /**
+                 * The member's name.
+                 */
                 name: string | null;
+                /**
+                 * The member's email.
+                 */
                 email: string | null;
             } | null;
             /**
@@ -7878,6 +8399,10 @@ export type DeletePersonActivityData = {
 
 export type DeletePersonActivityErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -7942,6 +8467,10 @@ export type ListSegmentsData = {
 
 export type ListSegmentsErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -7958,13 +8487,25 @@ export type ListSegmentsResponses = {
      * Every segment
      */
     200: {
+        /**
+         * The segments.
+         */
         data: Array<{
             /**
              * Segment id (seg_...).
              */
             id: string;
+            /**
+             * Segment name.
+             */
             name: string;
+            /**
+             * What the segment is for.
+             */
             description: string;
+            /**
+             * The people filter it saves (the fields of GET /v1/people).
+             */
             filter: {
                 /**
                  * People with an account on any of these platforms.
@@ -8031,6 +8572,18 @@ export type ListSegmentsResponses = {
                  */
                 stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
                 /**
+                 * Nobody at these outreach stages.
+                 */
+                notStages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+                /**
+                 * Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it.
+                 */
+                notLinkHosts?: Array<string>;
+                /**
+                 * Nobody owned by these members (user ids); "none" drops the people nobody owns.
+                 */
+                notOwnerIds?: Array<string>;
+                /**
                  * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
                  */
                 automated?: boolean;
@@ -8069,8 +8622,17 @@ export type ListSegmentsResponse = ListSegmentsResponses[keyof ListSegmentsRespo
 
 export type CreateSegmentData = {
     body: {
+        /**
+         * Segment name, unique in its scope.
+         */
         name: string;
+        /**
+         * What the segment is for.
+         */
         description?: string;
+        /**
+         * The people filter (the fields of GET /v1/people).
+         */
         filter?: {
             /**
              * People with an account on any of these platforms.
@@ -8136,6 +8698,18 @@ export type CreateSegmentData = {
              * People at any of these outreach stages.
              */
             stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+            /**
+             * Nobody at these outreach stages.
+             */
+            notStages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+            /**
+             * Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it.
+             */
+            notLinkHosts?: Array<string>;
+            /**
+             * Nobody owned by these members (user ids); "none" drops the people nobody owns.
+             */
+            notOwnerIds?: Array<string>;
             /**
              * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
              */
@@ -8211,6 +8785,10 @@ export type DeleteSegmentData = {
 
 export type DeleteSegmentErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -8250,6 +8828,10 @@ export type GetSegmentData = {
 
 export type GetSegmentErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -8275,7 +8857,13 @@ export type UpdateSegmentData = {
      * Omitted fields are untouched.
      */
     body: {
+        /**
+         * Segment name, unique in its scope.
+         */
         name?: string;
+        /**
+         * What the segment is for.
+         */
         description?: string;
         /**
          * Replaces the whole filter.
@@ -8346,6 +8934,18 @@ export type UpdateSegmentData = {
              */
             stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
             /**
+             * Nobody at these outreach stages.
+             */
+            notStages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+            /**
+             * Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it.
+             */
+            notLinkHosts?: Array<string>;
+            /**
+             * Nobody owned by these members (user ids); "none" drops the people nobody owns.
+             */
+            notOwnerIds?: Array<string>;
+            /**
              * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
              */
             automated?: boolean;
@@ -8371,6 +8971,10 @@ export type UpdateSegmentData = {
 };
 
 export type UpdateSegmentErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -8425,8 +9029,17 @@ export type ListViewsResponses = {
              * View id (vw_...).
              */
             id: string;
+            /**
+             * View name.
+             */
             name: string;
+            /**
+             * What the view is for.
+             */
             description: string;
+            /**
+             * The mentions filter it saves (the fields of GET /v1/mentions).
+             */
             filter: {
                 /**
                  * Substring in the post text or the author's name.
@@ -8444,6 +9057,10 @@ export type ListViewsResponses = {
                  * Only matches of keywords of any of these kinds: brand, competitor, topic.
                  */
                 keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+                /**
+                 * Never matches of keywords of these kinds.
+                 */
+                notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
                 /**
                  * Only matches of keywords in any of these groups (grp_...).
                  */
@@ -8645,6 +9262,10 @@ export type CreateViewData = {
              * Only matches of keywords of any of these kinds: brand, competitor, topic.
              */
             keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Never matches of keywords of these kinds.
+             */
+            notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
             /**
              * Only matches of keywords in any of these groups (grp_...).
              */
@@ -8910,7 +9531,13 @@ export type GetViewResponse = GetViewResponses[keyof GetViewResponses];
 
 export type UpdateViewData = {
     body: {
+        /**
+         * View name, unique in the workspace.
+         */
         name?: string;
+        /**
+         * What the view is for.
+         */
         description?: string;
         /**
          * Replaces the whole filter.
@@ -8932,6 +9559,10 @@ export type UpdateViewData = {
              * Only matches of keywords of any of these kinds: brand, competitor, topic.
              */
             keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Never matches of keywords of these kinds.
+             */
+            notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
             /**
              * Only matches of keywords in any of these groups (grp_...).
              */
@@ -9102,6 +9733,10 @@ export type UpdateViewData = {
 
 export type UpdateViewErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -9168,6 +9803,9 @@ export type ListAttentionResponses = {
      * Attention items
      */
     200: {
+        /**
+         * The attention items.
+         */
         data: Array<AttentionItem>;
         /**
          * Pass as cursor for the next page; null on the last one.
@@ -9180,6 +9818,12 @@ export type ListAttentionResponse = ListAttentionResponses[keyof ListAttentionRe
 
 export type DismissAttentionData = {
     body?: never;
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Attention item id (att_...).
@@ -9225,6 +9869,10 @@ export type ListGroupsData = {
 };
 
 export type ListGroupsErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -9300,6 +9948,10 @@ export type CreateGroupData = {
 };
 
 export type CreateGroupErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -9485,7 +10137,13 @@ export type UpdateCompanyData = {
      * Omitted fields are untouched.
      */
     body: {
+        /**
+         * Company name.
+         */
         name?: string;
+        /**
+         * What the company does; the classifier reads it.
+         */
         description?: string;
         /**
          * Replaces the whole list.
@@ -9518,6 +10176,10 @@ export type UpdateCompanyData = {
 };
 
 export type UpdateCompanyErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -9560,11 +10222,17 @@ export type ListApiKeysResponses = {
      * Every key, newest first, without the secret part
      */
     200: {
+        /**
+         * Every API key of the workspace; the secret is never shown again.
+         */
         data: Array<{
             /**
              * Key id (key_...).
              */
             id: string;
+            /**
+             * Your name for the key.
+             */
             name: string;
             /**
              * The first characters of the key, to tell keys apart.
@@ -9640,6 +10308,9 @@ export type CreateApiKeyResponses = {
          * Key id (key_...).
          */
         id: string;
+        /**
+         * Your name for the key.
+         */
         name: string;
         /**
          * The first characters of the key, to tell keys apart.
@@ -9750,6 +10421,9 @@ export type ListMembersResponses = {
      * The members
      */
     200: {
+        /**
+         * The members.
+         */
         data: Array<Member>;
     };
 };
@@ -9777,6 +10451,9 @@ export type ListInvitationsResponses = {
      * The open invitations
      */
     200: {
+        /**
+         * The open invitations.
+         */
         data: Array<Invitation>;
     };
 };
@@ -9806,6 +10483,10 @@ export type CreateInvitationData = {
 };
 
 export type CreateInvitationErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -9976,6 +10657,18 @@ export type GetUsageBreakdownData = {
          * Only these platforms. A keyword-day belongs to no platform, so with this filter the keyword line reads 0 and only mentions and comments count. Repeatable, or comma-separated.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Never these keywords (kw_...). Repeatable, or comma-separated.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Never keywords of these groups (grp_...). Repeatable, or comma-separated.
+         */
+        notGroupIds?: Array<string> | null;
+        /**
+         * Never mentions or comments from these platforms; keyword-days, which belong to no platform, still count. Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * Rows per page, 1 to 500 (default 100). Only by=keyword can outgrow a page; a window has at most 90 days and a dozen platforms.
          */
@@ -10279,7 +10972,13 @@ export type UpdateAlertData = {
      * Omitted fields are untouched.
      */
     body: {
+        /**
+         * Rule name.
+         */
         name?: string;
+        /**
+         * false: the rule sends nothing.
+         */
         enabled?: boolean;
         mode?: 'instant' | 'hourly' | 'daily' | 'weekly';
         /**
@@ -10391,9 +11090,21 @@ export type UpdateAlertData = {
          * Daily and weekly alerts. Ignored on an hourly one, except a weekday, which is refused.
          */
         schedule?: {
+            /**
+             * Hour of the day to send, 0 to 23, in timezone.
+             */
             hour: number;
+            /**
+             * Minute past the hour, 0 to 59.
+             */
             minute?: number;
+            /**
+             * IANA zone the schedule runs in (Europe/Madrid).
+             */
             timezone: string;
+            /**
+             * true: send nothing when the window had no mention.
+             */
             skipEmpty?: boolean;
             /**
              * Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules.
@@ -10463,12 +11174,21 @@ export type ListAlertsResponses = {
      * Every alert rule of the org, newest first
      */
     200: {
+        /**
+         * Every alert rule of the workspace.
+         */
         data: Array<{
             /**
              * Alert id (feed_...).
              */
             id: string;
+            /**
+             * Rule name.
+             */
             name: string;
+            /**
+             * false: the rule sends nothing.
+             */
             enabled: boolean;
             /**
              * When it sends; see [Alerts](/alerts).
@@ -10479,6 +11199,9 @@ export type ListAlertsResponses = {
              * - weekly: one digest a week, on schedule.weekday.
              */
             mode: 'instant' | 'hourly' | 'daily' | 'weekly';
+            /**
+             * Which mentions the rule sends.
+             */
             filter: {
                 /**
                  * Only these keywords.
@@ -10585,9 +11308,21 @@ export type ListAlertsResponses = {
              * Daily and weekly alerts only; null for instant and hourly ones.
              */
             schedule: {
+                /**
+                 * Hour of the day to send, 0 to 23, in timezone.
+                 */
                 hour: number;
+                /**
+                 * Minute past the hour, 0 to 59.
+                 */
                 minute?: number;
+                /**
+                 * IANA zone the schedule runs in (Europe/Madrid).
+                 */
                 timezone: string;
+                /**
+                 * true: send nothing when the window had no mention.
+                 */
                 skipEmpty?: boolean;
                 /**
                  * Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules.
@@ -10602,8 +11337,17 @@ export type ListAlertsResponses = {
              * Where it sends.
              */
             channels: Array<{
+                /**
+                 * Channel id (dest_...).
+                 */
                 id: string;
+                /**
+                 * Channel kind.
+                 */
                 kind: 'slack' | 'email' | 'webhook' | 'telegram';
+                /**
+                 * Channel name.
+                 */
                 label: string;
             }>;
             /**
@@ -10635,9 +11379,18 @@ export type ListAlertsResponse = ListAlertsResponses[keyof ListAlertsResponses];
 
 export type CreateAlertData = {
     body: {
+        /**
+         * Rule name.
+         */
         name: string;
+        /**
+         * false: the rule sends nothing. Default true.
+         */
         enabled?: boolean;
         mode?: 'instant' | 'hourly' | 'daily' | 'weekly';
+        /**
+         * Which mentions the rule sends. Default: every relevant mention.
+         */
         filter?: {
             /**
              * Only these keywords.
@@ -10744,9 +11497,21 @@ export type CreateAlertData = {
          * Required for daily and weekly alerts (weekly ones also need schedule.weekday). Hourly alerts take none: they send every UTC hour, so a time of day and a zone are ignored and a weekday is refused.
          */
         schedule?: {
+            /**
+             * Hour of the day to send, 0 to 23, in timezone.
+             */
             hour: number;
+            /**
+             * Minute past the hour, 0 to 59.
+             */
             minute?: number;
+            /**
+             * IANA zone the schedule runs in (Europe/Madrid).
+             */
             timezone: string;
+            /**
+             * true: send nothing when the window had no mention.
+             */
             skipEmpty?: boolean;
             /**
              * Weekly rules: the day it sends, 0 Sunday to 6 Saturday. Required for mode weekly; ignored on daily rules.
@@ -10797,6 +11562,12 @@ export type CreateAlertResponse = CreateAlertResponses[keyof CreateAlertResponse
 
 export type TestAlertData = {
     body?: never;
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Alert id (feed_...).
@@ -10825,9 +11596,21 @@ export type TestAlertResponses = {
      * A test message was attempted on every channel of the rule
      */
     200: {
+        /**
+         * One result per channel of the rule.
+         */
         outcomes: Array<{
+            /**
+             * The channel (dest_...).
+             */
             channelId: string;
+            /**
+             * Whether the channel accepted it.
+             */
             ok: boolean;
+            /**
+             * Why it failed; null when it did not.
+             */
             error: string | null;
         }>;
     };
@@ -10837,6 +11620,12 @@ export type TestAlertResponse = TestAlertResponses[keyof TestAlertResponses];
 
 export type RunAlertDigestData = {
     body?: never;
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Alert id (feed_...).
@@ -10873,11 +11662,29 @@ export type RunAlertDigestResponses = {
          * Why nothing was sent: the period already went out, nothing to show, an hourly retry window closed, or another run is sending it now.
          */
         skipped: 'already_sent' | 'empty' | 'expired' | 'in_flight';
+        /**
+         * Matches in the window.
+         */
         matched: number;
+        /**
+         * Relevant matches in the window.
+         */
         relevant: number;
+        /**
+         * One result per channel.
+         */
         outcomes: Array<{
+            /**
+             * The channel (dest_...).
+             */
             channelId: string;
+            /**
+             * Whether the channel accepted it.
+             */
             ok: boolean;
+            /**
+             * Why it failed; null when it did not.
+             */
             error: string | null;
         }>;
     };
@@ -10894,6 +11701,12 @@ export type MuteAlertAuthorsData = {
          * Profile or post links (x.com/name, linkedin.com/in/name, reddit.com/user/name, a post URL), handles (@name, u/name), Bluesky DIDs or display names. A link is stored as the author's profile; a plain name or handle matches that name on every platform.
          */
         authors: Array<string>;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
     };
     path: {
         /**
@@ -10941,6 +11754,12 @@ export type UnmuteAlertAuthorsData = {
          */
         authors: Array<string>;
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Alert id (feed_...).
@@ -10952,6 +11771,10 @@ export type UnmuteAlertAuthorsData = {
 };
 
 export type UnmuteAlertAuthorsErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
@@ -10997,6 +11820,14 @@ export type GetAnalyticsSummaryData = {
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Never these keyword ids. Repeatable, or comma-separated.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Never these platforms. Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -11055,6 +11886,14 @@ export type GetAnalyticsSeriesData = {
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Never these keyword ids. Repeatable, or comma-separated.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Never these platforms. Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -11121,6 +11960,14 @@ export type GetAnalyticsBreakdownData = {
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Never these keyword ids. Repeatable, or comma-separated.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Never these platforms. Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -11194,6 +12041,14 @@ export type GetShareOfVoiceData = {
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
+         * Never these keyword ids. Repeatable, or comma-separated.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Never these platforms. Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
          * true adds the period of the same length right before the window as `previous`.
          */
         compare?: boolean;
@@ -11251,6 +12106,14 @@ export type GetReviewsReportData = {
          * Only these platforms. Repeatable, or comma-separated; omit for every platform.
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Never these keyword ids. Repeatable, or comma-separated.
+         */
+        notKeywordIds?: Array<string> | null;
+        /**
+         * Never these platforms. Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
          * true adds the period of the same length right before the window as `previous`.
          */
@@ -11362,6 +12225,9 @@ export type UpdateChannelData = {
      * Omitted fields are untouched.
      */
     body: {
+        /**
+         * Your name for the channel.
+         */
         label?: string;
         /**
          * Webhooks only.
@@ -11416,6 +12282,12 @@ export type UpdateChannelResponse = UpdateChannelResponses[keyof UpdateChannelRe
 
 export type TestChannelData = {
     body?: never;
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Channel id (dest_...).
@@ -11444,9 +12316,21 @@ export type TestChannelResponses = {
      * A test message was attempted on the channel (webhooks receive event "test")
      */
     200: {
+        /**
+         * The test send's result.
+         */
         outcomes: Array<{
+            /**
+             * The channel (dest_...).
+             */
             channelId: string;
+            /**
+             * Whether the channel accepted it.
+             */
             ok: boolean;
+            /**
+             * Why it failed; null when it did not.
+             */
             error: string | null;
         }>;
     };
@@ -11456,6 +12340,12 @@ export type TestChannelResponse = TestChannelResponses[keyof TestChannelResponse
 
 export type RotateWebhookSecretData = {
     body?: never;
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Channel id (dest_...).
@@ -11511,6 +12401,10 @@ export type ListChannelDeliveriesData = {
 
 export type ListChannelDeliveriesErrors = {
     /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
@@ -11527,6 +12421,9 @@ export type ListChannelDeliveriesResponses = {
      * What the channel received, newest first: instant mentions and digest runs, with status and last error
      */
     200: {
+        /**
+         * Deliveries, newest first.
+         */
         data: Array<{
             /**
              * Delivery id (dlv_...), also the webhook payload id.
@@ -11540,7 +12437,13 @@ export type ListChannelDeliveriesResponses = {
              * The event name the payload carried: the rule's (mention.matched unless it set one, digest for a summary) or the account event's.
              */
             event: string;
+            /**
+             * pending, delivered or failed.
+             */
             status: 'pending' | 'delivered' | 'failed';
+            /**
+             * Send attempts so far.
+             */
             attempts: number;
             /**
              * The last failure, when there was one.
@@ -11558,14 +12461,26 @@ export type ListChannelDeliveriesResponses = {
              * The alert that produced it; name only, since alerts can be deleted. name is null for an account event, which no rule produces.
              */
             alert: {
+                /**
+                 * Alert name.
+                 */
                 name: string | null;
             };
             /**
              * For mention deliveries: the post, text cut to 160 characters.
              */
             mention: {
+                /**
+                 * Mention id.
+                 */
                 id: string;
+                /**
+                 * Link to the post.
+                 */
                 url: string;
+                /**
+                 * The post text, cut to 160 characters.
+                 */
                 text: string;
             } | null;
         }>;
@@ -11599,6 +12514,9 @@ export type ListChannelsResponses = {
      * Every channel of the org
      */
     200: {
+        /**
+         * Every channel of the workspace.
+         */
         data: Array<SlackChannel | EmailChannel | WebhookChannel | TelegramChannel>;
     };
 };

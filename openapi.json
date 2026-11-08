@@ -126,7 +126,8 @@
             "description": "Keyword id (kw_...)."
           },
           "term": {
-            "type": "string"
+            "type": "string",
+            "description": "The tracked text, as typed."
           },
           "kind": {
             "type": "string",
@@ -134,7 +135,8 @@
               "brand",
               "competitor",
               "topic"
-            ]
+            ],
+            "description": "brand (your own name), competitor, or topic."
           },
           "muted": {
             "type": "boolean",
@@ -2367,32 +2369,38 @@
                   "likes": {
                     "type": "integer",
                     "nullable": true,
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Likes or upvotes when the post was ingested; null when the platform does not report them."
                   },
                   "reposts": {
                     "type": "integer",
                     "nullable": true,
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Reposts or shares when ingested; null when not reported."
                   },
                   "replies": {
                     "type": "integer",
                     "nullable": true,
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Replies or comments when ingested; null when not reported."
                   },
                   "quotes": {
                     "type": "integer",
                     "nullable": true,
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Quotes when ingested; null when not reported."
                   },
                   "views": {
                     "type": "integer",
                     "nullable": true,
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Views when ingested; null when not reported."
                   },
                   "bookmarks": {
                     "type": "integer",
                     "nullable": true,
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Bookmarks or saves when ingested; null when not reported."
                   }
                 },
                 "required": [
@@ -2447,7 +2455,8 @@
               "publishedAt",
               "engagement",
               "replyTo"
-            ]
+            ],
+            "description": "The post: platform, text, link, publish time and engagement."
           },
           "parentMentionId": {
             "type": "string",
@@ -2613,7 +2622,7 @@
                   "neutral",
                   "negative"
                 ],
-                "description": "Classifier sentiment."
+                "description": "positive, neutral or negative; null until classified."
               },
               "intents": {
                 "type": "array",
@@ -2744,15 +2753,18 @@
                 "nullable": true,
                 "properties": {
                   "id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "User id."
                   },
                   "name": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "description": "Member name."
                   },
                   "email": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "description": "Member email."
                   }
                 },
                 "required": [
@@ -2777,7 +2789,8 @@
               "assignee",
               "snoozedUntil",
               "note"
-            ]
+            ],
+            "description": "What your team did with it: status, assignee, snooze and notes."
           },
           "duplicateOf": {
             "type": "string",
@@ -2931,32 +2944,38 @@
               "likes": {
                 "type": "integer",
                 "nullable": true,
-                "minimum": 0
+                "minimum": 0,
+                "description": "Likes or upvotes when the post was ingested; null when the platform does not report them."
               },
               "reposts": {
                 "type": "integer",
                 "nullable": true,
-                "minimum": 0
+                "minimum": 0,
+                "description": "Reposts or shares when ingested; null when not reported."
               },
               "replies": {
                 "type": "integer",
                 "nullable": true,
-                "minimum": 0
+                "minimum": 0,
+                "description": "Replies or comments when ingested; null when not reported."
               },
               "quotes": {
                 "type": "integer",
                 "nullable": true,
-                "minimum": 0
+                "minimum": 0,
+                "description": "Quotes when ingested; null when not reported."
               },
               "views": {
                 "type": "integer",
                 "nullable": true,
-                "minimum": 0
+                "minimum": 0,
+                "description": "Views when ingested; null when not reported."
               },
               "bookmarks": {
                 "type": "integer",
                 "nullable": true,
-                "minimum": 0
+                "minimum": 0,
+                "description": "Bookmarks or saves when ingested; null when not reported."
               }
             },
             "required": [
@@ -2981,7 +3000,7 @@
                   "neutral",
                   "negative"
                 ],
-                "description": "Classifier sentiment."
+                "description": "positive, neutral or negative; null until classified."
               },
               "intents": {
                 "type": "array",
@@ -3063,7 +3082,8 @@
           },
           "avatarUrl": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "Profile picture URL."
           },
           "accounts": {
             "type": "array",
@@ -3129,15 +3149,18 @@
             "properties": {
               "followers": {
                 "type": "integer",
-                "nullable": true
+                "nullable": true,
+                "description": "Followers when last seen; null when unknown."
               },
               "following": {
                 "type": "integer",
-                "nullable": true
+                "nullable": true,
+                "description": "Accounts they follow; null when unknown."
               },
               "posts": {
                 "type": "integer",
-                "nullable": true
+                "nullable": true,
+                "description": "Posts on the platform; null when unknown."
               }
             },
             "required": [
@@ -3153,19 +3176,23 @@
             "properties": {
               "bio": {
                 "type": "string",
-                "nullable": true
+                "nullable": true,
+                "description": "The profile's bio, as the platform shows it."
               },
               "company": {
                 "type": "string",
-                "nullable": true
+                "nullable": true,
+                "description": "Company named on the profile."
               },
               "location": {
                 "type": "string",
-                "nullable": true
+                "nullable": true,
+                "description": "Location named on the profile."
               },
               "website": {
                 "type": "string",
-                "nullable": true
+                "nullable": true,
+                "description": "Website linked from the profile."
               },
               "email": {
                 "type": "string",
@@ -3179,11 +3206,13 @@
                   "properties": {
                     "provider": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "The platform or kind of the linked account (github, x, website, ...)."
                     },
                     "url": {
                       "type": "string",
-                      "format": "uri"
+                      "format": "uri",
+                      "description": "Link to the account."
                     }
                   },
                   "required": [
@@ -3227,22 +3256,26 @@
                 "properties": {
                   "positive": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Scored positive."
                   },
                   "neutral": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Scored neutral."
                   },
                   "negative": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Scored negative."
                   }
                 },
                 "required": [
                   "positive",
                   "neutral",
                   "negative"
-                ]
+                ],
+                "description": "Their matched mentions by sentiment."
               },
               "firstSeenAt": {
                 "type": "string",
@@ -3269,10 +3302,12 @@
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "description": "Tags your team gave them."
               },
               "notes": {
-                "type": "string"
+                "type": "string",
+                "description": "Your team's notes."
               },
               "muted": {
                 "type": "boolean",
@@ -3299,11 +3334,13 @@
                   },
                   "name": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "description": "The member's name."
                   },
                   "email": {
                     "type": "string",
-                    "nullable": true
+                    "nullable": true,
+                    "description": "The member's email."
                   }
                 },
                 "required": [
@@ -3394,11 +3431,13 @@
               },
               "name": {
                 "type": "string",
-                "nullable": true
+                "nullable": true,
+                "description": "The member's name."
               },
               "email": {
                 "type": "string",
-                "nullable": true
+                "nullable": true,
+                "description": "The member's email."
               }
             },
             "required": [
@@ -3626,6 +3665,43 @@
                 "maxItems": 6,
                 "description": "People at any of these outreach stages."
               },
+              "notStages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "not_contacted",
+                    "contacted",
+                    "replied",
+                    "in_talks",
+                    "customer",
+                    "not_a_fit"
+                  ],
+                  "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                },
+                "maxItems": 6,
+                "description": "Nobody at these outreach stages."
+              },
+              "notLinkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it."
+              },
+              "notOwnerIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "Nobody owned by these members (user ids); \"none\" drops the people nobody owns."
+              },
               "automated": {
                 "type": "boolean",
                 "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest."
@@ -3659,10 +3735,12 @@
             "description": "Segment id (seg_...)."
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Segment name."
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "What the segment is for."
           },
           "filter": {
             "type": "object",
@@ -3848,6 +3926,43 @@
                 "maxItems": 6,
                 "description": "People at any of these outreach stages."
               },
+              "notStages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "not_contacted",
+                    "contacted",
+                    "replied",
+                    "in_talks",
+                    "customer",
+                    "not_a_fit"
+                  ],
+                  "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                },
+                "maxItems": 6,
+                "description": "Nobody at these outreach stages."
+              },
+              "notLinkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it."
+              },
+              "notOwnerIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "Nobody owned by these members (user ids); \"none\" drops the people nobody owns."
+              },
               "automated": {
                 "type": "boolean",
                 "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest."
@@ -3862,7 +3977,8 @@
                 "maxItems": 20,
                 "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
               }
-            }
+            },
+            "description": "The people filter it saves (the fields of GET /v1/people)."
           },
           "groupId": {
             "type": "string",
@@ -3933,6 +4049,19 @@
             },
             "maxItems": 3,
             "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+          },
+          "notKeywordKinds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "brand",
+                "competitor",
+                "topic"
+              ]
+            },
+            "maxItems": 3,
+            "description": "Never matches of keywords of these kinds."
           },
           "groupIds": {
             "type": "array",
@@ -4414,10 +4543,12 @@
             "description": "View id (vw_...)."
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "View name."
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "description": "What the view is for."
           },
           "filter": {
             "type": "object",
@@ -4458,6 +4589,19 @@
                 },
                 "maxItems": 3,
                 "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+              },
+              "notKeywordKinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "brand",
+                    "competitor",
+                    "topic"
+                  ]
+                },
+                "maxItems": 3,
+                "description": "Never matches of keywords of these kinds."
               },
               "groupIds": {
                 "type": "array",
@@ -4936,7 +5080,8 @@
                 "maxItems": 10,
                 "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
               }
-            }
+            },
+            "description": "The mentions filter it saves (the fields of GET /v1/mentions)."
           },
           "createdAt": {
             "type": "string",
@@ -5794,14 +5939,17 @@
             "nullable": true,
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "description": "User id."
               },
               "email": {
-                "type": "string"
+                "type": "string",
+                "description": "Their email."
               },
               "name": {
                 "type": "string",
-                "nullable": true
+                "nullable": true,
+                "description": "Their name."
               }
             },
             "required": [
@@ -5851,7 +5999,8 @@
                 "type": "string",
                 "enum": [
                   "USD"
-                ]
+                ],
+                "description": "Always USD."
               }
             },
             "required": [
@@ -6370,7 +6519,8 @@
               "spentThisWeekCents",
               "lastRunAt",
               "lastError"
-            ]
+            ],
+            "description": "Automatic top-up: off unless set in the dashboard."
           }
         },
         "required": [
@@ -6536,10 +6686,12 @@
             "description": "Alert id (feed_...)."
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "Rule name."
           },
           "enabled": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "false: the rule sends nothing."
           },
           "mode": {
             "type": "string",
@@ -6879,7 +7031,8 @@
                 "maxItems": 10,
                 "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
               }
-            }
+            },
+            "description": "Which mentions the rule sends."
           },
           "schedule": {
             "type": "object",
@@ -6888,22 +7041,26 @@
               "hour": {
                 "type": "integer",
                 "minimum": 0,
-                "maximum": 23
+                "maximum": 23,
+                "description": "Hour of the day to send, 0 to 23, in timezone."
               },
               "minute": {
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 59,
-                "default": 0
+                "default": 0,
+                "description": "Minute past the hour, 0 to 59."
               },
               "timezone": {
                 "type": "string",
                 "minLength": 1,
-                "maxLength": 64
+                "maxLength": 64,
+                "description": "IANA zone the schedule runs in (Europe/Madrid)."
               },
               "skipEmpty": {
                 "type": "boolean",
-                "default": true
+                "default": true,
+                "description": "true: send nothing when the window had no mention."
               },
               "weekday": {
                 "type": "integer",
@@ -6928,7 +7085,8 @@
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Channel id (dest_...)."
                 },
                 "kind": {
                   "type": "string",
@@ -6937,10 +7095,12 @@
                     "email",
                     "webhook",
                     "telegram"
-                  ]
+                  ],
+                  "description": "Channel kind."
                 },
                 "label": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Channel name."
                 }
               },
               "required": [
@@ -8078,23 +8238,28 @@
                 "properties": {
                   "1": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "One star."
                   },
                   "2": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Two stars."
                   },
                   "3": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Three stars."
                   },
                   "4": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Four stars."
                   },
                   "5": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Five stars."
                   }
                 },
                 "required": [
@@ -8123,7 +8288,8 @@
               "distribution",
               "responded",
               "openNegative"
-            ]
+            ],
+            "description": "The window's review count and average rating."
           },
           "tags": {
             "type": "array",
@@ -8131,11 +8297,13 @@
               "type": "object",
               "properties": {
                 "tag": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "The intent or topic tag."
                 },
                 "count": {
                   "type": "integer",
-                  "minimum": 0
+                  "minimum": 0,
+                  "description": "Reviews carrying it."
                 }
               },
               "required": [
@@ -8167,23 +8335,28 @@
                   "properties": {
                     "1": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "One star."
                     },
                     "2": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "Two stars."
                     },
                     "3": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "Three stars."
                     },
                     "4": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "Four stars."
                     },
                     "5": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "Five stars."
                     }
                   },
                   "required": [
@@ -8234,7 +8407,8 @@
                       },
                       "reviews": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Reviews in the bucket."
                       },
                       "averageRating": {
                         "type": "number",
@@ -8258,7 +8432,8 @@
                   "properties": {
                     "reviews": {
                       "type": "integer",
-                      "minimum": 0
+                      "minimum": 0,
+                      "description": "Reviews in the window."
                     },
                     "averageRating": {
                       "type": "number",
@@ -8311,23 +8486,28 @@
                 "properties": {
                   "1": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "One star."
                   },
                   "2": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Two stars."
                   },
                   "3": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Three stars."
                   },
                   "4": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Four stars."
                   },
                   "5": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Five stars."
                   }
                 },
                 "required": [
@@ -8376,7 +8556,8 @@
             "description": "Channel id (dest_...)."
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Your name for the channel."
           },
           "stats": {
             "type": "object",
@@ -8401,11 +8582,13 @@
                 "properties": {
                   "total": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Sends attempted."
                   },
                   "failed": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Sends that failed."
                   }
                 },
                 "required": [
@@ -8431,7 +8614,8 @@
             "type": "string",
             "enum": [
               "slack"
-            ]
+            ],
+            "description": "Channel kind."
           },
           "config": {
             "type": "object",
@@ -8465,7 +8649,8 @@
               "channelId",
               "channelName",
               "events"
-            ]
+            ],
+            "description": "The channel's settings for its kind; secrets are never returned."
           }
         },
         "required": [
@@ -8485,7 +8670,8 @@
             "description": "Channel id (dest_...)."
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Your name for the channel."
           },
           "stats": {
             "type": "object",
@@ -8510,11 +8696,13 @@
                 "properties": {
                   "total": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Sends attempted."
                   },
                   "failed": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Sends that failed."
                   }
                 },
                 "required": [
@@ -8540,7 +8728,8 @@
             "type": "string",
             "enum": [
               "email"
-            ]
+            ],
+            "description": "Channel kind."
           },
           "config": {
             "type": "object",
@@ -8551,7 +8740,8 @@
                   "type": "object",
                   "properties": {
                     "email": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Recipient address."
                     },
                     "confirmedAt": {
                       "type": "string",
@@ -8586,7 +8776,8 @@
             "required": [
               "recipients",
               "events"
-            ]
+            ],
+            "description": "The channel's settings for its kind; secrets are never returned."
           }
         },
         "required": [
@@ -8606,7 +8797,8 @@
             "description": "Channel id (dest_...)."
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Your name for the channel."
           },
           "stats": {
             "type": "object",
@@ -8631,11 +8823,13 @@
                 "properties": {
                   "total": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Sends attempted."
                   },
                   "failed": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Sends that failed."
                   }
                 },
                 "required": [
@@ -8661,7 +8855,8 @@
             "type": "string",
             "enum": [
               "webhook"
-            ]
+            ],
+            "description": "Channel kind."
           },
           "config": {
             "type": "object",
@@ -8708,7 +8903,8 @@
               "url",
               "headers",
               "events"
-            ]
+            ],
+            "description": "The channel's settings for its kind; secrets are never returned."
           }
         },
         "required": [
@@ -8728,7 +8924,8 @@
             "description": "Channel id (dest_...)."
           },
           "label": {
-            "type": "string"
+            "type": "string",
+            "description": "Your name for the channel."
           },
           "stats": {
             "type": "object",
@@ -8753,11 +8950,13 @@
                 "properties": {
                   "total": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Sends attempted."
                   },
                   "failed": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "description": "Sends that failed."
                   }
                 },
                 "required": [
@@ -8783,7 +8982,8 @@
             "type": "string",
             "enum": [
               "telegram"
-            ]
+            ],
+            "description": "Channel kind."
           },
           "config": {
             "type": "object",
@@ -8799,7 +8999,8 @@
                   "group",
                   "supergroup",
                   "channel"
-                ]
+                ],
+                "description": "private, group, supergroup or channel."
               },
               "events": {
                 "type": "array",
@@ -8822,7 +9023,8 @@
               "chatId",
               "chatType",
               "events"
-            ]
+            ],
+            "description": "The channel's settings for its kind; secrets are never returned."
           }
         },
         "required": [
@@ -8866,7 +9068,8 @@
             "type": "string",
             "enum": [
               "slack"
-            ]
+            ],
+            "description": "Channel kind."
           },
           "channelId": {
             "type": "string",
@@ -8911,7 +9114,8 @@
             "type": "string",
             "enum": [
               "email"
-            ]
+            ],
+            "description": "Channel kind."
           },
           "emails": {
             "type": "array",
@@ -8953,7 +9157,8 @@
             "type": "string",
             "enum": [
               "webhook"
-            ]
+            ],
+            "description": "Channel kind."
           },
           "url": {
             "type": "string",
@@ -9022,7 +9227,8 @@
                   "type": "object",
                   "properties": {
                     "ok": {
-                      "type": "boolean"
+                      "type": "boolean",
+                      "description": "Always true when the API answers."
                     }
                   },
                   "required": [
@@ -9054,6 +9260,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -9598,6 +9805,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -10006,7 +10223,8 @@
                             "description": "Keyword id (kw_...)."
                           },
                           "term": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "The tracked text, as typed."
                           },
                           "kind": {
                             "type": "string",
@@ -10014,7 +10232,8 @@
                               "brand",
                               "competitor",
                               "topic"
-                            ]
+                            ],
+                            "description": "brand (your own name), competitor, or topic."
                           },
                           "muted": {
                             "type": "boolean",
@@ -10757,7 +10976,8 @@
                           "polling",
                           "createdAt"
                         ]
-                      }
+                      },
+                      "description": "The keywords."
                     },
                     "total": {
                       "type": "integer",
@@ -11417,6 +11637,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -11649,6 +11879,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -11703,6 +11934,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Keyword"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -11953,6 +12194,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -11983,6 +12234,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -12153,6 +12405,22 @@
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -12438,6 +12706,16 @@
                   "required": [
                     "data"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -13447,6 +13725,25 @@
           {
             "schema": {
               "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Never matches of keywords of these kinds. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never matches of keywords of these kinds. Repeatable, or comma-separated.",
+            "name": "notKeywordKinds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
               "nullable": true,
               "items": {
                 "type": "string",
@@ -14188,7 +14485,8 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/Mention"
-                      }
+                      },
+                      "description": "The page of mentions."
                     },
                     "nextCursor": {
                       "type": "string",
@@ -14571,6 +14869,25 @@
             "required": false,
             "description": "Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.",
             "name": "keywordKinds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Never matches of keywords of these kinds. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never matches of keywords of these kinds. Repeatable, or comma-separated.",
+            "name": "notKeywordKinds",
             "in": "query"
           },
           {
@@ -15374,7 +15691,8 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/MentionComment"
-                      }
+                      },
+                      "description": "The page of comments, newest first."
                     },
                     "nextCursor": {
                       "type": "string",
@@ -15767,6 +16085,25 @@
             "required": false,
             "description": "Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.",
             "name": "keywordKinds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Never matches of keywords of these kinds. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never matches of keywords of these kinds. Repeatable, or comma-separated.",
+            "name": "notKeywordKinds",
             "in": "query"
           },
           {
@@ -16976,6 +17313,63 @@
           },
           {
             "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "not_contacted",
+                  "contacted",
+                  "replied",
+                  "in_talks",
+                  "customer",
+                  "not_a_fit"
+                ],
+                "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+              },
+              "maxItems": 6,
+              "description": "Nobody at these outreach stages. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody at these outreach stages. Repeatable, or comma-separated.",
+            "name": "notStages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.",
+            "name": "notLinkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Nobody owned by these members (user ids); `none` drops the people nobody owns. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody owned by these members (user ids); `none` drops the people nobody owns. Repeatable, or comma-separated.",
+            "name": "notOwnerIds",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "boolean",
               "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest; omitted: everyone."
             },
@@ -17525,6 +17919,63 @@
           },
           {
             "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "not_contacted",
+                  "contacted",
+                  "replied",
+                  "in_talks",
+                  "customer",
+                  "not_a_fit"
+                ],
+                "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+              },
+              "maxItems": 6,
+              "description": "Nobody at these outreach stages. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody at these outreach stages. Repeatable, or comma-separated.",
+            "name": "notStages",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it. Repeatable, or comma-separated.",
+            "name": "notLinkHosts",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Nobody owned by these members (user ids); `none` drops the people nobody owns. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Nobody owned by these members (user ids); `none` drops the people nobody owns. Repeatable, or comma-separated.",
+            "name": "notOwnerIds",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "boolean",
               "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest; omitted: everyone."
             },
@@ -17652,7 +18103,8 @@
                           },
                           "avatarUrl": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "description": "Profile picture URL."
                           },
                           "accounts": {
                             "type": "array",
@@ -17718,15 +18170,18 @@
                             "properties": {
                               "followers": {
                                 "type": "integer",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "Followers when last seen; null when unknown."
                               },
                               "following": {
                                 "type": "integer",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "Accounts they follow; null when unknown."
                               },
                               "posts": {
                                 "type": "integer",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "Posts on the platform; null when unknown."
                               }
                             },
                             "required": [
@@ -17742,19 +18197,23 @@
                             "properties": {
                               "bio": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "The profile's bio, as the platform shows it."
                               },
                               "company": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "Company named on the profile."
                               },
                               "location": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "Location named on the profile."
                               },
                               "website": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "Website linked from the profile."
                               },
                               "email": {
                                 "type": "string",
@@ -17768,11 +18227,13 @@
                                   "properties": {
                                     "provider": {
                                       "type": "string",
-                                      "minLength": 1
+                                      "minLength": 1,
+                                      "description": "The platform or kind of the linked account (github, x, website, ...)."
                                     },
                                     "url": {
                                       "type": "string",
-                                      "format": "uri"
+                                      "format": "uri",
+                                      "description": "Link to the account."
                                     }
                                   },
                                   "required": [
@@ -17816,22 +18277,26 @@
                                 "properties": {
                                   "positive": {
                                     "type": "integer",
-                                    "minimum": 0
+                                    "minimum": 0,
+                                    "description": "Scored positive."
                                   },
                                   "neutral": {
                                     "type": "integer",
-                                    "minimum": 0
+                                    "minimum": 0,
+                                    "description": "Scored neutral."
                                   },
                                   "negative": {
                                     "type": "integer",
-                                    "minimum": 0
+                                    "minimum": 0,
+                                    "description": "Scored negative."
                                   }
                                 },
                                 "required": [
                                   "positive",
                                   "neutral",
                                   "negative"
-                                ]
+                                ],
+                                "description": "Their matched mentions by sentiment."
                               },
                               "firstSeenAt": {
                                 "type": "string",
@@ -17858,10 +18323,12 @@
                                 "type": "array",
                                 "items": {
                                   "type": "string"
-                                }
+                                },
+                                "description": "Tags your team gave them."
                               },
                               "notes": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "Your team's notes."
                               },
                               "muted": {
                                 "type": "boolean",
@@ -17888,11 +18355,13 @@
                                   },
                                   "name": {
                                     "type": "string",
-                                    "nullable": true
+                                    "nullable": true,
+                                    "description": "The member's name."
                                   },
                                   "email": {
                                     "type": "string",
-                                    "nullable": true
+                                    "nullable": true,
+                                    "description": "The member's email."
                                   }
                                 },
                                 "required": [
@@ -17942,7 +18411,8 @@
                           "annotations",
                           "outreach"
                         ]
-                      }
+                      },
+                      "description": "The page of people."
                     },
                     "total": {
                       "type": "integer",
@@ -18040,6 +18510,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -18118,7 +18598,8 @@
                   },
                   "notes": {
                     "type": "string",
-                    "maxLength": 2000
+                    "maxLength": 2000,
+                    "description": "Notes, up to 2,000 characters; replaces the current notes."
                   },
                   "muted": {
                     "type": "boolean",
@@ -18228,6 +18709,20 @@
             "description": "Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.",
             "name": "groupId",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -18257,6 +18752,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -18320,6 +18825,20 @@
             "description": "Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.",
             "name": "groupId",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "responses": {
@@ -18329,6 +18848,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Person"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -18444,11 +18973,13 @@
                               },
                               "name": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "The member's name."
                               },
                               "email": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "The member's email."
                               }
                             },
                             "required": [
@@ -18483,6 +19014,16 @@
                   "required": [
                     "data"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -18550,6 +19091,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -18703,6 +19245,16 @@
           "204": {
             "description": "Deleted"
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -18819,10 +19371,12 @@
                             "description": "Segment id (seg_...)."
                           },
                           "name": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "Segment name."
                           },
                           "description": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "What the segment is for."
                           },
                           "filter": {
                             "type": "object",
@@ -19008,6 +19562,43 @@
                                 "maxItems": 6,
                                 "description": "People at any of these outreach stages."
                               },
+                              "notStages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "not_contacted",
+                                    "contacted",
+                                    "replied",
+                                    "in_talks",
+                                    "customer",
+                                    "not_a_fit"
+                                  ],
+                                  "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                                },
+                                "maxItems": 6,
+                                "description": "Nobody at these outreach stages."
+                              },
+                              "notLinkHosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 20,
+                                "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it."
+                              },
+                              "notOwnerIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 20,
+                                "description": "Nobody owned by these members (user ids); \"none\" drops the people nobody owns."
+                              },
                               "automated": {
                                 "type": "boolean",
                                 "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest."
@@ -19022,7 +19613,8 @@
                                 "maxItems": 20,
                                 "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
                               }
-                            }
+                            },
+                            "description": "The people filter it saves (the fields of GET /v1/people)."
                           },
                           "groupId": {
                             "type": "string",
@@ -19053,7 +19645,8 @@
                           "createdAt",
                           "updatedAt"
                         ]
-                      }
+                      },
+                      "description": "The segments."
                     },
                     "presets": {
                       "type": "array",
@@ -19068,6 +19661,16 @@
                     "data",
                     "presets"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -19123,6 +19726,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -19142,12 +19746,14 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "Segment name, unique in its scope."
                   },
                   "description": {
                     "type": "string",
                     "maxLength": 500,
-                    "default": ""
+                    "default": "",
+                    "description": "What the segment is for."
                   },
                   "filter": {
                     "type": "object",
@@ -19333,6 +19939,43 @@
                         "maxItems": 6,
                         "description": "People at any of these outreach stages."
                       },
+                      "notStages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "not_contacted",
+                            "contacted",
+                            "replied",
+                            "in_talks",
+                            "customer",
+                            "not_a_fit"
+                          ],
+                          "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                        },
+                        "maxItems": 6,
+                        "description": "Nobody at these outreach stages."
+                      },
+                      "notLinkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it."
+                      },
+                      "notOwnerIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Nobody owned by these members (user ids); \"none\" drops the people nobody owns."
+                      },
                       "automated": {
                         "type": "boolean",
                         "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest."
@@ -19348,7 +19991,8 @@
                         "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
                       }
                     },
-                    "default": {}
+                    "default": {},
+                    "description": "The people filter (the fields of GET /v1/people)."
                   }
                 },
                 "required": [
@@ -19461,6 +20105,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -19530,11 +20184,13 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "Segment name, unique in its scope."
                   },
                   "description": {
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 500,
+                    "description": "What the segment is for."
                   },
                   "filter": {
                     "type": "object",
@@ -19720,6 +20376,43 @@
                         "maxItems": 6,
                         "description": "People at any of these outreach stages."
                       },
+                      "notStages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "not_contacted",
+                            "contacted",
+                            "replied",
+                            "in_talks",
+                            "customer",
+                            "not_a_fit"
+                          ],
+                          "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                        },
+                        "maxItems": 6,
+                        "description": "Nobody at these outreach stages."
+                      },
+                      "notLinkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Nobody with a mention linking to any of these hosts, the host itself or a subdomain of it."
+                      },
+                      "notOwnerIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Nobody owned by these members (user ids); \"none\" drops the people nobody owns."
+                      },
                       "automated": {
                         "type": "boolean",
                         "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest."
@@ -19750,6 +20443,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Segment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -19827,6 +20530,16 @@
           "204": {
             "description": "Deleted"
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -19881,10 +20594,12 @@
                             "description": "View id (vw_...)."
                           },
                           "name": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "View name."
                           },
                           "description": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "What the view is for."
                           },
                           "filter": {
                             "type": "object",
@@ -19925,6 +20640,19 @@
                                 },
                                 "maxItems": 3,
                                 "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                              },
+                              "notKeywordKinds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "brand",
+                                    "competitor",
+                                    "topic"
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "description": "Never matches of keywords of these kinds."
                               },
                               "groupIds": {
                                 "type": "array",
@@ -20403,7 +21131,8 @@
                                 "maxItems": 10,
                                 "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
                               }
-                            }
+                            },
+                            "description": "The mentions filter it saves (the fields of GET /v1/mentions)."
                           },
                           "createdAt": {
                             "type": "string",
@@ -20463,6 +21192,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -20530,6 +21260,19 @@
                         },
                         "maxItems": 3,
                         "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                      },
+                      "notKeywordKinds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ]
+                        },
+                        "maxItems": 3,
+                        "description": "Never matches of keywords of these kinds."
                       },
                       "groupIds": {
                         "type": "array",
@@ -21159,11 +21902,13 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "View name, unique in the workspace."
                   },
                   "description": {
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 500,
+                    "description": "What the view is for."
                   },
                   "filter": {
                     "type": "object",
@@ -21204,6 +21949,19 @@
                         },
                         "maxItems": 3,
                         "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                      },
+                      "notKeywordKinds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ]
+                        },
+                        "maxItems": 3,
+                        "description": "Never matches of keywords of these kinds."
                       },
                       "groupIds": {
                         "type": "array",
@@ -21701,6 +22459,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -21863,7 +22631,8 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/AttentionItem"
-                      }
+                      },
+                      "description": "The attention items."
                     },
                     "nextCursor": {
                       "type": "string",
@@ -21927,6 +22696,20 @@
             "description": "Attention item id (att_...).",
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "responses": {
@@ -22062,6 +22845,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -22092,6 +22885,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -22142,6 +22936,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Group"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -22470,11 +23274,13 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 120
+                    "maxLength": 120,
+                    "description": "Company name."
                   },
                   "description": {
                     "type": "string",
-                    "maxLength": 1000
+                    "maxLength": 1000,
+                    "description": "What the company does; the classifier reads it."
                   },
                   "useCases": {
                     "type": "array",
@@ -22546,6 +23352,16 @@
               }
             }
           },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Missing or invalid API key",
             "content": {
@@ -22588,6 +23404,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -22642,7 +23459,8 @@
                       "description": "Key id (key_...)."
                     },
                     "name": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Your name for the key."
                     },
                     "prefix": {
                       "type": "string",
@@ -22740,7 +23558,8 @@
                             "description": "Key id (key_...)."
                           },
                           "name": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "Your name for the key."
                           },
                           "prefix": {
                             "type": "string",
@@ -22778,7 +23597,8 @@
                           "lastUsedAt",
                           "expiresAt"
                         ]
-                      }
+                      },
+                      "description": "Every API key of the workspace; the secret is never shown again."
                     }
                   },
                   "required": [
@@ -22917,7 +23737,8 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/Member"
-                      }
+                      },
+                      "description": "The members."
                     }
                   },
                   "required": [
@@ -22965,7 +23786,8 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/Invitation"
-                      }
+                      },
+                      "description": "The open invitations."
                     }
                   },
                   "required": [
@@ -23005,6 +23827,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -23061,6 +23884,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Invitation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -23422,6 +24255,74 @@
           },
           {
             "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 30,
+              "description": "Never these keywords (kw_...). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these keywords (kw_...). Repeatable, or comma-separated.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 30,
+              "description": "Never keywords of these groups (grp_...). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never keywords of these groups (grp_...). Repeatable, or comma-separated.",
+            "name": "notGroupIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ]
+              },
+              "maxItems": 20,
+              "description": "Never mentions or comments from these platforms; keyword-days, which belong to no platform, still count. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never mentions or comments from these platforms; keyword-days, which belong to no platform, still count. Repeatable, or comma-separated.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "integer",
               "minimum": 1,
               "maximum": 500,
@@ -23510,6 +24411,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -23939,10 +24841,12 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "Rule name."
                   },
                   "enabled": {
-                    "type": "boolean"
+                    "type": "boolean",
+                    "description": "false: the rule sends nothing."
                   },
                   "mode": {
                     "type": "string",
@@ -24291,22 +25195,26 @@
                       "hour": {
                         "type": "integer",
                         "minimum": 0,
-                        "maximum": 23
+                        "maximum": 23,
+                        "description": "Hour of the day to send, 0 to 23, in timezone."
                       },
                       "minute": {
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 59,
-                        "default": 0
+                        "default": 0,
+                        "description": "Minute past the hour, 0 to 59."
                       },
                       "timezone": {
                         "type": "string",
                         "minLength": 1,
-                        "maxLength": 64
+                        "maxLength": 64,
+                        "description": "IANA zone the schedule runs in (Europe/Madrid)."
                       },
                       "skipEmpty": {
                         "type": "boolean",
-                        "default": true
+                        "default": true,
+                        "description": "true: send nothing when the window had no mention."
                       },
                       "weekday": {
                         "type": "integer",
@@ -24467,10 +25375,12 @@
                             "description": "Alert id (feed_...)."
                           },
                           "name": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "Rule name."
                           },
                           "enabled": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "false: the rule sends nothing."
                           },
                           "mode": {
                             "type": "string",
@@ -24810,7 +25720,8 @@
                                 "maxItems": 10,
                                 "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
                               }
-                            }
+                            },
+                            "description": "Which mentions the rule sends."
                           },
                           "schedule": {
                             "type": "object",
@@ -24819,22 +25730,26 @@
                               "hour": {
                                 "type": "integer",
                                 "minimum": 0,
-                                "maximum": 23
+                                "maximum": 23,
+                                "description": "Hour of the day to send, 0 to 23, in timezone."
                               },
                               "minute": {
                                 "type": "integer",
                                 "minimum": 0,
                                 "maximum": 59,
-                                "default": 0
+                                "default": 0,
+                                "description": "Minute past the hour, 0 to 59."
                               },
                               "timezone": {
                                 "type": "string",
                                 "minLength": 1,
-                                "maxLength": 64
+                                "maxLength": 64,
+                                "description": "IANA zone the schedule runs in (Europe/Madrid)."
                               },
                               "skipEmpty": {
                                 "type": "boolean",
-                                "default": true
+                                "default": true,
+                                "description": "true: send nothing when the window had no mention."
                               },
                               "weekday": {
                                 "type": "integer",
@@ -24859,7 +25774,8 @@
                               "type": "object",
                               "properties": {
                                 "id": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "Channel id (dest_...)."
                                 },
                                 "kind": {
                                   "type": "string",
@@ -24868,10 +25784,12 @@
                                     "email",
                                     "webhook",
                                     "telegram"
-                                  ]
+                                  ],
+                                  "description": "Channel kind."
                                 },
                                 "label": {
-                                  "type": "string"
+                                  "type": "string",
+                                  "description": "Channel name."
                                 }
                               },
                               "required": [
@@ -24925,7 +25843,8 @@
                           "stats",
                           "createdAt"
                         ]
-                      }
+                      },
+                      "description": "Every alert rule of the workspace."
                     }
                   },
                   "required": [
@@ -24965,6 +25884,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
@@ -24984,11 +25904,13 @@
                   "name": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "Rule name."
                   },
                   "enabled": {
                     "type": "boolean",
-                    "default": true
+                    "default": true,
+                    "description": "false: the rule sends nothing. Default true."
                   },
                   "mode": {
                     "type": "string",
@@ -25329,7 +26251,8 @@
                         "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
                       }
                     },
-                    "default": {}
+                    "default": {},
+                    "description": "Which mentions the rule sends. Default: every relevant mention."
                   },
                   "schedule": {
                     "type": "object",
@@ -25337,22 +26260,26 @@
                       "hour": {
                         "type": "integer",
                         "minimum": 0,
-                        "maximum": 23
+                        "maximum": 23,
+                        "description": "Hour of the day to send, 0 to 23, in timezone."
                       },
                       "minute": {
                         "type": "integer",
                         "minimum": 0,
                         "maximum": 59,
-                        "default": 0
+                        "default": 0,
+                        "description": "Minute past the hour, 0 to 59."
                       },
                       "timezone": {
                         "type": "string",
                         "minLength": 1,
-                        "maxLength": 64
+                        "maxLength": 64,
+                        "description": "IANA zone the schedule runs in (Europe/Madrid)."
                       },
                       "skipEmpty": {
                         "type": "boolean",
-                        "default": true
+                        "default": true,
+                        "description": "true: send nothing when the window had no mention."
                       },
                       "weekday": {
                         "type": "integer",
@@ -25450,6 +26377,20 @@
             "description": "Alert id (feed_...).",
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "responses": {
@@ -25466,14 +26407,17 @@
                         "type": "object",
                         "properties": {
                           "channelId": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "The channel (dest_...)."
                           },
                           "ok": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "Whether the channel accepted it."
                           },
                           "error": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "description": "Why it failed; null when it did not."
                           }
                         },
                         "required": [
@@ -25481,7 +26425,8 @@
                           "ok",
                           "error"
                         ]
-                      }
+                      },
+                      "description": "One result per channel of the rule."
                     }
                   },
                   "required": [
@@ -25538,6 +26483,20 @@
             "description": "Alert id (feed_...).",
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "responses": {
@@ -25560,10 +26519,12 @@
                       "description": "Why nothing was sent: the period already went out, nothing to show, an hourly retry window closed, or another run is sending it now."
                     },
                     "matched": {
-                      "type": "integer"
+                      "type": "integer",
+                      "description": "Matches in the window."
                     },
                     "relevant": {
-                      "type": "integer"
+                      "type": "integer",
+                      "description": "Relevant matches in the window."
                     },
                     "outcomes": {
                       "type": "array",
@@ -25571,14 +26532,17 @@
                         "type": "object",
                         "properties": {
                           "channelId": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "The channel (dest_...)."
                           },
                           "ok": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "Whether the channel accepted it."
                           },
                           "error": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "description": "Why it failed; null when it did not."
                           }
                         },
                         "required": [
@@ -25586,7 +26550,8 @@
                           "ok",
                           "error"
                         ]
-                      }
+                      },
+                      "description": "One result per channel."
                     }
                   },
                   "required": [
@@ -25657,6 +26622,20 @@
             "description": "Alert id (feed_...).",
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -25755,6 +26734,20 @@
             "description": "Alert id (feed_...).",
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -25791,6 +26784,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Alert"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -25919,6 +26922,57 @@
             "required": false,
             "description": "Only these platforms. Repeatable, or comma-separated; omit for every platform.",
             "name": "platforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never these keyword ids. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these keyword ids. Repeatable, or comma-separated.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ]
+              },
+              "maxItems": 20,
+              "description": "Never these platforms. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these platforms. Repeatable, or comma-separated.",
+            "name": "notPlatforms",
             "in": "query"
           },
           {
@@ -26078,6 +27132,57 @@
             "required": false,
             "description": "Only these platforms. Repeatable, or comma-separated; omit for every platform.",
             "name": "platforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never these keyword ids. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these keyword ids. Repeatable, or comma-separated.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ]
+              },
+              "maxItems": 20,
+              "description": "Never these platforms. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these platforms. Repeatable, or comma-separated.",
+            "name": "notPlatforms",
             "in": "query"
           },
           {
@@ -26272,6 +27377,57 @@
           },
           {
             "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never these keyword ids. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these keyword ids. Repeatable, or comma-separated.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ]
+              },
+              "maxItems": 20,
+              "description": "Never these platforms. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these platforms. Repeatable, or comma-separated.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "boolean",
               "description": "true adds the period of the same length right before the window as `previous`."
             },
@@ -26453,6 +27609,57 @@
           },
           {
             "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never these keyword ids. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these keyword ids. Repeatable, or comma-separated.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ]
+              },
+              "maxItems": 20,
+              "description": "Never these platforms. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these platforms. Repeatable, or comma-separated.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
               "type": "boolean",
               "description": "true adds the period of the same length right before the window as `previous`."
             },
@@ -26608,6 +27815,57 @@
             "required": false,
             "description": "Only these platforms. Repeatable, or comma-separated; omit for every platform.",
             "name": "platforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never these keyword ids. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these keyword ids. Repeatable, or comma-separated.",
+            "name": "notKeywordIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ]
+              },
+              "maxItems": 20,
+              "description": "Never these platforms. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these platforms. Repeatable, or comma-separated.",
+            "name": "notPlatforms",
             "in": "query"
           },
           {
@@ -26774,7 +28032,8 @@
                   "label": {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 80
+                    "maxLength": 80,
+                    "description": "Your name for the channel."
                   },
                   "url": {
                     "type": "string",
@@ -26937,6 +28196,20 @@
             "description": "Channel id (dest_...).",
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "responses": {
@@ -26953,14 +28226,17 @@
                         "type": "object",
                         "properties": {
                           "channelId": {
-                            "type": "string"
+                            "type": "string",
+                            "description": "The channel (dest_...)."
                           },
                           "ok": {
-                            "type": "boolean"
+                            "type": "boolean",
+                            "description": "Whether the channel accepted it."
                           },
                           "error": {
                             "type": "string",
-                            "nullable": true
+                            "nullable": true,
+                            "description": "Why it failed; null when it did not."
                           }
                         },
                         "required": [
@@ -26968,7 +28244,8 @@
                           "ok",
                           "error"
                         ]
-                      }
+                      },
+                      "description": "The test send's result."
                     }
                   },
                   "required": [
@@ -27025,6 +28302,20 @@
             "description": "Channel id (dest_...).",
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "responses": {
@@ -27146,10 +28437,12 @@
                               "pending",
                               "delivered",
                               "failed"
-                            ]
+                            ],
+                            "description": "pending, delivered or failed."
                           },
                           "attempts": {
-                            "type": "integer"
+                            "type": "integer",
+                            "description": "Send attempts so far."
                           },
                           "error": {
                             "type": "string",
@@ -27170,7 +28463,8 @@
                             "properties": {
                               "name": {
                                 "type": "string",
-                                "nullable": true
+                                "nullable": true,
+                                "description": "Alert name."
                               }
                             },
                             "required": [
@@ -27183,13 +28477,16 @@
                             "nullable": true,
                             "properties": {
                               "id": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "Mention id."
                               },
                               "url": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "Link to the post."
                               },
                               "text": {
-                                "type": "string"
+                                "type": "string",
+                                "description": "The post text, cut to 160 characters."
                               }
                             },
                             "required": [
@@ -27212,7 +28509,8 @@
                           "alert",
                           "mention"
                         ]
-                      }
+                      },
+                      "description": "Deliveries, newest first."
                     },
                     "nextCursor": {
                       "type": "string",
@@ -27224,6 +28522,16 @@
                     "data",
                     "nextCursor"
                   ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -27297,7 +28605,8 @@
                             "telegram": "#/components/schemas/TelegramChannel"
                           }
                         }
-                      }
+                      },
+                      "description": "Every channel of the workspace."
                     }
                   },
                   "required": [
@@ -27336,6 +28645,7 @@
               "type": "string",
               "minLength": 1,
               "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
               "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
               "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
             },
