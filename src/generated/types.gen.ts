@@ -387,7 +387,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -1614,6 +1614,98 @@ export type PersonActivity = {
      * When it was logged.
      */
     createdAt: string;
+};
+
+export type SegmentPreset = {
+    /**
+     * Stable id of the preset (influencers, champions, ...).
+     */
+    key: string;
+    /**
+     * Suggested segment name.
+     */
+    name: string;
+    /**
+     * What the segment holds, in one sentence.
+     */
+    description: string;
+    /**
+     * The filter to save with POST /v1/segments.
+     */
+    filter: {
+        /**
+         * People with an account on any of these platforms.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * People carrying any of these tags.
+         */
+        tags?: Array<string>;
+        /**
+         * At least this many followers. Unknown reach never matches.
+         */
+        minFollowers?: number;
+        /**
+         * At most this many followers. Unknown reach never matches.
+         */
+        maxFollowers?: number;
+        /**
+         * At least this many matched mentions.
+         */
+        minMentions?: number;
+        /**
+         * At least this many negative mentions.
+         */
+        minNegative?: number;
+        /**
+         * At least one mention carrying any of these intents.
+         */
+        intents?: Array<string>;
+        /**
+         * Mentioned a keyword of any of these kinds.
+         */
+        keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Never mentioned a keyword of these kinds.
+         */
+        neverKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Nobody with an account on these platforms.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Nobody carrying any of these tags.
+         */
+        notTags?: Array<string>;
+        /**
+         * Nobody whose mentions carry any of these intents.
+         */
+        notIntents?: Array<string>;
+        /**
+         * First seen within this many days.
+         */
+        newSinceDays?: number;
+        /**
+         * At least one mention linking to any of these hosts, the host itself or a subdomain of it.
+         */
+        linkHosts?: Array<string>;
+        /**
+         * true: only muted people; false: only unmuted.
+         */
+        muted?: boolean;
+        /**
+         * People at any of these outreach stages.
+         */
+        stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
+        /**
+         * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
+         */
+        automated?: boolean;
+        /**
+         * People owned by any of these members (user ids); "none" matches people nobody owns.
+         */
+        ownerIds?: Array<string>;
+    };
 };
 
 export type Segment = {
@@ -4274,17 +4366,57 @@ export type ListKeywordsData = {
         /**
          * Only keywords in any of these groups (grp_...). Repeatable, or comma-separated.
          */
-        groupId?: Array<string> | null;
+        groupIds?: Array<string> | null;
+        /**
+         * Never keywords in these groups (grp_...). Repeatable, or comma-separated.
+         */
+        notGroupIds?: Array<string> | null;
         /**
          * Only these kinds: brand, competitor, topic. Repeatable, or comma-separated.
          */
+        kinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Never these kinds. Repeatable, or comma-separated.
+         */
+        notKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Never keywords in these states. Repeatable, or comma-separated.
+         */
+        notStatuses?: Array<'active' | 'muted' | 'paused' | 'noisy' | 'capped'>;
+        /**
+         * Never keywords tracked on any of these platforms (by the same reading as platforms). Repeatable, or comma-separated.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Only keywords in these states: active, muted, paused, noisy, capped. Repeatable, or comma-separated.
+         */
+        statuses?: Array<'active' | 'muted' | 'paused' | 'noisy' | 'capped'>;
+        /**
+         * Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Deprecated: use groupIds, the same filter; both are read as one list.
+         *
+         * @deprecated
+         */
+        groupId?: Array<string> | null;
+        /**
+         * Deprecated: use kinds, the same filter; both are read as one list.
+         *
+         * @deprecated
+         */
         kind?: Array<'brand' | 'competitor' | 'topic'>;
         /**
-         * Only keywords in these states: active, muted, paused, capped. Repeatable, or comma-separated.
+         * Deprecated: use statuses, the same filter; both are read as one list.
+         *
+         * @deprecated
          */
         status?: Array<'active' | 'muted' | 'paused' | 'noisy' | 'capped'>;
         /**
-         * Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated.
+         * Deprecated: use platforms, the same filter; both are read as one list.
+         *
+         * @deprecated
          */
         platform?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
         /**
@@ -4826,6 +4958,12 @@ export type CreateKeywordData = {
          */
         readsWorkspaceFeeds?: boolean;
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path?: never;
     query?: never;
     url: '/v1/keywords';
@@ -5224,6 +5362,12 @@ export type DuplicateKeywordData = {
          */
         include?: Array<'reviewSources' | 'feeds'>;
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Keyword id (kw_...).
@@ -5408,6 +5552,12 @@ export type CreateFeedData = {
              */
             value: string;
         };
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
     };
     path?: never;
     query?: never;
@@ -7658,6 +7808,12 @@ export type LogPersonActivityData = {
          */
         memberId?: string;
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path: {
         /**
          * Person id (aut_...).
@@ -7742,6 +7898,36 @@ export type DeletePersonActivityResponses = {
 
 export type DeletePersonActivityResponse = DeletePersonActivityResponses[keyof DeletePersonActivityResponses];
 
+export type ListSegmentPresetsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/segments/presets';
+};
+
+export type ListSegmentPresetsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListSegmentPresetsError = ListSegmentPresetsErrors[keyof ListSegmentPresetsErrors];
+
+export type ListSegmentPresetsResponses = {
+    /**
+     * The presets
+     */
+    200: {
+        /**
+         * Starting points you can save with POST /v1/segments.
+         */
+        data: Array<SegmentPreset>;
+    };
+};
+
+export type ListSegmentPresetsResponse = ListSegmentPresetsResponses[keyof ListSegmentPresetsResponses];
+
 export type ListSegmentsData = {
     body?: never;
     path?: never;
@@ -7769,7 +7955,7 @@ export type ListSegmentsError = ListSegmentsErrors[keyof ListSegmentsErrors];
 
 export type ListSegmentsResponses = {
     /**
-     * Every segment, with presets
+     * Every segment
      */
     200: {
         data: Array<{
@@ -7871,87 +8057,11 @@ export type ListSegmentsResponses = {
             updatedAt: string;
         }>;
         /**
-         * Starting points you can save with POST /v1/segments.
+         * Deprecated: use GET /v1/segments/presets. Starting points you can save with POST /v1/segments.
+         *
+         * @deprecated
          */
-        presets: Array<{
-            key: string;
-            name: string;
-            description: string;
-            filter: {
-                /**
-                 * People with an account on any of these platforms.
-                 */
-                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
-                /**
-                 * People carrying any of these tags.
-                 */
-                tags?: Array<string>;
-                /**
-                 * At least this many followers. Unknown reach never matches.
-                 */
-                minFollowers?: number;
-                /**
-                 * At most this many followers. Unknown reach never matches.
-                 */
-                maxFollowers?: number;
-                /**
-                 * At least this many matched mentions.
-                 */
-                minMentions?: number;
-                /**
-                 * At least this many negative mentions.
-                 */
-                minNegative?: number;
-                /**
-                 * At least one mention carrying any of these intents.
-                 */
-                intents?: Array<string>;
-                /**
-                 * Mentioned a keyword of any of these kinds.
-                 */
-                keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
-                /**
-                 * Never mentioned a keyword of these kinds.
-                 */
-                neverKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
-                /**
-                 * Nobody with an account on these platforms.
-                 */
-                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
-                /**
-                 * Nobody carrying any of these tags.
-                 */
-                notTags?: Array<string>;
-                /**
-                 * Nobody whose mentions carry any of these intents.
-                 */
-                notIntents?: Array<string>;
-                /**
-                 * First seen within this many days.
-                 */
-                newSinceDays?: number;
-                /**
-                 * At least one mention linking to any of these hosts, the host itself or a subdomain of it.
-                 */
-                linkHosts?: Array<string>;
-                /**
-                 * true: only muted people; false: only unmuted.
-                 */
-                muted?: boolean;
-                /**
-                 * People at any of these outreach stages.
-                 */
-                stages?: Array<'not_contacted' | 'contacted' | 'replied' | 'in_talks' | 'customer' | 'not_a_fit'>;
-                /**
-                 * true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest.
-                 */
-                automated?: boolean;
-                /**
-                 * People owned by any of these members (user ids); "none" matches people nobody owns.
-                 */
-                ownerIds?: Array<string>;
-            };
-        }>;
+        presets: Array<SegmentPreset>;
     };
 };
 
@@ -8035,6 +8145,12 @@ export type CreateSegmentData = {
              */
             ownerIds?: Array<string>;
         };
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
     };
     path?: never;
     query?: {
@@ -8687,6 +8803,12 @@ export type CreateViewData = {
             anyOf?: Array<FilterGroup>;
         };
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path?: never;
     query?: never;
     url: '/v1/views';
@@ -9166,6 +9288,12 @@ export type CreateGroupData = {
          */
         context?: string | null;
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path?: never;
     query?: never;
     url: '/v1/groups';
@@ -9479,6 +9607,12 @@ export type CreateApiKeyData = {
          */
         expiresAt?: string;
     };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path?: never;
     query?: never;
     url: '/v1/api-keys';
@@ -9659,6 +9793,12 @@ export type CreateInvitationData = {
          * The role they join with. Ownership is only handed over in the dashboard.
          */
         role?: 'admin' | 'member';
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
     };
     path?: never;
     query?: never;
@@ -9884,6 +10024,12 @@ export type CreateTopUpData = {
          * Where the customer lands after paying: a page on an origin this deployment trusts (the dashboard). Omit it and the dashboard's billing page is used.
          */
         successUrl?: string;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
     };
     path?: never;
     query?: never;
@@ -10615,6 +10761,12 @@ export type CreateAlertData = {
          * Channel ids from GET /v1/channels.
          */
         channelIds?: Array<string>;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
     };
     path?: never;
     query?: never;
@@ -11461,6 +11613,12 @@ export type CreateChannelData = {
     } & CreateEmailChannel) | ({
         kind: 'webhook';
     } & CreateWebhookChannel);
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
     path?: never;
     query?: never;
     url: '/v1/channels';

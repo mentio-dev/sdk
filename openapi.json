@@ -894,6 +894,8 @@
                   "not_found",
                   "invalid_cursor",
                   "payload_too_large",
+                  "idempotency_key_in_use",
+                  "idempotency_key_reused",
                   "rate_limited",
                   "duplicate_keyword",
                   "insufficient_balance",
@@ -3423,6 +3425,230 @@
           "member",
           "occurredAt",
           "createdAt"
+        ]
+      },
+      "SegmentPreset": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Stable id of the preset (influencers, champions, ...)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Suggested segment name."
+          },
+          "description": {
+            "type": "string",
+            "description": "What the segment holds, in one sentence."
+          },
+          "filter": {
+            "type": "object",
+            "properties": {
+              "platforms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin",
+                    "tiktok",
+                    "instagram",
+                    "facebook",
+                    "appstore",
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps",
+                    "rss"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                },
+                "maxItems": 20,
+                "description": "People with an account on any of these platforms."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "People carrying any of these tags."
+              },
+              "minFollowers": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "At least this many followers. Unknown reach never matches."
+              },
+              "maxFollowers": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "At most this many followers. Unknown reach never matches."
+              },
+              "minMentions": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "At least this many matched mentions."
+              },
+              "minNegative": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "At least this many negative mentions."
+              },
+              "intents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 10,
+                "description": "At least one mention carrying any of these intents."
+              },
+              "keywordKinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "brand",
+                    "competitor",
+                    "topic"
+                  ]
+                },
+                "maxItems": 3,
+                "description": "Mentioned a keyword of any of these kinds."
+              },
+              "neverKeywordKinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "brand",
+                    "competitor",
+                    "topic"
+                  ]
+                },
+                "maxItems": 3,
+                "description": "Never mentioned a keyword of these kinds."
+              },
+              "notPlatforms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin",
+                    "tiktok",
+                    "instagram",
+                    "facebook",
+                    "appstore",
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps",
+                    "rss"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                },
+                "maxItems": 20,
+                "description": "Nobody with an account on these platforms."
+              },
+              "notTags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Nobody carrying any of these tags."
+              },
+              "notIntents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 10,
+                "description": "Nobody whose mentions carry any of these intents."
+              },
+              "newSinceDays": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 365,
+                "description": "First seen within this many days."
+              },
+              "linkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "At least one mention linking to any of these hosts, the host itself or a subdomain of it."
+              },
+              "muted": {
+                "type": "boolean",
+                "description": "true: only muted people; false: only unmuted."
+              },
+              "stages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "not_contacted",
+                    "contacted",
+                    "replied",
+                    "in_talks",
+                    "customer",
+                    "not_a_fit"
+                  ],
+                  "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
+                },
+                "maxItems": 6,
+                "description": "People at any of these outreach stages."
+              },
+              "automated": {
+                "type": "boolean",
+                "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest."
+              },
+              "ownerIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
+              }
+            },
+            "description": "The filter to save with POST /v1/segments."
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "description",
+          "filter"
         ]
       },
       "Segment": {
@@ -8822,6 +9048,21 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -9428,7 +9669,24 @@
             },
             "required": false,
             "description": "Only keywords in any of these groups (grp_...). Repeatable, or comma-separated.",
-            "name": "groupId",
+            "name": "groupIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Never keywords in these groups (grp_...). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never keywords in these groups (grp_...). Repeatable, or comma-separated.",
+            "name": "notGroupIds",
             "in": "query"
           },
           {
@@ -9447,7 +9705,26 @@
             },
             "required": false,
             "description": "Only these kinds: brand, competitor, topic. Repeatable, or comma-separated.",
-            "name": "kind",
+            "name": "kinds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Never these kinds. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never these kinds. Repeatable, or comma-separated.",
+            "name": "notKinds",
             "in": "query"
           },
           {
@@ -9464,12 +9741,69 @@
                 ],
                 "description": "- active: tracking.\n- muted: switched off by a person.\n- paused: switched off by the wallet for lack of balance.\n- noisy: switched off by the noise brake (welcome credit only).\n- capped: at its mention cap until its period turns."
               },
-              "maxItems": 4,
-              "description": "Only keywords in these states: active, muted, paused, capped. Repeatable, or comma-separated."
+              "maxItems": 5,
+              "description": "Never keywords in these states. Repeatable, or comma-separated."
             },
             "required": false,
-            "description": "Only keywords in these states: active, muted, paused, capped. Repeatable, or comma-separated.",
-            "name": "status",
+            "description": "Never keywords in these states. Repeatable, or comma-separated.",
+            "name": "notStatuses",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+              },
+              "maxItems": 20,
+              "description": "Never keywords tracked on any of these platforms (by the same reading as platforms). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never keywords tracked on any of these platforms (by the same reading as platforms). Repeatable, or comma-separated.",
+            "name": "notPlatforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "muted",
+                  "paused",
+                  "noisy",
+                  "capped"
+                ],
+                "description": "- active: tracking.\n- muted: switched off by a person.\n- paused: switched off by the wallet for lack of balance.\n- noisy: switched off by the noise brake (welcome credit only).\n- capped: at its mention cap until its period turns."
+              },
+              "maxItems": 5,
+              "description": "Only keywords in these states: active, muted, paused, noisy, capped. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only keywords in these states: active, muted, paused, noisy, capped. Repeatable, or comma-separated.",
+            "name": "statuses",
             "in": "query"
           },
           {
@@ -9504,6 +9838,107 @@
             },
             "required": false,
             "description": "Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated.",
+            "name": "platforms",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 50,
+              "description": "Deprecated: use groupIds, the same filter; both are read as one list.",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use groupIds, the same filter; both are read as one list.",
+            "deprecated": true,
+            "name": "groupId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ]
+              },
+              "maxItems": 3,
+              "description": "Deprecated: use kinds, the same filter; both are read as one list.",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use kinds, the same filter; both are read as one list.",
+            "deprecated": true,
+            "name": "kind",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "muted",
+                  "paused",
+                  "noisy",
+                  "capped"
+                ],
+                "description": "- active: tracking.\n- muted: switched off by a person.\n- paused: switched off by the wallet for lack of balance.\n- noisy: switched off by the noise brake (welcome credit only).\n- capped: at its mention cap until its period turns."
+              },
+              "maxItems": 5,
+              "description": "Deprecated: use statuses, the same filter; both are read as one list.",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use statuses, the same filter; both are read as one list.",
+            "deprecated": true,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+              },
+              "maxItems": 20,
+              "description": "Deprecated: use platforms, the same filter; both are read as one list.",
+              "deprecated": true
+            },
+            "required": false,
+            "description": "Deprecated: use platforms, the same filter; both are read as one list.",
+            "deprecated": true,
             "name": "platform",
             "in": "query"
           },
@@ -11208,6 +11643,19 @@
             "description": "Keyword id (kw_...).",
             "name": "id",
             "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -11527,6 +11975,21 @@
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -18081,6 +18544,19 @@
             "description": "Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.",
             "name": "groupId",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -18250,11 +18726,60 @@
         }
       }
     },
+    "/v1/segments/presets": {
+      "get": {
+        "operationId": "listSegmentPresets",
+        "summary": "List segment presets",
+        "description": "Suggested segments to start from, the same for every workspace. Save one with POST /v1/segments and its `filter`.",
+        "tags": [
+          "Segments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The presets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SegmentPreset"
+                      },
+                      "description": "Starting points you can save with POST /v1/segments."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/segments": {
       "get": {
         "operationId": "listSegments",
         "summary": "List segments",
-        "description": "List your saved segments with live member counts, plus presets to start from.\n\nPass a segment id to GET /v1/people for its members. `groupId` reads that group's own segments; each belongs to one scope.",
+        "description": "List your saved segments with live member counts.\n\nPass a segment id to GET /v1/people for its members. `groupId` reads that group's own segments; each belongs to one scope.",
         "tags": [
           "Segments"
         ],
@@ -18278,7 +18803,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Every segment, with presets",
+            "description": "Every segment",
             "content": {
               "application/json": {
                 "schema": {
@@ -18533,226 +19058,10 @@
                     "presets": {
                       "type": "array",
                       "items": {
-                        "type": "object",
-                        "properties": {
-                          "key": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "type": "string"
-                          },
-                          "filter": {
-                            "type": "object",
-                            "properties": {
-                              "platforms": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "enum": [
-                                    "bluesky",
-                                    "hackernews",
-                                    "github",
-                                    "stackoverflow",
-                                    "devto",
-                                    "reddit",
-                                    "x",
-                                    "youtube",
-                                    "news",
-                                    "linkedin",
-                                    "tiktok",
-                                    "instagram",
-                                    "facebook",
-                                    "appstore",
-                                    "googleplay",
-                                    "trustpilot",
-                                    "googlemaps",
-                                    "rss"
-                                  ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
-                                },
-                                "maxItems": 20,
-                                "description": "People with an account on any of these platforms."
-                              },
-                              "tags": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
-                                },
-                                "maxItems": 20,
-                                "description": "People carrying any of these tags."
-                              },
-                              "minFollowers": {
-                                "type": "integer",
-                                "minimum": 0,
-                                "description": "At least this many followers. Unknown reach never matches."
-                              },
-                              "maxFollowers": {
-                                "type": "integer",
-                                "minimum": 0,
-                                "description": "At most this many followers. Unknown reach never matches."
-                              },
-                              "minMentions": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "description": "At least this many matched mentions."
-                              },
-                              "minNegative": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "description": "At least this many negative mentions."
-                              },
-                              "intents": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
-                                },
-                                "maxItems": 10,
-                                "description": "At least one mention carrying any of these intents."
-                              },
-                              "keywordKinds": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "enum": [
-                                    "brand",
-                                    "competitor",
-                                    "topic"
-                                  ]
-                                },
-                                "maxItems": 3,
-                                "description": "Mentioned a keyword of any of these kinds."
-                              },
-                              "neverKeywordKinds": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "enum": [
-                                    "brand",
-                                    "competitor",
-                                    "topic"
-                                  ]
-                                },
-                                "maxItems": 3,
-                                "description": "Never mentioned a keyword of these kinds."
-                              },
-                              "notPlatforms": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "enum": [
-                                    "bluesky",
-                                    "hackernews",
-                                    "github",
-                                    "stackoverflow",
-                                    "devto",
-                                    "reddit",
-                                    "x",
-                                    "youtube",
-                                    "news",
-                                    "linkedin",
-                                    "tiktok",
-                                    "instagram",
-                                    "facebook",
-                                    "appstore",
-                                    "googleplay",
-                                    "trustpilot",
-                                    "googlemaps",
-                                    "rss"
-                                  ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
-                                },
-                                "maxItems": 20,
-                                "description": "Nobody with an account on these platforms."
-                              },
-                              "notTags": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
-                                },
-                                "maxItems": 20,
-                                "description": "Nobody carrying any of these tags."
-                              },
-                              "notIntents": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 40
-                                },
-                                "maxItems": 10,
-                                "description": "Nobody whose mentions carry any of these intents."
-                              },
-                              "newSinceDays": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "maximum": 365,
-                                "description": "First seen within this many days."
-                              },
-                              "linkHosts": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 200
-                                },
-                                "maxItems": 20,
-                                "description": "At least one mention linking to any of these hosts, the host itself or a subdomain of it."
-                              },
-                              "muted": {
-                                "type": "boolean",
-                                "description": "true: only muted people; false: only unmuted."
-                              },
-                              "stages": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "enum": [
-                                    "not_contacted",
-                                    "contacted",
-                                    "replied",
-                                    "in_talks",
-                                    "customer",
-                                    "not_a_fit"
-                                  ],
-                                  "description": "Where your workspace stands with the person: not_contacted, contacted, replied, in_talks, customer or not_a_fit."
-                                },
-                                "maxItems": 6,
-                                "description": "People at any of these outreach stages."
-                              },
-                              "automated": {
-                                "type": "boolean",
-                                "description": "true: only people whose matched posts are mostly machine-made (bot accounts); false: only the rest."
-                              },
-                              "ownerIds": {
-                                "type": "array",
-                                "items": {
-                                  "type": "string",
-                                  "minLength": 1,
-                                  "maxLength": 200
-                                },
-                                "maxItems": 20,
-                                "description": "People owned by any of these members (user ids); \"none\" matches people nobody owns."
-                              }
-                            }
-                          }
-                        },
-                        "required": [
-                          "key",
-                          "name",
-                          "description",
-                          "filter"
-                        ]
+                        "$ref": "#/components/schemas/SegmentPreset"
                       },
-                      "description": "Starting points you can save with POST /v1/segments."
+                      "description": "Deprecated: use GET /v1/segments/presets. Starting points you can save with POST /v1/segments.",
+                      "deprecated": true
                     }
                   },
                   "required": [
@@ -18808,6 +19117,19 @@
             "description": "Scope to one keyword group (grp_...): only people who mentioned that group's keywords, with that group's own tags, notes, mute, merges, activities and segments. Omit for the whole workspace.",
             "name": "groupId",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -20133,6 +20455,21 @@
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -21749,6 +22086,21 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -22230,6 +22582,21 @@
             "bearerAuth": []
           }
         ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -22630,6 +22997,21 @@
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -23120,6 +23502,21 @@
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -24560,6 +24957,21 @@
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -26273,7 +26685,7 @@
         "operationId": "getChannel",
         "summary": "Get a channel",
         "tags": [
-          "Alerts"
+          "Channels"
         ],
         "security": [
           {
@@ -26331,7 +26743,7 @@
         "operationId": "updateChannel",
         "summary": "Update a channel",
         "tags": [
-          "Alerts"
+          "Channels"
         ],
         "security": [
           {
@@ -26453,7 +26865,7 @@
         "operationId": "deleteChannel",
         "summary": "Delete a channel",
         "tags": [
-          "Alerts"
+          "Channels"
         ],
         "security": [
           {
@@ -26506,7 +26918,7 @@
         "operationId": "testChannel",
         "summary": "Send a test to a channel",
         "tags": [
-          "Alerts"
+          "Channels"
         ],
         "security": [
           {
@@ -26594,7 +27006,7 @@
         "operationId": "rotateWebhookSecret",
         "summary": "Rotate a webhook secret",
         "tags": [
-          "Alerts"
+          "Channels"
         ],
         "security": [
           {
@@ -26654,7 +27066,7 @@
         "operationId": "listChannelDeliveries",
         "summary": "List deliveries to a channel",
         "tags": [
-          "Alerts"
+          "Channels"
         ],
         "security": [
           {
@@ -26844,7 +27256,7 @@
         "operationId": "listChannels",
         "summary": "List channels",
         "tags": [
-          "Alerts"
+          "Channels"
         ],
         "security": [
           {
@@ -26911,11 +27323,26 @@
         "operationId": "createChannel",
         "summary": "Create a channel",
         "tags": [
-          "Alerts"
+          "Channels"
         ],
         "security": [
           {
             "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
           }
         ],
         "requestBody": {
@@ -27042,6 +27469,20 @@
       "source": "user",
       "retryable": false,
       "description": "The body exceeds the endpoint limit."
+    },
+    {
+      "code": "idempotency_key_in_use",
+      "status": 409,
+      "source": "user",
+      "retryable": true,
+      "description": "Another request with the same Idempotency-Key has not finished yet. Retry in a moment to get its response."
+    },
+    {
+      "code": "idempotency_key_reused",
+      "status": 422,
+      "source": "user",
+      "retryable": false,
+      "description": "An Idempotency-Key names one request for 24 hours. Send a new key for a request with a different path or body."
     },
     {
       "code": "rate_limited",
