@@ -393,7 +393,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -999,6 +999,21 @@ export type WorkspaceFilters = {
     updatedAt: string | null;
 };
 
+export type MentionBatchResult = {
+    /**
+     * The ids changed, in the order sent. A pending mention given only a status is not changed: it is in pending alone.
+     */
+    updated: Array<string>;
+    /**
+     * The ids this workspace has no mention by, in the order sent; nothing was done to them.
+     */
+    notFound: Array<string>;
+    /**
+     * Of the updated ids, those still waiting for the classifier: they took the labels and the assignee, but their status stays until they are scored. Empty unless the update set a status.
+     */
+    pending: Array<string>;
+};
+
 export type Mention = {
     /**
      * Mention id (mm_...): one post matched to one of your keywords. A post matching two keywords has two ids.
@@ -1367,6 +1382,10 @@ export type Mention = {
          */
         note: string | null;
     };
+    /**
+     * Your labels on this mention (hot-lead, replied...), alphabetical. Set them with PATCH, POST /v1/mentions/batch or an automation.
+     */
+    labels: Array<string>;
     /**
      * On a cross-post (same author, text and keyword within three days), the original's id. Billed like any mention, listed only under its original, never alerted alone. null for an original. See [Cross-posts](/how-it-works#cross-posts).
      */
@@ -2062,6 +2081,14 @@ export type FilterGroup = {
      */
     notTags?: Array<string>;
     /**
+     * Only mentions carrying any of these labels (exact, case-sensitive).
+     */
+    labels?: Array<string>;
+    /**
+     * Never mentions carrying any of these labels.
+     */
+    notLabels?: Array<string>;
+    /**
      * Only posts linking to any of these hosts, the host itself or a subdomain of it.
      */
     linkHosts?: Array<string>;
@@ -2253,6 +2280,14 @@ export type View = {
          */
         notTags?: Array<string>;
         /**
+         * Only mentions carrying any of these labels (exact, case-sensitive).
+         */
+        labels?: Array<string>;
+        /**
+         * Never mentions carrying any of these labels.
+         */
+        notLabels?: Array<string>;
+        /**
          * Only posts linking to any of these hosts, the host itself or a subdomain of it.
          */
         linkHosts?: Array<string>;
@@ -2328,6 +2363,231 @@ export type View = {
          * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
          */
         anyOf?: Array<FilterGroup>;
+    };
+    /**
+     * ISO 8601 timestamp, UTC.
+     */
+    createdAt: string;
+    /**
+     * ISO 8601 timestamp, UTC.
+     */
+    updatedAt: string;
+};
+
+export type Automation = {
+    /**
+     * Automation id (atm_...).
+     */
+    id: string;
+    /**
+     * Automation name, unique in the workspace.
+     */
+    name: string;
+    /**
+     * false: kept but not run.
+     */
+    enabled: boolean;
+    /**
+     * Which mentions it acts on: the fields of GET /v1/mentions, like a view.
+     */
+    filter: {
+        /**
+         * Substring in the post text or the author's name.
+         */
+        q?: string;
+        /**
+         * Only matches of any of these keywords.
+         */
+        keywordIds?: Array<string>;
+        /**
+         * Never matches of these keywords.
+         */
+        notKeywordIds?: Array<string>;
+        /**
+         * Only matches of keywords of any of these kinds: brand, competitor, topic.
+         */
+        keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Never matches of keywords of these kinds.
+         */
+        notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+        /**
+         * Only matches of keywords in any of these groups (grp_...).
+         */
+        groupIds?: Array<string>;
+        /**
+         * Never matches of keywords in these groups.
+         */
+        notGroupIds?: Array<string>;
+        /**
+         * Only posts from any of these platforms.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Never posts from these platforms.
+         */
+        notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+        /**
+         * Only mentions in this status: open, ignored, done.
+         */
+        status?: 'open' | 'ignored' | 'done';
+        /**
+         * true: only mentions the classifier scored relevant; false: only the rest.
+         */
+        relevant?: boolean;
+        /**
+         * Only mentions scored at least this.
+         */
+        minRelevance?: number;
+        /**
+         * Only mentions whose classifier confidence is at least this.
+         */
+        minConfidence?: number;
+        /**
+         * Only these sentiments.
+         */
+        sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Never these sentiments; an unscored mention still passes.
+         */
+        notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions carrying any of these intent or topic tags.
+         */
+        intents?: Array<string>;
+        /**
+         * Never mentions carrying these tags.
+         */
+        notIntents?: Array<string>;
+        /**
+         * true: only posts that read as machine-made; false: only the rest.
+         */
+        automated?: boolean;
+        /**
+         * Only posts in any of these languages (ISO 639-1).
+         */
+        languages?: Array<string>;
+        /**
+         * Never posts in these languages; an unknown language still passes.
+         */
+        notLanguages?: Array<string>;
+        /**
+         * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+         */
+        countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
+         * Never posts whose author is in these countries; an unknown country still passes.
+         */
+        notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+        /**
+         * true: only posts by companies, brands and organizations; false: only posts by people.
+         */
+        organization?: boolean;
+        /**
+         * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+         */
+        tags?: Array<string>;
+        /**
+         * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+         */
+        notTags?: Array<string>;
+        /**
+         * Only mentions carrying any of these labels (exact, case-sensitive).
+         */
+        labels?: Array<string>;
+        /**
+         * Never mentions carrying any of these labels.
+         */
+        notLabels?: Array<string>;
+        /**
+         * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+         */
+        linkHosts?: Array<string>;
+        /**
+         * Never posts linking to these hosts.
+         */
+        notLinkHosts?: Array<string>;
+        /**
+         * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+         */
+        subreddits?: Array<string>;
+        /**
+         * Never Reddit posts from these subreddits; posts from other platforms still pass.
+         */
+        notSubreddits?: Array<string>;
+        /**
+         * Only authors with at least this many followers; unknown reach never passes.
+         */
+        minFollowers?: number;
+        /**
+         * Only authors with at most this many followers; unknown reach never passes.
+         */
+        maxFollowers?: number;
+        /**
+         * true: only replies and comments; false: only top-level posts.
+         */
+        isReply?: boolean;
+        /**
+         * Only posts (post), only comments (comment) or only GitHub repository events (repository).
+         */
+        kind?: 'post' | 'comment' | 'repository';
+        /**
+         * Never these authors: display names, handles or profile URLs.
+         */
+        notAuthors?: Array<string>;
+        /**
+         * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
+         */
+        excludeAuthors?: Array<string>;
+        /**
+         * Only app store reviews with any of these star ratings; every other post fails it.
+         */
+        ratings?: Array<number>;
+        /**
+         * Never reviews with these star ratings; posts that are not reviews still pass.
+         */
+        notRatings?: Array<number>;
+        /**
+         * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minLikes?: number;
+        /**
+         * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReposts?: number;
+        /**
+         * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minReplies?: number;
+        /**
+         * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minQuotes?: number;
+        /**
+         * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minViews?: number;
+        /**
+         * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+         */
+        minBookmarks?: number;
+        /**
+         * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
+         */
+        anyOf?: Array<FilterGroup>;
+    };
+    /**
+     * What it does to each mention the filter selects.
+     */
+    actions: {
+        /**
+         * Labels it adds.
+         */
+        addLabels: Array<string>;
+        /**
+         * The member it assigns, or null.
+         */
+        assigneeId: string | null;
     };
     /**
      * ISO 8601 timestamp, UTC.
@@ -3407,6 +3667,14 @@ export type Alert = {
          * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         tags?: Array<string>;
+        /**
+         * Only mentions carrying any of these labels. An automation labels a mention before it is delivered, so a rule can route what an automation labelled.
+         */
+        labels?: Array<string>;
+        /**
+         * Never mentions carrying any of these labels.
+         */
+        notLabels?: Array<string>;
         /**
          * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
          */
@@ -6374,6 +6642,67 @@ export type UpdateFiltersResponses = {
 
 export type UpdateFiltersResponse = UpdateFiltersResponses[keyof UpdateFiltersResponses];
 
+export type UpdateMentionsData = {
+    body: {
+        /**
+         * Mention ids (mm_...), 1 to 100: a page of GET /v1/mentions.
+         */
+        ids: Array<string>;
+        /**
+         * Every field is optional, at least one is required; omitted fields are untouched.
+         */
+        update: {
+            /**
+             * ignored or done to handle them; open to put them back.
+             */
+            status?: 'open' | 'ignored' | 'done';
+            /**
+             * A workspace member (user id), or null to unassign.
+             */
+            assigneeId?: string | null;
+            /**
+             * Labels to add; a mention keeps at most 20, and labels past that are not added.
+             */
+            addLabels?: Array<string>;
+            /**
+             * Labels to remove; a label a mention does not carry is ignored.
+             */
+            removeLabels?: Array<string>;
+        };
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/mentions/batch';
+};
+
+export type UpdateMentionsErrors = {
+    /**
+     * Invalid request (an empty update, more than 100 ids), or invalid_assignee: the assignee is not a workspace member
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type UpdateMentionsError = UpdateMentionsErrors[keyof UpdateMentionsErrors];
+
+export type UpdateMentionsResponses = {
+    /**
+     * Which mentions changed, and which ids were not found
+     */
+    200: MentionBatchResult;
+};
+
+export type UpdateMentionsResponse = UpdateMentionsResponses[keyof UpdateMentionsResponses];
+
 export type GetMentionData = {
     body?: never;
     path: {
@@ -6429,6 +6758,10 @@ export type UpdateMentionData = {
          * Internal note; null or empty clears it.
          */
         note?: string | null;
+        /**
+         * Replaces the mention's whole list of labels (exact, case-sensitive, at most 20); [] removes every label. To add or remove a few without reading first, use POST /v1/mentions/batch.
+         */
+        labels?: Array<string>;
         /**
          * Your verdict: true sets relevance to 100 (a filtered mention becomes relevant), false to 0; null restores the classifier's score. Billing never changes. 409 classification_pending while it is still being classified.
          */
@@ -6660,6 +6993,14 @@ export type SearchMentionsData = {
          * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         notTags?: Array<string> | null;
+        /**
+         * Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated.
+         */
+        labels?: Array<string> | null;
+        /**
+         * Never mentions carrying any of these labels. Repeatable, or comma-separated.
+         */
+        notLabels?: Array<string> | null;
         /**
          * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
          */
@@ -6973,6 +7314,14 @@ export type ExportMentionsCsvData = {
          * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         notTags?: Array<string> | null;
+        /**
+         * Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated.
+         */
+        labels?: Array<string> | null;
+        /**
+         * Never mentions carrying any of these labels. Repeatable, or comma-separated.
+         */
+        notLabels?: Array<string> | null;
         /**
          * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
          */
@@ -7325,6 +7674,14 @@ export type ExportMentionsJsonData = {
          * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
          */
         notTags?: Array<string> | null;
+        /**
+         * Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated.
+         */
+        labels?: Array<string> | null;
+        /**
+         * Never mentions carrying any of these labels. Repeatable, or comma-separated.
+         */
+        notLabels?: Array<string> | null;
         /**
          * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
          */
@@ -9142,6 +9499,14 @@ export type ListViewsResponses = {
                  */
                 notTags?: Array<string>;
                 /**
+                 * Only mentions carrying any of these labels (exact, case-sensitive).
+                 */
+                labels?: Array<string>;
+                /**
+                 * Never mentions carrying any of these labels.
+                 */
+                notLabels?: Array<string>;
+                /**
                  * Only posts linking to any of these hosts, the host itself or a subdomain of it.
                  */
                 linkHosts?: Array<string>;
@@ -9346,6 +9711,14 @@ export type CreateViewData = {
              * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
             notTags?: Array<string>;
+            /**
+             * Only mentions carrying any of these labels (exact, case-sensitive).
+             */
+            labels?: Array<string>;
+            /**
+             * Never mentions carrying any of these labels.
+             */
+            notLabels?: Array<string>;
             /**
              * Only posts linking to any of these hosts, the host itself or a subdomain of it.
              */
@@ -9644,6 +10017,14 @@ export type UpdateViewData = {
              */
             notTags?: Array<string>;
             /**
+             * Only mentions carrying any of these labels (exact, case-sensitive).
+             */
+            labels?: Array<string>;
+            /**
+             * Never mentions carrying any of these labels.
+             */
+            notLabels?: Array<string>;
+            /**
              * Only posts linking to any of these hosts, the host itself or a subdomain of it.
              */
             linkHosts?: Array<string>;
@@ -9760,6 +10141,886 @@ export type UpdateViewResponses = {
 };
 
 export type UpdateViewResponse = UpdateViewResponses[keyof UpdateViewResponses];
+
+export type ListAutomationsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/automations';
+};
+
+export type ListAutomationsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListAutomationsError = ListAutomationsErrors[keyof ListAutomationsErrors];
+
+export type ListAutomationsResponses = {
+    /**
+     * Automations
+     */
+    200: {
+        /**
+         * Automations in the order they run, oldest first.
+         */
+        data: Array<{
+            /**
+             * Automation id (atm_...).
+             */
+            id: string;
+            /**
+             * Automation name, unique in the workspace.
+             */
+            name: string;
+            /**
+             * false: kept but not run.
+             */
+            enabled: boolean;
+            /**
+             * Which mentions it acts on: the fields of GET /v1/mentions, like a view.
+             */
+            filter: {
+                /**
+                 * Substring in the post text or the author's name.
+                 */
+                q?: string;
+                /**
+                 * Only matches of any of these keywords.
+                 */
+                keywordIds?: Array<string>;
+                /**
+                 * Never matches of these keywords.
+                 */
+                notKeywordIds?: Array<string>;
+                /**
+                 * Only matches of keywords of any of these kinds: brand, competitor, topic.
+                 */
+                keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+                /**
+                 * Never matches of keywords of these kinds.
+                 */
+                notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+                /**
+                 * Only matches of keywords in any of these groups (grp_...).
+                 */
+                groupIds?: Array<string>;
+                /**
+                 * Never matches of keywords in these groups.
+                 */
+                notGroupIds?: Array<string>;
+                /**
+                 * Only posts from any of these platforms.
+                 */
+                platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+                /**
+                 * Never posts from these platforms.
+                 */
+                notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+                /**
+                 * Only mentions in this status: open, ignored, done.
+                 */
+                status?: 'open' | 'ignored' | 'done';
+                /**
+                 * true: only mentions the classifier scored relevant; false: only the rest.
+                 */
+                relevant?: boolean;
+                /**
+                 * Only mentions scored at least this.
+                 */
+                minRelevance?: number;
+                /**
+                 * Only mentions whose classifier confidence is at least this.
+                 */
+                minConfidence?: number;
+                /**
+                 * Only these sentiments.
+                 */
+                sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+                /**
+                 * Never these sentiments; an unscored mention still passes.
+                 */
+                notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+                /**
+                 * Only mentions carrying any of these intent or topic tags.
+                 */
+                intents?: Array<string>;
+                /**
+                 * Never mentions carrying these tags.
+                 */
+                notIntents?: Array<string>;
+                /**
+                 * true: only posts that read as machine-made; false: only the rest.
+                 */
+                automated?: boolean;
+                /**
+                 * Only posts in any of these languages (ISO 639-1).
+                 */
+                languages?: Array<string>;
+                /**
+                 * Never posts in these languages; an unknown language still passes.
+                 */
+                notLanguages?: Array<string>;
+                /**
+                 * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+                 */
+                countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
+                 * Never posts whose author is in these countries; an unknown country still passes.
+                 */
+                notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                /**
+                 * true: only posts by companies, brands and organizations; false: only posts by people.
+                 */
+                organization?: boolean;
+                /**
+                 * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+                 */
+                tags?: Array<string>;
+                /**
+                 * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+                 */
+                notTags?: Array<string>;
+                /**
+                 * Only mentions carrying any of these labels (exact, case-sensitive).
+                 */
+                labels?: Array<string>;
+                /**
+                 * Never mentions carrying any of these labels.
+                 */
+                notLabels?: Array<string>;
+                /**
+                 * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+                 */
+                linkHosts?: Array<string>;
+                /**
+                 * Never posts linking to these hosts.
+                 */
+                notLinkHosts?: Array<string>;
+                /**
+                 * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+                 */
+                subreddits?: Array<string>;
+                /**
+                 * Never Reddit posts from these subreddits; posts from other platforms still pass.
+                 */
+                notSubreddits?: Array<string>;
+                /**
+                 * Only authors with at least this many followers; unknown reach never passes.
+                 */
+                minFollowers?: number;
+                /**
+                 * Only authors with at most this many followers; unknown reach never passes.
+                 */
+                maxFollowers?: number;
+                /**
+                 * true: only replies and comments; false: only top-level posts.
+                 */
+                isReply?: boolean;
+                /**
+                 * Only posts (post), only comments (comment) or only GitHub repository events (repository).
+                 */
+                kind?: 'post' | 'comment' | 'repository';
+                /**
+                 * Never these authors: display names, handles or profile URLs.
+                 */
+                notAuthors?: Array<string>;
+                /**
+                 * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
+                 */
+                excludeAuthors?: Array<string>;
+                /**
+                 * Only app store reviews with any of these star ratings; every other post fails it.
+                 */
+                ratings?: Array<number>;
+                /**
+                 * Never reviews with these star ratings; posts that are not reviews still pass.
+                 */
+                notRatings?: Array<number>;
+                /**
+                 * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minLikes?: number;
+                /**
+                 * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minReposts?: number;
+                /**
+                 * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minReplies?: number;
+                /**
+                 * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minQuotes?: number;
+                /**
+                 * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minViews?: number;
+                /**
+                 * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+                 */
+                minBookmarks?: number;
+                /**
+                 * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
+                 */
+                anyOf?: Array<FilterGroup>;
+            };
+            /**
+             * What it does to each mention the filter selects.
+             */
+            actions: {
+                /**
+                 * Labels it adds.
+                 */
+                addLabels: Array<string>;
+                /**
+                 * The member it assigns, or null.
+                 */
+                assigneeId: string | null;
+            };
+            /**
+             * ISO 8601 timestamp, UTC.
+             */
+            createdAt: string;
+            /**
+             * ISO 8601 timestamp, UTC.
+             */
+            updatedAt: string;
+        }>;
+    };
+};
+
+export type ListAutomationsResponse = ListAutomationsResponses[keyof ListAutomationsResponses];
+
+export type CreateAutomationData = {
+    body: {
+        /**
+         * Unique per workspace, case-insensitive.
+         */
+        name: string;
+        /**
+         * false saves it without running it.
+         */
+        enabled?: boolean;
+        /**
+         * Which new mentions it acts on; empty acts on every one.
+         */
+        filter?: {
+            /**
+             * Substring in the post text or the author's name.
+             */
+            q?: string;
+            /**
+             * Only matches of any of these keywords.
+             */
+            keywordIds?: Array<string>;
+            /**
+             * Never matches of these keywords.
+             */
+            notKeywordIds?: Array<string>;
+            /**
+             * Only matches of keywords of any of these kinds: brand, competitor, topic.
+             */
+            keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Never matches of keywords of these kinds.
+             */
+            notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Only matches of keywords in any of these groups (grp_...).
+             */
+            groupIds?: Array<string>;
+            /**
+             * Never matches of keywords in these groups.
+             */
+            notGroupIds?: Array<string>;
+            /**
+             * Only posts from any of these platforms.
+             */
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+            /**
+             * Never posts from these platforms.
+             */
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+            /**
+             * Only mentions in this status: open, ignored, done.
+             */
+            status?: 'open' | 'ignored' | 'done';
+            /**
+             * true: only mentions the classifier scored relevant; false: only the rest.
+             */
+            relevant?: boolean;
+            /**
+             * Only mentions scored at least this.
+             */
+            minRelevance?: number;
+            /**
+             * Only mentions whose classifier confidence is at least this.
+             */
+            minConfidence?: number;
+            /**
+             * Only these sentiments.
+             */
+            sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Never these sentiments; an unscored mention still passes.
+             */
+            notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions carrying any of these intent or topic tags.
+             */
+            intents?: Array<string>;
+            /**
+             * Never mentions carrying these tags.
+             */
+            notIntents?: Array<string>;
+            /**
+             * true: only posts that read as machine-made; false: only the rest.
+             */
+            automated?: boolean;
+            /**
+             * Only posts in any of these languages (ISO 639-1).
+             */
+            languages?: Array<string>;
+            /**
+             * Never posts in these languages; an unknown language still passes.
+             */
+            notLanguages?: Array<string>;
+            /**
+             * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+             */
+            countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * Never posts whose author is in these countries; an unknown country still passes.
+             */
+            notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * true: only posts by companies, brands and organizations; false: only posts by people.
+             */
+            organization?: boolean;
+            /**
+             * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+             */
+            tags?: Array<string>;
+            /**
+             * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+             */
+            notTags?: Array<string>;
+            /**
+             * Only mentions carrying any of these labels (exact, case-sensitive).
+             */
+            labels?: Array<string>;
+            /**
+             * Never mentions carrying any of these labels.
+             */
+            notLabels?: Array<string>;
+            /**
+             * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+             */
+            linkHosts?: Array<string>;
+            /**
+             * Never posts linking to these hosts.
+             */
+            notLinkHosts?: Array<string>;
+            /**
+             * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+             */
+            subreddits?: Array<string>;
+            /**
+             * Never Reddit posts from these subreddits; posts from other platforms still pass.
+             */
+            notSubreddits?: Array<string>;
+            /**
+             * Only authors with at least this many followers; unknown reach never passes.
+             */
+            minFollowers?: number;
+            /**
+             * Only authors with at most this many followers; unknown reach never passes.
+             */
+            maxFollowers?: number;
+            /**
+             * true: only replies and comments; false: only top-level posts.
+             */
+            isReply?: boolean;
+            /**
+             * Only posts (post), only comments (comment) or only GitHub repository events (repository).
+             */
+            kind?: 'post' | 'comment' | 'repository';
+            /**
+             * Never these authors: display names, handles or profile URLs.
+             */
+            notAuthors?: Array<string>;
+            /**
+             * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
+             */
+            excludeAuthors?: Array<string>;
+            /**
+             * Only app store reviews with any of these star ratings; every other post fails it.
+             */
+            ratings?: Array<number>;
+            /**
+             * Never reviews with these star ratings; posts that are not reviews still pass.
+             */
+            notRatings?: Array<number>;
+            /**
+             * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minLikes?: number;
+            /**
+             * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReposts?: number;
+            /**
+             * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReplies?: number;
+            /**
+             * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minQuotes?: number;
+            /**
+             * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minViews?: number;
+            /**
+             * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minBookmarks?: number;
+            /**
+             * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
+             */
+            anyOf?: Array<FilterGroup>;
+        };
+        /**
+         * What to do to each mention the filter selects; at least one action.
+         */
+        actions: {
+            /**
+             * Labels to add, at most 10. A mention keeps at most 20 labels.
+             */
+            addLabels?: Array<string>;
+            /**
+             * A workspace member (user id) to assign when the mention has nobody yet; someone already assigned is kept.
+             */
+            assigneeId?: string | null;
+        };
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/automations';
+};
+
+export type CreateAutomationErrors = {
+    /**
+     * Invalid request (no action, a filter_too_complex filter), or invalid_assignee: the assignee is not a workspace member
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * duplicate_automation: the name is taken; automation_limit_reached: the workspace holds 25
+     */
+    409: ErrorResponse;
+};
+
+export type CreateAutomationError = CreateAutomationErrors[keyof CreateAutomationErrors];
+
+export type CreateAutomationResponses = {
+    /**
+     * The automation
+     */
+    201: Automation;
+};
+
+export type CreateAutomationResponse = CreateAutomationResponses[keyof CreateAutomationResponses];
+
+export type DeleteAutomationData = {
+    body?: never;
+    path: {
+        /**
+         * Automation id (atm_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/automations/{id}';
+};
+
+export type DeleteAutomationErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such automation in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteAutomationError = DeleteAutomationErrors[keyof DeleteAutomationErrors];
+
+export type DeleteAutomationResponses = {
+    /**
+     * Deleted
+     */
+    204: void;
+};
+
+export type DeleteAutomationResponse = DeleteAutomationResponses[keyof DeleteAutomationResponses];
+
+export type GetAutomationData = {
+    body?: never;
+    path: {
+        /**
+         * Automation id (atm_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/automations/{id}';
+};
+
+export type GetAutomationErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such automation in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type GetAutomationError = GetAutomationErrors[keyof GetAutomationErrors];
+
+export type GetAutomationResponses = {
+    /**
+     * The automation
+     */
+    200: Automation;
+};
+
+export type GetAutomationResponse = GetAutomationResponses[keyof GetAutomationResponses];
+
+export type UpdateAutomationData = {
+    body: {
+        /**
+         * Automation name, unique in the workspace.
+         */
+        name?: string;
+        /**
+         * false stops it; true runs it again on new mentions.
+         */
+        enabled?: boolean;
+        /**
+         * Replaces the whole filter.
+         */
+        filter?: {
+            /**
+             * Substring in the post text or the author's name.
+             */
+            q?: string;
+            /**
+             * Only matches of any of these keywords.
+             */
+            keywordIds?: Array<string>;
+            /**
+             * Never matches of these keywords.
+             */
+            notKeywordIds?: Array<string>;
+            /**
+             * Only matches of keywords of any of these kinds: brand, competitor, topic.
+             */
+            keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Never matches of keywords of these kinds.
+             */
+            notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Only matches of keywords in any of these groups (grp_...).
+             */
+            groupIds?: Array<string>;
+            /**
+             * Never matches of keywords in these groups.
+             */
+            notGroupIds?: Array<string>;
+            /**
+             * Only posts from any of these platforms.
+             */
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+            /**
+             * Never posts from these platforms.
+             */
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+            /**
+             * Only mentions in this status: open, ignored, done.
+             */
+            status?: 'open' | 'ignored' | 'done';
+            /**
+             * true: only mentions the classifier scored relevant; false: only the rest.
+             */
+            relevant?: boolean;
+            /**
+             * Only mentions scored at least this.
+             */
+            minRelevance?: number;
+            /**
+             * Only mentions whose classifier confidence is at least this.
+             */
+            minConfidence?: number;
+            /**
+             * Only these sentiments.
+             */
+            sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Never these sentiments; an unscored mention still passes.
+             */
+            notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions carrying any of these intent or topic tags.
+             */
+            intents?: Array<string>;
+            /**
+             * Never mentions carrying these tags.
+             */
+            notIntents?: Array<string>;
+            /**
+             * true: only posts that read as machine-made; false: only the rest.
+             */
+            automated?: boolean;
+            /**
+             * Only posts in any of these languages (ISO 639-1).
+             */
+            languages?: Array<string>;
+            /**
+             * Never posts in these languages; an unknown language still passes.
+             */
+            notLanguages?: Array<string>;
+            /**
+             * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes.
+             */
+            countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * Never posts whose author is in these countries; an unknown country still passes.
+             */
+            notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * true: only posts by companies, brands and organizations; false: only posts by people.
+             */
+            organization?: boolean;
+            /**
+             * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+             */
+            tags?: Array<string>;
+            /**
+             * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+             */
+            notTags?: Array<string>;
+            /**
+             * Only mentions carrying any of these labels (exact, case-sensitive).
+             */
+            labels?: Array<string>;
+            /**
+             * Never mentions carrying any of these labels.
+             */
+            notLabels?: Array<string>;
+            /**
+             * Only posts linking to any of these hosts, the host itself or a subdomain of it.
+             */
+            linkHosts?: Array<string>;
+            /**
+             * Never posts linking to these hosts.
+             */
+            notLinkHosts?: Array<string>;
+            /**
+             * Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it.
+             */
+            subreddits?: Array<string>;
+            /**
+             * Never Reddit posts from these subreddits; posts from other platforms still pass.
+             */
+            notSubreddits?: Array<string>;
+            /**
+             * Only authors with at least this many followers; unknown reach never passes.
+             */
+            minFollowers?: number;
+            /**
+             * Only authors with at most this many followers; unknown reach never passes.
+             */
+            maxFollowers?: number;
+            /**
+             * true: only replies and comments; false: only top-level posts.
+             */
+            isReply?: boolean;
+            /**
+             * Only posts (post), only comments (comment) or only GitHub repository events (repository).
+             */
+            kind?: 'post' | 'comment' | 'repository';
+            /**
+             * Never these authors: display names, handles or profile URLs.
+             */
+            notAuthors?: Array<string>;
+            /**
+             * Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden.
+             */
+            excludeAuthors?: Array<string>;
+            /**
+             * Only app store reviews with any of these star ratings; every other post fails it.
+             */
+            ratings?: Array<number>;
+            /**
+             * Never reviews with these star ratings; posts that are not reviews still pass.
+             */
+            notRatings?: Array<number>;
+            /**
+             * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minLikes?: number;
+            /**
+             * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReposts?: number;
+            /**
+             * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReplies?: number;
+            /**
+             * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minQuotes?: number;
+            /**
+             * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minViews?: number;
+            /**
+             * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minBookmarks?: number;
+            /**
+             * OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof).
+             */
+            anyOf?: Array<FilterGroup>;
+        };
+        /**
+         * Replaces every action.
+         */
+        actions?: {
+            /**
+             * Labels to add, at most 10. A mention keeps at most 20 labels.
+             */
+            addLabels?: Array<string>;
+            /**
+             * A workspace member (user id) to assign when the mention has nobody yet; someone already assigned is kept.
+             */
+            assigneeId?: string | null;
+        };
+    };
+    path: {
+        /**
+         * Automation id (atm_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/automations/{id}';
+};
+
+export type UpdateAutomationErrors = {
+    /**
+     * Invalid request, or invalid_assignee: the assignee is not a workspace member
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such automation in this workspace
+     */
+    404: ErrorResponse;
+    /**
+     * duplicate_automation: the name is taken
+     */
+    409: ErrorResponse;
+};
+
+export type UpdateAutomationError = UpdateAutomationErrors[keyof UpdateAutomationErrors];
+
+export type UpdateAutomationResponses = {
+    /**
+     * The updated automation
+     */
+    200: Automation;
+};
+
+export type UpdateAutomationResponse = UpdateAutomationResponses[keyof UpdateAutomationResponses];
+
+export type ListLabelsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page size, 1 to 100.
+         */
+        limit?: number;
+        /**
+         * Skip this many labels.
+         */
+        offset?: number | null;
+    };
+    url: '/v1/labels';
+};
+
+export type ListLabelsErrors = {
+    /**
+     * Invalid limit or offset (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListLabelsError = ListLabelsErrors[keyof ListLabelsErrors];
+
+export type ListLabelsResponses = {
+    /**
+     * Labels
+     */
+    200: {
+        /**
+         * Labels in the workspace, the most used first.
+         */
+        data: Array<{
+            /**
+             * The label, exactly as written.
+             */
+            name: string;
+            /**
+             * Mentions carrying it, hidden ones included (muted authors, cross-post copies).
+             */
+            mentions: number;
+        }>;
+        /**
+         * Distinct labels in the workspace.
+         */
+        total: number;
+    };
+};
+
+export type ListLabelsResponse = ListLabelsResponses[keyof ListLabelsResponses];
 
 export type ListAttentionData = {
     body?: never;
@@ -11026,6 +12287,14 @@ export type UpdateAlertData = {
              */
             tags?: Array<string>;
             /**
+             * Only mentions carrying any of these labels. An automation labels a mention before it is delivered, so a rule can route what an automation labelled.
+             */
+            labels?: Array<string>;
+            /**
+             * Never mentions carrying any of these labels.
+             */
+            notLabels?: Array<string>;
+            /**
              * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
              */
             linkHosts?: Array<string>;
@@ -11244,6 +12513,14 @@ export type ListAlertsResponses = {
                  */
                 tags?: Array<string>;
                 /**
+                 * Only mentions carrying any of these labels. An automation labels a mention before it is delivered, so a rule can route what an automation labelled.
+                 */
+                labels?: Array<string>;
+                /**
+                 * Never mentions carrying any of these labels.
+                 */
+                notLabels?: Array<string>;
+                /**
                  * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
                  */
                 linkHosts?: Array<string>;
@@ -11432,6 +12709,14 @@ export type CreateAlertData = {
              * Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
              */
             tags?: Array<string>;
+            /**
+             * Only mentions carrying any of these labels. An automation labels a mention before it is delivered, so a rule can route what an automation labelled.
+             */
+            labels?: Array<string>;
+            /**
+             * Never mentions carrying any of these labels.
+             */
+            notLabels?: Array<string>;
             /**
              * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). A post with no links never passes.
              */

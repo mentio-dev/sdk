@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateFeedData, CreateFeedErrors, CreateFeedResponses, CreateGroupData, CreateGroupErrors, CreateGroupResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateTopUpData, CreateTopUpErrors, CreateTopUpResponses, CreateViewData, CreateViewErrors, CreateViewResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteFeedData, DeleteFeedErrors, DeleteFeedResponses, DeleteGroupData, DeleteGroupErrors, DeleteGroupResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, DismissAttentionData, DismissAttentionErrors, DismissAttentionResponses, DuplicateKeywordData, DuplicateKeywordErrors, DuplicateKeywordResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportMentionsJsonData, ExportMentionsJsonErrors, ExportMentionsJsonResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetFeedData, GetFeedErrors, GetFeedResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetGroupData, GetGroupErrors, GetGroupResponses, GetHealthData, GetHealthResponses, GetInvoiceUrlData, GetInvoiceUrlErrors, GetInvoiceUrlResponses, GetKeywordData, GetKeywordErrors, GetKeywordHealthData, GetKeywordHealthErrors, GetKeywordHealthResponses, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetReviewsReportData, GetReviewsReportErrors, GetReviewsReportResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageBreakdownData, GetUsageBreakdownErrors, GetUsageBreakdownResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, GetWalletData, GetWalletErrors, GetWalletResponses, ImportFeedsData, ImportFeedsErrors, ImportFeedsResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListAttentionData, ListAttentionErrors, ListAttentionResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListFeedsData, ListFeedsErrors, ListFeedsResponses, ListGroupsData, ListGroupsErrors, ListGroupsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListInvoicesData, ListInvoicesErrors, ListInvoicesResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListLedgerData, ListLedgerErrors, ListLedgerResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListMentionCommentsData, ListMentionCommentsErrors, ListMentionCommentsResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSegmentPresetsData, ListSegmentPresetsErrors, ListSegmentPresetsResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListViewsData, ListViewsErrors, ListViewsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateFeedData, UpdateFeedErrors, UpdateFeedResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateGroupData, UpdateGroupErrors, UpdateGroupResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
+import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateAutomationData, CreateAutomationErrors, CreateAutomationResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateFeedData, CreateFeedErrors, CreateFeedResponses, CreateGroupData, CreateGroupErrors, CreateGroupResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateTopUpData, CreateTopUpErrors, CreateTopUpResponses, CreateViewData, CreateViewErrors, CreateViewResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteAutomationData, DeleteAutomationErrors, DeleteAutomationResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteFeedData, DeleteFeedErrors, DeleteFeedResponses, DeleteGroupData, DeleteGroupErrors, DeleteGroupResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, DismissAttentionData, DismissAttentionErrors, DismissAttentionResponses, DuplicateKeywordData, DuplicateKeywordErrors, DuplicateKeywordResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportMentionsJsonData, ExportMentionsJsonErrors, ExportMentionsJsonResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetAutomationData, GetAutomationErrors, GetAutomationResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetFeedData, GetFeedErrors, GetFeedResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetGroupData, GetGroupErrors, GetGroupResponses, GetHealthData, GetHealthResponses, GetInvoiceUrlData, GetInvoiceUrlErrors, GetInvoiceUrlResponses, GetKeywordData, GetKeywordErrors, GetKeywordHealthData, GetKeywordHealthErrors, GetKeywordHealthResponses, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetReviewsReportData, GetReviewsReportErrors, GetReviewsReportResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageBreakdownData, GetUsageBreakdownErrors, GetUsageBreakdownResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, GetWalletData, GetWalletErrors, GetWalletResponses, ImportFeedsData, ImportFeedsErrors, ImportFeedsResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListAttentionData, ListAttentionErrors, ListAttentionResponses, ListAutomationsData, ListAutomationsErrors, ListAutomationsResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListFeedsData, ListFeedsErrors, ListFeedsResponses, ListGroupsData, ListGroupsErrors, ListGroupsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListInvoicesData, ListInvoicesErrors, ListInvoicesResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListLedgerData, ListLedgerErrors, ListLedgerResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListMentionCommentsData, ListMentionCommentsErrors, ListMentionCommentsResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSegmentPresetsData, ListSegmentPresetsErrors, ListSegmentPresetsResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListViewsData, ListViewsErrors, ListViewsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateAutomationData, UpdateAutomationErrors, UpdateAutomationResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateFeedData, UpdateFeedErrors, UpdateFeedResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateGroupData, UpdateGroupErrors, UpdateGroupResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdateMentionsData, UpdateMentionsErrors, UpdateMentionsResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -247,6 +247,25 @@ export const updateFilters = <ThrowOnError extends boolean = false>(options: Opt
 });
 
 /**
+ * Update many mentions
+ *
+ * Change up to 100 mentions at once: status, assignee, labels to add or remove.
+ *
+ * - All of it lands, or none of it.
+ * - Unknown ids come back in `notFound`.
+ * - Removals run before additions. See [Labels and automations](/guides/labels).
+ */
+export const updateMentions = <ThrowOnError extends boolean = false>(options: Options<UpdateMentionsData, ThrowOnError>): RequestResult<UpdateMentionsResponses, UpdateMentionsErrors, ThrowOnError> => (options.client ?? client).post<UpdateMentionsResponses, UpdateMentionsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/mentions/batch',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Get a mention
  *
  * Get one mention by id, as it appears in the list.
@@ -262,9 +281,10 @@ export const getMention = <ThrowOnError extends boolean = false>(options: Option
 /**
  * Update a mention
  *
- * Triage, assign, snooze, annotate or correct the classification of a mention.
+ * Triage, assign, snooze, label, annotate or correct the classification of a mention.
  *
- * - `relevant` and `sentiment` are your verdict; every list, digest and report follows it. null restores the classifier's.
+ * - `relevant` and `sentiment` are your verdict; null restores the classifier's.
+ * - `labels` replaces the whole list.
  * - Omitted fields stay. Delivery and billing never change.
  */
 export const updateMention = <ThrowOnError extends boolean = false>(options: Options<UpdateMentionData, ThrowOnError>): RequestResult<UpdateMentionResponses, UpdateMentionErrors, ThrowOnError> => (options.client ?? client).patch<UpdateMentionResponses, UpdateMentionErrors, ThrowOnError>({
@@ -613,6 +633,83 @@ export const updateView = <ThrowOnError extends boolean = false>(options: Option
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * List automations
+ *
+ * The workspace's automations, in the order they run, oldest first. See [Labels and automations](/guides/labels).
+ */
+export const listAutomations = <ThrowOnError extends boolean = false>(options?: Options<ListAutomationsData, ThrowOnError>): RequestResult<ListAutomationsResponses, ListAutomationsErrors, ThrowOnError> => (options?.client ?? client).get<ListAutomationsResponses, ListAutomationsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/automations',
+    ...options
+});
+
+/**
+ * Create an automation
+ *
+ * Act on every new mention a filter selects: add labels, assign a member.
+ *
+ * - Runs after scoring and before delivery, so alert rules see its labels.
+ * - At most 25. Existing mentions are untouched; use POST /v1/mentions/batch. See [Labels and automations](/guides/labels).
+ */
+export const createAutomation = <ThrowOnError extends boolean = false>(options: Options<CreateAutomationData, ThrowOnError>): RequestResult<CreateAutomationResponses, CreateAutomationErrors, ThrowOnError> => (options.client ?? client).post<CreateAutomationResponses, CreateAutomationErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/automations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete an automation
+ *
+ * Removes the automation. The labels it added stay on their mentions.
+ */
+export const deleteAutomation = <ThrowOnError extends boolean = false>(options: Options<DeleteAutomationData, ThrowOnError>): RequestResult<DeleteAutomationResponses, DeleteAutomationErrors, ThrowOnError> => (options.client ?? client).delete<DeleteAutomationResponses, DeleteAutomationErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/automations/{id}',
+    ...options
+});
+
+/**
+ * Get an automation
+ */
+export const getAutomation = <ThrowOnError extends boolean = false>(options: Options<GetAutomationData, ThrowOnError>): RequestResult<GetAutomationResponses, GetAutomationErrors, ThrowOnError> => (options.client ?? client).get<GetAutomationResponses, GetAutomationErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/automations/{id}',
+    ...options
+});
+
+/**
+ * Update an automation
+ *
+ * Rename, pause or change an automation. `filter` and `actions` each replace the whole of themselves. A change applies to mentions scored from then on.
+ */
+export const updateAutomation = <ThrowOnError extends boolean = false>(options: Options<UpdateAutomationData, ThrowOnError>): RequestResult<UpdateAutomationResponses, UpdateAutomationErrors, ThrowOnError> => (options.client ?? client).patch<UpdateAutomationResponses, UpdateAutomationErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/automations/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List labels
+ *
+ * Labels in the workspace and how many mentions carry each, the most used first.
+ *
+ * A label exists while a mention carries it. Filter mentions with `labels` / `notLabels`.
+ */
+export const listLabels = <ThrowOnError extends boolean = false>(options?: Options<ListLabelsData, ThrowOnError>): RequestResult<ListLabelsResponses, ListLabelsErrors, ThrowOnError> => (options?.client ?? client).get<ListLabelsResponses, ListLabelsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/labels',
+    ...options
 });
 
 /**

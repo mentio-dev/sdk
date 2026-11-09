@@ -925,6 +925,9 @@
                   "duplicate_segment",
                   "filter_too_complex",
                   "duplicate_view",
+                  "duplicate_automation",
+                  "automation_filter_unreadable",
+                  "automation_limit_reached",
                   "duplicate_group",
                   "default_group",
                   "default_group_context",
@@ -2182,6 +2185,37 @@
         ],
         "description": "Workspace-wide matching rules; a rejected post is never billed."
       },
+      "MentionBatchResult": {
+        "type": "object",
+        "properties": {
+          "updated": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The ids changed, in the order sent. A pending mention given only a status is not changed: it is in pending alone."
+          },
+          "notFound": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The ids this workspace has no mention by, in the order sent; nothing was done to them."
+          },
+          "pending": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Of the updated ids, those still waiting for the classifier: they took the labels and the assignee, but their status stays until they are scored. Empty unless the update set a status."
+          }
+        },
+        "required": [
+          "updated",
+          "notFound",
+          "pending"
+        ]
+      },
       "Mention": {
         "type": "object",
         "properties": {
@@ -2792,6 +2826,13 @@
             ],
             "description": "What your team did with it: status, assignee, snooze and notes."
           },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Your labels on this mention (hot-lead, replied...), alphabetical. Set them with PATCH, POST /v1/mentions/batch or an automation."
+          },
           "duplicateOf": {
             "type": "string",
             "nullable": true,
@@ -2880,6 +2921,7 @@
           "review",
           "classification",
           "triage",
+          "labels",
           "duplicateOf",
           "duplicates",
           "stats",
@@ -4398,6 +4440,26 @@
             "maxItems": 20,
             "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
           },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "maxItems": 20,
+            "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+          },
+          "notLabels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "maxItems": 20,
+            "description": "Never mentions carrying any of these labels."
+          },
           "linkHosts": {
             "type": "array",
             "items": {
@@ -4938,6 +5000,26 @@
                 "maxItems": 20,
                 "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
               },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+              },
+              "notLabels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Never mentions carrying any of these labels."
+              },
               "linkHosts": {
                 "type": "array",
                 "items": {
@@ -5097,6 +5179,615 @@
           "name",
           "description",
           "filter",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Automation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Automation id (atm_...)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Automation name, unique in the workspace."
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "false: kept but not run."
+          },
+          "filter": {
+            "type": "object",
+            "properties": {
+              "q": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "Substring in the post text or the author's name."
+              },
+              "keywordIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "description": "Only matches of any of these keywords."
+              },
+              "notKeywordIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "description": "Never matches of these keywords."
+              },
+              "keywordKinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "brand",
+                    "competitor",
+                    "topic"
+                  ]
+                },
+                "maxItems": 3,
+                "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+              },
+              "notKeywordKinds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "brand",
+                    "competitor",
+                    "topic"
+                  ]
+                },
+                "maxItems": 3,
+                "description": "Never matches of keywords of these kinds."
+              },
+              "groupIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "description": "Only matches of keywords in any of these groups (grp_...)."
+              },
+              "notGroupIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "maxItems": 50,
+                "description": "Never matches of keywords in these groups."
+              },
+              "platforms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin",
+                    "tiktok",
+                    "instagram",
+                    "facebook",
+                    "appstore",
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps",
+                    "rss"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                },
+                "maxItems": 20,
+                "description": "Only posts from any of these platforms."
+              },
+              "notPlatforms": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin",
+                    "tiktok",
+                    "instagram",
+                    "facebook",
+                    "appstore",
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps",
+                    "rss"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                },
+                "maxItems": 20,
+                "description": "Never posts from these platforms."
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "ignored",
+                  "done"
+                ],
+                "description": "Only mentions in this status: open, ignored, done."
+              },
+              "relevant": {
+                "type": "boolean",
+                "description": "true: only mentions the classifier scored relevant; false: only the rest."
+              },
+              "minRelevance": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Only mentions scored at least this."
+              },
+              "minConfidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1,
+                "description": "Only mentions whose classifier confidence is at least this."
+              },
+              "sentiments": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "positive",
+                    "neutral",
+                    "negative"
+                  ],
+                  "description": "Classifier sentiment."
+                },
+                "maxItems": 3,
+                "description": "Only these sentiments."
+              },
+              "notSentiments": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "positive",
+                    "neutral",
+                    "negative"
+                  ],
+                  "description": "Classifier sentiment."
+                },
+                "maxItems": 3,
+                "description": "Never these sentiments; an unscored mention still passes."
+              },
+              "intents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Only mentions carrying any of these intent or topic tags."
+              },
+              "notIntents": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Never mentions carrying these tags."
+              },
+              "automated": {
+                "type": "boolean",
+                "description": "true: only posts that read as machine-made; false: only the rest."
+              },
+              "languages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2}$"
+                },
+                "maxItems": 20,
+                "description": "Only posts in any of these languages (ISO 639-1)."
+              },
+              "notLanguages": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z]{2}$"
+                },
+                "maxItems": 20,
+                "description": "Never posts in these languages; an unknown language still passes."
+              },
+              "countries": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "us",
+                    "ca",
+                    "mx",
+                    "br",
+                    "ar",
+                    "co",
+                    "cl",
+                    "pe",
+                    "gb",
+                    "ie",
+                    "fr",
+                    "de",
+                    "es",
+                    "pt",
+                    "it",
+                    "nl",
+                    "be",
+                    "ch",
+                    "at",
+                    "se",
+                    "no",
+                    "dk",
+                    "fi",
+                    "pl",
+                    "cz",
+                    "ro",
+                    "gr",
+                    "hu",
+                    "ua",
+                    "ru",
+                    "lt",
+                    "lv",
+                    "ee",
+                    "tr",
+                    "il",
+                    "ae",
+                    "sa",
+                    "eg",
+                    "ng",
+                    "ke",
+                    "za",
+                    "ma",
+                    "in",
+                    "pk",
+                    "bd",
+                    "lk",
+                    "np",
+                    "cn",
+                    "hk",
+                    "tw",
+                    "jp",
+                    "kr",
+                    "sg",
+                    "my",
+                    "id",
+                    "ph",
+                    "vn",
+                    "th",
+                    "au",
+                    "nz"
+                  ]
+                },
+                "maxItems": 100,
+                "description": "Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes."
+              },
+              "notCountries": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "us",
+                    "ca",
+                    "mx",
+                    "br",
+                    "ar",
+                    "co",
+                    "cl",
+                    "pe",
+                    "gb",
+                    "ie",
+                    "fr",
+                    "de",
+                    "es",
+                    "pt",
+                    "it",
+                    "nl",
+                    "be",
+                    "ch",
+                    "at",
+                    "se",
+                    "no",
+                    "dk",
+                    "fi",
+                    "pl",
+                    "cz",
+                    "ro",
+                    "gr",
+                    "hu",
+                    "ua",
+                    "ru",
+                    "lt",
+                    "lv",
+                    "ee",
+                    "tr",
+                    "il",
+                    "ae",
+                    "sa",
+                    "eg",
+                    "ng",
+                    "ke",
+                    "za",
+                    "ma",
+                    "in",
+                    "pk",
+                    "bd",
+                    "lk",
+                    "np",
+                    "cn",
+                    "hk",
+                    "tw",
+                    "jp",
+                    "kr",
+                    "sg",
+                    "my",
+                    "id",
+                    "ph",
+                    "vn",
+                    "th",
+                    "au",
+                    "nz"
+                  ]
+                },
+                "maxItems": 100,
+                "description": "Never posts whose author is in these countries; an unknown country still passes."
+              },
+              "organization": {
+                "type": "boolean",
+                "description": "true: only posts by companies, brands and organizations; false: only posts by people."
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+              },
+              "notTags": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+              },
+              "notLabels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Never mentions carrying any of these labels."
+              },
+              "linkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+              },
+              "notLinkHosts": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 20,
+                "description": "Never posts linking to these hosts."
+              },
+              "subreddits": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                "maxItems": 50,
+                "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+              },
+              "notSubreddits": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                },
+                "maxItems": 50,
+                "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+              },
+              "minFollowers": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only authors with at least this many followers; unknown reach never passes."
+              },
+              "maxFollowers": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only authors with at most this many followers; unknown reach never passes."
+              },
+              "isReply": {
+                "type": "boolean",
+                "description": "true: only replies and comments; false: only top-level posts."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "comment",
+                  "repository"
+                ],
+                "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
+              },
+              "notAuthors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 200,
+                "description": "Never these authors: display names, handles or profile URLs."
+              },
+              "excludeAuthors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "maxItems": 200,
+                "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
+              },
+              "ratings": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "maxItems": 5,
+                "description": "Only app store reviews with any of these star ratings; every other post fails it."
+              },
+              "notRatings": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "maxItems": 5,
+                "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+              },
+              "minLikes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minReposts": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minReplies": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minQuotes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minViews": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "minBookmarks": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+              },
+              "anyOf": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/FilterGroup"
+                },
+                "minItems": 1,
+                "maxItems": 10,
+                "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
+              }
+            },
+            "description": "Which mentions it acts on: the fields of GET /v1/mentions, like a view."
+          },
+          "actions": {
+            "type": "object",
+            "properties": {
+              "addLabels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Labels it adds."
+              },
+              "assigneeId": {
+                "type": "string",
+                "nullable": true,
+                "description": "The member it assigns, or null."
+              }
+            },
+            "required": [
+              "addLabels",
+              "assigneeId"
+            ],
+            "description": "What it does to each mention the filter selects."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO 8601 timestamp, UTC."
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "ISO 8601 timestamp, UTC."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "enabled",
+          "filter",
+          "actions",
           "createdAt",
           "updatedAt"
         ]
@@ -6804,6 +7495,26 @@
                 },
                 "maxItems": 20,
                 "description": "Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Only mentions carrying any of these labels. An automation labels a mention before it is delivered, so a rule can route what an automation labelled."
+              },
+              "notLabels": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40
+                },
+                "maxItems": 20,
+                "description": "Never mentions carrying any of these labels."
               },
               "linkHosts": {
                 "type": "array",
@@ -13182,11 +13893,144 @@
         }
       }
     },
+    "/v1/mentions/batch": {
+      "post": {
+        "operationId": "updateMentions",
+        "summary": "Update many mentions",
+        "description": "Change up to 100 mentions at once: status, assignee, labels to add or remove.\n\n- All of it lands, or none of it.\n- Unknown ids come back in `notFound`.\n- Removals run before additions. See [Labels and automations](/guides/labels).",
+        "tags": [
+          "Mentions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "description": "Mention ids (mm_...), 1 to 100: a page of GET /v1/mentions."
+                  },
+                  "update": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "open",
+                          "ignored",
+                          "done"
+                        ],
+                        "description": "ignored or done to handle them; open to put them back."
+                      },
+                      "assigneeId": {
+                        "type": "string",
+                        "nullable": true,
+                        "minLength": 1,
+                        "description": "A workspace member (user id), or null to unassign."
+                      },
+                      "addLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "description": "Labels to add; a mention keeps at most 20, and labels past that are not added."
+                      },
+                      "removeLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "minItems": 1,
+                        "maxItems": 20,
+                        "description": "Labels to remove; a label a mention does not carry is ignored."
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "Every field is optional, at least one is required; omitted fields are untouched."
+                  }
+                },
+                "required": [
+                  "ids",
+                  "update"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Which mentions changed, and which ids were not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MentionBatchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request (an empty update, more than 100 ids), or invalid_assignee: the assignee is not a workspace member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/mentions/{id}": {
       "patch": {
         "operationId": "updateMention",
         "summary": "Update a mention",
-        "description": "Triage, assign, snooze, annotate or correct the classification of a mention.\n\n- `relevant` and `sentiment` are your verdict; every list, digest and report follows it. null restores the classifier's.\n- Omitted fields stay. Delivery and billing never change.",
+        "description": "Triage, assign, snooze, label, annotate or correct the classification of a mention.\n\n- `relevant` and `sentiment` are your verdict; null restores the classifier's.\n- `labels` replaces the whole list.\n- Omitted fields stay. Delivery and billing never change.",
         "tags": [
           "Mentions"
         ],
@@ -13241,6 +14085,16 @@
                     "nullable": true,
                     "maxLength": 2000,
                     "description": "Internal note; null or empty clears it."
+                  },
+                  "labels": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 40
+                    },
+                    "maxItems": 20,
+                    "description": "Replaces the mention's whole list of labels (exact, case-sensitive, at most 20); [] removes every label. To add or remove a few without reading first, use POST /v1/mentions/batch."
                   },
                   "relevant": {
                     "type": "boolean",
@@ -14053,6 +14907,40 @@
             "required": false,
             "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.",
             "name": "notTags",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated.",
+            "name": "labels",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never mentions carrying any of these labels. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never mentions carrying any of these labels. Repeatable, or comma-separated.",
+            "name": "notLabels",
             "in": "query"
           },
           {
@@ -15202,6 +16090,40 @@
             "required": false,
             "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.",
             "name": "notTags",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated.",
+            "name": "labels",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never mentions carrying any of these labels. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never mentions carrying any of these labels. Repeatable, or comma-separated.",
+            "name": "notLabels",
             "in": "query"
           },
           {
@@ -16418,6 +17340,40 @@
             "required": false,
             "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.",
             "name": "notTags",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated.",
+            "name": "labels",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 20,
+              "description": "Never mentions carrying any of these labels. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Never mentions carrying any of these labels. Repeatable, or comma-separated.",
+            "name": "notLabels",
             "in": "query"
           },
           {
@@ -20989,6 +21945,26 @@
                                 "maxItems": 20,
                                 "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
                               },
+                              "labels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+                              },
+                              "notLabels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Never mentions carrying any of these labels."
+                              },
                               "linkHosts": {
                                 "type": "array",
                                 "items": {
@@ -21608,6 +22584,26 @@
                         },
                         "maxItems": 20,
                         "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+                      },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+                      },
+                      "notLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying any of these labels."
                       },
                       "linkHosts": {
                         "type": "array",
@@ -22298,6 +23294,26 @@
                         "maxItems": 20,
                         "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
                       },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+                      },
+                      "notLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying any of these labels."
+                      },
                       "linkHosts": {
                         "type": "array",
                         "items": {
@@ -22543,6 +23559,2231 @@
           },
           "404": {
             "description": "No such view in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/automations": {
+      "get": {
+        "operationId": "listAutomations",
+        "summary": "List automations",
+        "description": "The workspace's automations, in the order they run, oldest first. See [Labels and automations](/guides/labels).",
+        "tags": [
+          "Automations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Automations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Automation id (atm_...)."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Automation name, unique in the workspace."
+                          },
+                          "enabled": {
+                            "type": "boolean",
+                            "description": "false: kept but not run."
+                          },
+                          "filter": {
+                            "type": "object",
+                            "properties": {
+                              "q": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "description": "Substring in the post text or the author's name."
+                              },
+                              "keywordIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "maxItems": 50,
+                                "description": "Only matches of any of these keywords."
+                              },
+                              "notKeywordIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "maxItems": 50,
+                                "description": "Never matches of these keywords."
+                              },
+                              "keywordKinds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "brand",
+                                    "competitor",
+                                    "topic"
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                              },
+                              "notKeywordKinds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "brand",
+                                    "competitor",
+                                    "topic"
+                                  ]
+                                },
+                                "maxItems": 3,
+                                "description": "Never matches of keywords of these kinds."
+                              },
+                              "groupIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "maxItems": 50,
+                                "description": "Only matches of keywords in any of these groups (grp_...)."
+                              },
+                              "notGroupIds": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1
+                                },
+                                "maxItems": 50,
+                                "description": "Never matches of keywords in these groups."
+                              },
+                              "platforms": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "bluesky",
+                                    "hackernews",
+                                    "github",
+                                    "stackoverflow",
+                                    "devto",
+                                    "reddit",
+                                    "x",
+                                    "youtube",
+                                    "news",
+                                    "linkedin",
+                                    "tiktok",
+                                    "instagram",
+                                    "facebook",
+                                    "appstore",
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps",
+                                    "rss"
+                                  ],
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                },
+                                "maxItems": 20,
+                                "description": "Only posts from any of these platforms."
+                              },
+                              "notPlatforms": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "bluesky",
+                                    "hackernews",
+                                    "github",
+                                    "stackoverflow",
+                                    "devto",
+                                    "reddit",
+                                    "x",
+                                    "youtube",
+                                    "news",
+                                    "linkedin",
+                                    "tiktok",
+                                    "instagram",
+                                    "facebook",
+                                    "appstore",
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps",
+                                    "rss"
+                                  ],
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                },
+                                "maxItems": 20,
+                                "description": "Never posts from these platforms."
+                              },
+                              "status": {
+                                "type": "string",
+                                "enum": [
+                                  "open",
+                                  "ignored",
+                                  "done"
+                                ],
+                                "description": "Only mentions in this status: open, ignored, done."
+                              },
+                              "relevant": {
+                                "type": "boolean",
+                                "description": "true: only mentions the classifier scored relevant; false: only the rest."
+                              },
+                              "minRelevance": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 100,
+                                "description": "Only mentions scored at least this."
+                              },
+                              "minConfidence": {
+                                "type": "number",
+                                "minimum": 0,
+                                "maximum": 1,
+                                "description": "Only mentions whose classifier confidence is at least this."
+                              },
+                              "sentiments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "positive",
+                                    "neutral",
+                                    "negative"
+                                  ],
+                                  "description": "Classifier sentiment."
+                                },
+                                "maxItems": 3,
+                                "description": "Only these sentiments."
+                              },
+                              "notSentiments": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "positive",
+                                    "neutral",
+                                    "negative"
+                                  ],
+                                  "description": "Classifier sentiment."
+                                },
+                                "maxItems": 3,
+                                "description": "Never these sentiments; an unscored mention still passes."
+                              },
+                              "intents": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Only mentions carrying any of these intent or topic tags."
+                              },
+                              "notIntents": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Never mentions carrying these tags."
+                              },
+                              "automated": {
+                                "type": "boolean",
+                                "description": "true: only posts that read as machine-made; false: only the rest."
+                              },
+                              "languages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "pattern": "^[a-z]{2}$"
+                                },
+                                "maxItems": 20,
+                                "description": "Only posts in any of these languages (ISO 639-1)."
+                              },
+                              "notLanguages": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "pattern": "^[a-z]{2}$"
+                                },
+                                "maxItems": 20,
+                                "description": "Never posts in these languages; an unknown language still passes."
+                              },
+                              "countries": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "us",
+                                    "ca",
+                                    "mx",
+                                    "br",
+                                    "ar",
+                                    "co",
+                                    "cl",
+                                    "pe",
+                                    "gb",
+                                    "ie",
+                                    "fr",
+                                    "de",
+                                    "es",
+                                    "pt",
+                                    "it",
+                                    "nl",
+                                    "be",
+                                    "ch",
+                                    "at",
+                                    "se",
+                                    "no",
+                                    "dk",
+                                    "fi",
+                                    "pl",
+                                    "cz",
+                                    "ro",
+                                    "gr",
+                                    "hu",
+                                    "ua",
+                                    "ru",
+                                    "lt",
+                                    "lv",
+                                    "ee",
+                                    "tr",
+                                    "il",
+                                    "ae",
+                                    "sa",
+                                    "eg",
+                                    "ng",
+                                    "ke",
+                                    "za",
+                                    "ma",
+                                    "in",
+                                    "pk",
+                                    "bd",
+                                    "lk",
+                                    "np",
+                                    "cn",
+                                    "hk",
+                                    "tw",
+                                    "jp",
+                                    "kr",
+                                    "sg",
+                                    "my",
+                                    "id",
+                                    "ph",
+                                    "vn",
+                                    "th",
+                                    "au",
+                                    "nz"
+                                  ]
+                                },
+                                "maxItems": 100,
+                                "description": "Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes."
+                              },
+                              "notCountries": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "us",
+                                    "ca",
+                                    "mx",
+                                    "br",
+                                    "ar",
+                                    "co",
+                                    "cl",
+                                    "pe",
+                                    "gb",
+                                    "ie",
+                                    "fr",
+                                    "de",
+                                    "es",
+                                    "pt",
+                                    "it",
+                                    "nl",
+                                    "be",
+                                    "ch",
+                                    "at",
+                                    "se",
+                                    "no",
+                                    "dk",
+                                    "fi",
+                                    "pl",
+                                    "cz",
+                                    "ro",
+                                    "gr",
+                                    "hu",
+                                    "ua",
+                                    "ru",
+                                    "lt",
+                                    "lv",
+                                    "ee",
+                                    "tr",
+                                    "il",
+                                    "ae",
+                                    "sa",
+                                    "eg",
+                                    "ng",
+                                    "ke",
+                                    "za",
+                                    "ma",
+                                    "in",
+                                    "pk",
+                                    "bd",
+                                    "lk",
+                                    "np",
+                                    "cn",
+                                    "hk",
+                                    "tw",
+                                    "jp",
+                                    "kr",
+                                    "sg",
+                                    "my",
+                                    "id",
+                                    "ph",
+                                    "vn",
+                                    "th",
+                                    "au",
+                                    "nz"
+                                  ]
+                                },
+                                "maxItems": 100,
+                                "description": "Never posts whose author is in these countries; an unknown country still passes."
+                              },
+                              "organization": {
+                                "type": "boolean",
+                                "description": "true: only posts by companies, brands and organizations; false: only posts by people."
+                              },
+                              "tags": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+                              },
+                              "notTags": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+                              },
+                              "labels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+                              },
+                              "notLabels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Never mentions carrying any of these labels."
+                              },
+                              "linkHosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 20,
+                                "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+                              },
+                              "notLinkHosts": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 20,
+                                "description": "Never posts linking to these hosts."
+                              },
+                              "subreddits": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60
+                                },
+                                "maxItems": 50,
+                                "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+                              },
+                              "notSubreddits": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 60
+                                },
+                                "maxItems": 50,
+                                "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+                              },
+                              "minFollowers": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only authors with at least this many followers; unknown reach never passes."
+                              },
+                              "maxFollowers": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only authors with at most this many followers; unknown reach never passes."
+                              },
+                              "isReply": {
+                                "type": "boolean",
+                                "description": "true: only replies and comments; false: only top-level posts."
+                              },
+                              "kind": {
+                                "type": "string",
+                                "enum": [
+                                  "post",
+                                  "comment",
+                                  "repository"
+                                ],
+                                "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
+                              },
+                              "notAuthors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 200,
+                                "description": "Never these authors: display names, handles or profile URLs."
+                              },
+                              "excludeAuthors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200
+                                },
+                                "maxItems": 200,
+                                "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
+                              },
+                              "ratings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 5
+                                },
+                                "maxItems": 5,
+                                "description": "Only app store reviews with any of these star ratings; every other post fails it."
+                              },
+                              "notRatings": {
+                                "type": "array",
+                                "items": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 5
+                                },
+                                "maxItems": 5,
+                                "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+                              },
+                              "minLikes": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minReposts": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minReplies": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minQuotes": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minViews": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "minBookmarks": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                              },
+                              "anyOf": {
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/components/schemas/FilterGroup"
+                                },
+                                "minItems": 1,
+                                "maxItems": 10,
+                                "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
+                              }
+                            },
+                            "description": "Which mentions it acts on: the fields of GET /v1/mentions, like a view."
+                          },
+                          "actions": {
+                            "type": "object",
+                            "properties": {
+                              "addLabels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string"
+                                },
+                                "description": "Labels it adds."
+                              },
+                              "assigneeId": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "The member it assigns, or null."
+                              }
+                            },
+                            "required": [
+                              "addLabels",
+                              "assigneeId"
+                            ],
+                            "description": "What it does to each mention the filter selects."
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "ISO 8601 timestamp, UTC."
+                          },
+                          "updatedAt": {
+                            "type": "string",
+                            "description": "ISO 8601 timestamp, UTC."
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "enabled",
+                          "filter",
+                          "actions",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "description": "Automations in the order they run, oldest first."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAutomation",
+        "summary": "Create an automation",
+        "description": "Act on every new mention a filter selects: add labels, assign a member.\n\n- Runs after scoring and before delivery, so alert rules see its labels.\n- At most 25. Existing mentions are untouched; use POST /v1/mentions/batch. See [Labels and automations](/guides/labels).",
+        "tags": [
+          "Automations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "description": "Unique per workspace, case-insensitive."
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "false saves it without running it."
+                  },
+                  "filter": {
+                    "type": "object",
+                    "properties": {
+                      "q": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "description": "Substring in the post text or the author's name."
+                      },
+                      "keywordIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Only matches of any of these keywords."
+                      },
+                      "notKeywordIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Never matches of these keywords."
+                      },
+                      "keywordKinds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ]
+                        },
+                        "maxItems": 3,
+                        "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                      },
+                      "notKeywordKinds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ]
+                        },
+                        "maxItems": 3,
+                        "description": "Never matches of keywords of these kinds."
+                      },
+                      "groupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Only matches of keywords in any of these groups (grp_...)."
+                      },
+                      "notGroupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Never matches of keywords in these groups."
+                      },
+                      "platforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin",
+                            "tiktok",
+                            "instagram",
+                            "facebook",
+                            "appstore",
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps",
+                            "rss"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts from any of these platforms."
+                      },
+                      "notPlatforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin",
+                            "tiktok",
+                            "instagram",
+                            "facebook",
+                            "appstore",
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps",
+                            "rss"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts from these platforms."
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "open",
+                          "ignored",
+                          "done"
+                        ],
+                        "description": "Only mentions in this status: open, ignored, done."
+                      },
+                      "relevant": {
+                        "type": "boolean",
+                        "description": "true: only mentions the classifier scored relevant; false: only the rest."
+                      },
+                      "minRelevance": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": "Only mentions scored at least this."
+                      },
+                      "minConfidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Only mentions whose classifier confidence is at least this."
+                      },
+                      "sentiments": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "positive",
+                            "neutral",
+                            "negative"
+                          ],
+                          "description": "Classifier sentiment."
+                        },
+                        "maxItems": 3,
+                        "description": "Only these sentiments."
+                      },
+                      "notSentiments": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "positive",
+                            "neutral",
+                            "negative"
+                          ],
+                          "description": "Classifier sentiment."
+                        },
+                        "maxItems": 3,
+                        "description": "Never these sentiments; an unscored mention still passes."
+                      },
+                      "intents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these intent or topic tags."
+                      },
+                      "notIntents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying these tags."
+                      },
+                      "automated": {
+                        "type": "boolean",
+                        "description": "true: only posts that read as machine-made; false: only the rest."
+                      },
+                      "languages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts in any of these languages (ISO 639-1)."
+                      },
+                      "notLanguages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts in these languages; an unknown language still passes."
+                      },
+                      "countries": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "us",
+                            "ca",
+                            "mx",
+                            "br",
+                            "ar",
+                            "co",
+                            "cl",
+                            "pe",
+                            "gb",
+                            "ie",
+                            "fr",
+                            "de",
+                            "es",
+                            "pt",
+                            "it",
+                            "nl",
+                            "be",
+                            "ch",
+                            "at",
+                            "se",
+                            "no",
+                            "dk",
+                            "fi",
+                            "pl",
+                            "cz",
+                            "ro",
+                            "gr",
+                            "hu",
+                            "ua",
+                            "ru",
+                            "lt",
+                            "lv",
+                            "ee",
+                            "tr",
+                            "il",
+                            "ae",
+                            "sa",
+                            "eg",
+                            "ng",
+                            "ke",
+                            "za",
+                            "ma",
+                            "in",
+                            "pk",
+                            "bd",
+                            "lk",
+                            "np",
+                            "cn",
+                            "hk",
+                            "tw",
+                            "jp",
+                            "kr",
+                            "sg",
+                            "my",
+                            "id",
+                            "ph",
+                            "vn",
+                            "th",
+                            "au",
+                            "nz"
+                          ]
+                        },
+                        "maxItems": 100,
+                        "description": "Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes."
+                      },
+                      "notCountries": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "us",
+                            "ca",
+                            "mx",
+                            "br",
+                            "ar",
+                            "co",
+                            "cl",
+                            "pe",
+                            "gb",
+                            "ie",
+                            "fr",
+                            "de",
+                            "es",
+                            "pt",
+                            "it",
+                            "nl",
+                            "be",
+                            "ch",
+                            "at",
+                            "se",
+                            "no",
+                            "dk",
+                            "fi",
+                            "pl",
+                            "cz",
+                            "ro",
+                            "gr",
+                            "hu",
+                            "ua",
+                            "ru",
+                            "lt",
+                            "lv",
+                            "ee",
+                            "tr",
+                            "il",
+                            "ae",
+                            "sa",
+                            "eg",
+                            "ng",
+                            "ke",
+                            "za",
+                            "ma",
+                            "in",
+                            "pk",
+                            "bd",
+                            "lk",
+                            "np",
+                            "cn",
+                            "hk",
+                            "tw",
+                            "jp",
+                            "kr",
+                            "sg",
+                            "my",
+                            "id",
+                            "ph",
+                            "vn",
+                            "th",
+                            "au",
+                            "nz"
+                          ]
+                        },
+                        "maxItems": 100,
+                        "description": "Never posts whose author is in these countries; an unknown country still passes."
+                      },
+                      "organization": {
+                        "type": "boolean",
+                        "description": "true: only posts by companies, brands and organizations; false: only posts by people."
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+                      },
+                      "notTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+                      },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+                      },
+                      "notLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying any of these labels."
+                      },
+                      "linkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+                      },
+                      "notLinkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts linking to these hosts."
+                      },
+                      "subreddits": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "maxItems": 50,
+                        "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+                      },
+                      "notSubreddits": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "maxItems": 50,
+                        "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+                      },
+                      "minFollowers": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only authors with at least this many followers; unknown reach never passes."
+                      },
+                      "maxFollowers": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only authors with at most this many followers; unknown reach never passes."
+                      },
+                      "isReply": {
+                        "type": "boolean",
+                        "description": "true: only replies and comments; false: only top-level posts."
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "post",
+                          "comment",
+                          "repository"
+                        ],
+                        "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
+                      },
+                      "notAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 200,
+                        "description": "Never these authors: display names, handles or profile URLs."
+                      },
+                      "excludeAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 200,
+                        "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
+                      },
+                      "ratings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Only app store reviews with any of these star ratings; every other post fails it."
+                      },
+                      "notRatings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+                      },
+                      "minLikes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReposts": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReplies": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minQuotes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minViews": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minBookmarks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "anyOf": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/FilterGroup"
+                        },
+                        "minItems": 1,
+                        "maxItems": 10,
+                        "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
+                      }
+                    },
+                    "default": {},
+                    "description": "Which new mentions it acts on; empty acts on every one."
+                  },
+                  "actions": {
+                    "type": "object",
+                    "properties": {
+                      "addLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 10,
+                        "description": "Labels to add, at most 10. A mention keeps at most 20 labels."
+                      },
+                      "assigneeId": {
+                        "type": "string",
+                        "nullable": true,
+                        "minLength": 1,
+                        "description": "A workspace member (user id) to assign when the mention has nobody yet; someone already assigned is kept."
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "What to do to each mention the filter selects; at least one action."
+                  }
+                },
+                "required": [
+                  "name",
+                  "actions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The automation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Automation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request (no action, a filter_too_complex filter), or invalid_assignee: the assignee is not a workspace member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "duplicate_automation: the name is taken; automation_limit_reached: the workspace holds 25",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/automations/{id}": {
+      "get": {
+        "operationId": "getAutomation",
+        "summary": "Get an automation",
+        "tags": [
+          "Automations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Automation id (atm_...).",
+              "example": "atm_abc123"
+            },
+            "required": true,
+            "description": "Automation id (atm_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The automation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Automation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such automation in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateAutomation",
+        "summary": "Update an automation",
+        "description": "Rename, pause or change an automation. `filter` and `actions` each replace the whole of themselves. A change applies to mentions scored from then on.",
+        "tags": [
+          "Automations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Automation id (atm_...).",
+              "example": "atm_abc123"
+            },
+            "required": true,
+            "description": "Automation id (atm_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80,
+                    "description": "Automation name, unique in the workspace."
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "description": "false stops it; true runs it again on new mentions."
+                  },
+                  "filter": {
+                    "type": "object",
+                    "properties": {
+                      "q": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "description": "Substring in the post text or the author's name."
+                      },
+                      "keywordIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Only matches of any of these keywords."
+                      },
+                      "notKeywordIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Never matches of these keywords."
+                      },
+                      "keywordKinds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ]
+                        },
+                        "maxItems": 3,
+                        "description": "Only matches of keywords of any of these kinds: brand, competitor, topic."
+                      },
+                      "notKeywordKinds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ]
+                        },
+                        "maxItems": 3,
+                        "description": "Never matches of keywords of these kinds."
+                      },
+                      "groupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Only matches of keywords in any of these groups (grp_...)."
+                      },
+                      "notGroupIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "maxItems": 50,
+                        "description": "Never matches of keywords in these groups."
+                      },
+                      "platforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin",
+                            "tiktok",
+                            "instagram",
+                            "facebook",
+                            "appstore",
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps",
+                            "rss"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts from any of these platforms."
+                      },
+                      "notPlatforms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "bluesky",
+                            "hackernews",
+                            "github",
+                            "stackoverflow",
+                            "devto",
+                            "reddit",
+                            "x",
+                            "youtube",
+                            "news",
+                            "linkedin",
+                            "tiktok",
+                            "instagram",
+                            "facebook",
+                            "appstore",
+                            "googleplay",
+                            "trustpilot",
+                            "googlemaps",
+                            "rss"
+                          ],
+                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts from these platforms."
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "open",
+                          "ignored",
+                          "done"
+                        ],
+                        "description": "Only mentions in this status: open, ignored, done."
+                      },
+                      "relevant": {
+                        "type": "boolean",
+                        "description": "true: only mentions the classifier scored relevant; false: only the rest."
+                      },
+                      "minRelevance": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "description": "Only mentions scored at least this."
+                      },
+                      "minConfidence": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1,
+                        "description": "Only mentions whose classifier confidence is at least this."
+                      },
+                      "sentiments": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "positive",
+                            "neutral",
+                            "negative"
+                          ],
+                          "description": "Classifier sentiment."
+                        },
+                        "maxItems": 3,
+                        "description": "Only these sentiments."
+                      },
+                      "notSentiments": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "positive",
+                            "neutral",
+                            "negative"
+                          ],
+                          "description": "Classifier sentiment."
+                        },
+                        "maxItems": 3,
+                        "description": "Never these sentiments; an unscored mention still passes."
+                      },
+                      "intents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these intent or topic tags."
+                      },
+                      "notIntents": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying these tags."
+                      },
+                      "automated": {
+                        "type": "boolean",
+                        "description": "true: only posts that read as machine-made; false: only the rest."
+                      },
+                      "languages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts in any of these languages (ISO 639-1)."
+                      },
+                      "notLanguages": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z]{2}$"
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts in these languages; an unknown language still passes."
+                      },
+                      "countries": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "us",
+                            "ca",
+                            "mx",
+                            "br",
+                            "ar",
+                            "co",
+                            "cl",
+                            "pe",
+                            "gb",
+                            "ie",
+                            "fr",
+                            "de",
+                            "es",
+                            "pt",
+                            "it",
+                            "nl",
+                            "be",
+                            "ch",
+                            "at",
+                            "se",
+                            "no",
+                            "dk",
+                            "fi",
+                            "pl",
+                            "cz",
+                            "ro",
+                            "gr",
+                            "hu",
+                            "ua",
+                            "ru",
+                            "lt",
+                            "lv",
+                            "ee",
+                            "tr",
+                            "il",
+                            "ae",
+                            "sa",
+                            "eg",
+                            "ng",
+                            "ke",
+                            "za",
+                            "ma",
+                            "in",
+                            "pk",
+                            "bd",
+                            "lk",
+                            "np",
+                            "cn",
+                            "hk",
+                            "tw",
+                            "jp",
+                            "kr",
+                            "sg",
+                            "my",
+                            "id",
+                            "ph",
+                            "vn",
+                            "th",
+                            "au",
+                            "nz"
+                          ]
+                        },
+                        "maxItems": 100,
+                        "description": "Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de). An unknown country never passes."
+                      },
+                      "notCountries": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "us",
+                            "ca",
+                            "mx",
+                            "br",
+                            "ar",
+                            "co",
+                            "cl",
+                            "pe",
+                            "gb",
+                            "ie",
+                            "fr",
+                            "de",
+                            "es",
+                            "pt",
+                            "it",
+                            "nl",
+                            "be",
+                            "ch",
+                            "at",
+                            "se",
+                            "no",
+                            "dk",
+                            "fi",
+                            "pl",
+                            "cz",
+                            "ro",
+                            "gr",
+                            "hu",
+                            "ua",
+                            "ru",
+                            "lt",
+                            "lv",
+                            "ee",
+                            "tr",
+                            "il",
+                            "ae",
+                            "sa",
+                            "eg",
+                            "ng",
+                            "ke",
+                            "za",
+                            "ma",
+                            "in",
+                            "pk",
+                            "bd",
+                            "lk",
+                            "np",
+                            "cn",
+                            "hk",
+                            "tw",
+                            "jp",
+                            "kr",
+                            "sg",
+                            "my",
+                            "id",
+                            "ph",
+                            "vn",
+                            "th",
+                            "au",
+                            "nz"
+                          ]
+                        },
+                        "maxItems": 100,
+                        "description": "Never posts whose author is in these countries; an unknown country still passes."
+                      },
+                      "organization": {
+                        "type": "boolean",
+                        "description": "true: only posts by companies, brands and organizations; false: only posts by people."
+                      },
+                      "tags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+                      },
+                      "notTags": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+                      },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these labels (exact, case-sensitive)."
+                      },
+                      "notLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying any of these labels."
+                      },
+                      "linkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Only posts linking to any of these hosts, the host itself or a subdomain of it."
+                      },
+                      "notLinkHosts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 20,
+                        "description": "Never posts linking to these hosts."
+                      },
+                      "subreddits": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "maxItems": 50,
+                        "description": "Only Reddit posts from any of these subreddits (names without the r/, any case); every other post fails it."
+                      },
+                      "notSubreddits": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        },
+                        "maxItems": 50,
+                        "description": "Never Reddit posts from these subreddits; posts from other platforms still pass."
+                      },
+                      "minFollowers": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only authors with at least this many followers; unknown reach never passes."
+                      },
+                      "maxFollowers": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only authors with at most this many followers; unknown reach never passes."
+                      },
+                      "isReply": {
+                        "type": "boolean",
+                        "description": "true: only replies and comments; false: only top-level posts."
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "post",
+                          "comment",
+                          "repository"
+                        ],
+                        "description": "Only posts (post), only comments (comment) or only GitHub repository events (repository)."
+                      },
+                      "notAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 200,
+                        "description": "Never these authors: display names, handles or profile URLs."
+                      },
+                      "excludeAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200
+                        },
+                        "maxItems": 200,
+                        "description": "Deprecated: use notAuthors, the same filter. Both may be given; every author named in either is hidden."
+                      },
+                      "ratings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Only app store reviews with any of these star ratings; every other post fails it."
+                      },
+                      "notRatings": {
+                        "type": "array",
+                        "items": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 5
+                        },
+                        "maxItems": 5,
+                        "description": "Never reviews with these star ratings; posts that are not reviews still pass."
+                      },
+                      "minLikes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReposts": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minReplies": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minQuotes": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minViews": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "minBookmarks": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes."
+                      },
+                      "anyOf": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/FilterGroup"
+                        },
+                        "minItems": 1,
+                        "maxItems": 10,
+                        "description": "OR across groups: a mention passes when it meets every condition of at least one group, and the other conditions too. A group takes view-filter conditions, no anyOf of its own. See [anyOf](/conventions#or-across-groups-anyof)."
+                      }
+                    },
+                    "description": "Replaces the whole filter."
+                  },
+                  "actions": {
+                    "type": "object",
+                    "properties": {
+                      "addLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 10,
+                        "description": "Labels to add, at most 10. A mention keeps at most 20 labels."
+                      },
+                      "assigneeId": {
+                        "type": "string",
+                        "nullable": true,
+                        "minLength": 1,
+                        "description": "A workspace member (user id) to assign when the mention has nobody yet; someone already assigned is kept."
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "Replaces every action."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated automation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Automation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, or invalid_assignee: the assignee is not a workspace member",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such automation in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "duplicate_automation: the name is taken",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteAutomation",
+        "summary": "Delete an automation",
+        "description": "Removes the automation. The labels it added stay on their mentions.",
+        "tags": [
+          "Automations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Automation id (atm_...).",
+              "example": "atm_abc123"
+            },
+            "required": true,
+            "description": "Automation id (atm_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such automation in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/labels": {
+      "get": {
+        "operationId": "listLabels",
+        "summary": "List labels",
+        "description": "Labels in the workspace and how many mentions carry each, the most used first.\n\nA label exists while a mention carries it. Filter mentions with `labels` / `notLabels`.",
+        "tags": [
+          "Automations"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Page size, 1 to 100."
+            },
+            "required": false,
+            "description": "Page size, 1 to 100.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "default": 0,
+              "description": "Skip this many labels."
+            },
+            "required": false,
+            "description": "Skip this many labels.",
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Labels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "The label, exactly as written."
+                          },
+                          "mentions": {
+                            "type": "integer",
+                            "description": "Mentions carrying it, hidden ones included (muted authors, cross-post copies)."
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "mentions"
+                        ]
+                      },
+                      "description": "Labels in the workspace, the most used first."
+                    },
+                    "total": {
+                      "type": "integer",
+                      "description": "Distinct labels in the workspace."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "total"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid limit or offset (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
             "content": {
               "application/json": {
                 "schema": {
@@ -24959,6 +28200,26 @@
                         "maxItems": 20,
                         "description": "Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
                       },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these labels. An automation labels a mention before it is delivered, so a rule can route what an automation labelled."
+                      },
+                      "notLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying any of these labels."
+                      },
                       "linkHosts": {
                         "type": "array",
                         "items": {
@@ -25494,6 +28755,26 @@
                                 "maxItems": 20,
                                 "description": "Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
                               },
+                              "labels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Only mentions carrying any of these labels. An automation labels a mention before it is delivered, so a rule can route what an automation labelled."
+                              },
+                              "notLabels": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40
+                                },
+                                "maxItems": 20,
+                                "description": "Never mentions carrying any of these labels."
+                              },
                               "linkHosts": {
                                 "type": "array",
                                 "items": {
@@ -26023,6 +29304,26 @@
                         },
                         "maxItems": 20,
                         "description": "Only authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group."
+                      },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Only mentions carrying any of these labels. An automation labels a mention before it is delivered, so a rule can route what an automation labelled."
+                      },
+                      "notLabels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "maxItems": 20,
+                        "description": "Never mentions carrying any of these labels."
                       },
                       "linkHosts": {
                         "type": "array",
@@ -28977,6 +32278,27 @@
       "source": "user",
       "retryable": false,
       "description": "View names are unique per workspace."
+    },
+    {
+      "code": "duplicate_automation",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "Automation names are unique per workspace."
+    },
+    {
+      "code": "automation_filter_unreadable",
+      "status": 400,
+      "source": "user",
+      "retryable": false,
+      "description": "The stored filter of an automation fails the current filter rules, so it cannot run until a new filter replaces it."
+    },
+    {
+      "code": "automation_limit_reached",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "A workspace holds at most 25 automations; delete one before creating another."
     },
     {
       "code": "duplicate_group",
