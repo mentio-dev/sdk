@@ -397,7 +397,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'invalid_query' | 'query_needs_one_term' | 'query_not_supported' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'invalid_query' | 'query_needs_one_term' | 'query_not_supported' | 'insufficient_balance' | 'funding_required' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -2427,6 +2427,313 @@ export type View = {
     updatedAt: string;
 };
 
+export type Search = {
+    /**
+     * Search id (srch_...).
+     */
+    id: string;
+    /**
+     * The term searched, as typed.
+     */
+    term: string;
+    /**
+     * How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range.
+     */
+    range: '24h' | '7d' | '30d';
+    /**
+     * brand, competitor or topic: what the classifier was told the term is.
+     */
+    kind: 'brand' | 'competitor' | 'topic';
+    /**
+     * The hint the classifier read, or null.
+     */
+    context: string | null;
+    /**
+     * queued: accepted, nothing read yet. running: platforms being read or results scored. done: every platform reported and every result scored. failed: no platform could be read.
+     */
+    status: 'queued' | 'running' | 'done' | 'failed';
+    /**
+     * The start of the window read (the end is createdAt).
+     */
+    from: string;
+    /**
+     * One entry per platform asked for, in the order asked.
+     */
+    platforms: Array<{
+        /**
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
+         */
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+        /**
+         * queued: not read yet. running: being read or scored. done: read and scored. skipped: not read (see reason). failed: the read failed (see reason).
+         */
+        status: 'queued' | 'running' | 'done' | 'skipped' | 'failed';
+        /**
+         * Why a platform was skipped or failed: unsupported (no term search on it), credentials (not connected on this deployment), budget (its monthly vendor budget is spent), rate_limited, error, timeout. null otherwise.
+         */
+        reason: 'unsupported' | 'credentials' | 'budget' | 'rate_limited' | 'error' | 'timeout';
+        /**
+         * Results stored for this platform, at most 25.
+         */
+        results: number;
+        /**
+         * Of them, scored relevant (40 or more).
+         */
+        relevant: number;
+    }>;
+    /**
+     * Counts across platforms.
+     */
+    stats: {
+        /**
+         * Results stored.
+         */
+        results: number;
+        /**
+         * Results scored (the rest wait or failed).
+         */
+        scored: number;
+        /**
+         * Results scored relevant (40 or more).
+         */
+        relevant: number;
+    };
+    /**
+     * What the search has cost so far: $0.008 per scored result, rounded to the cent. A result the classifier could not score costs nothing.
+     */
+    costCents: number;
+    /**
+     * The most it can cost: 25 results for each platform read, at $0.008 each. The wallet had to cover it when the search started.
+     */
+    maxCostCents: number;
+    /**
+     * When the search was started.
+     */
+    createdAt: string;
+    /**
+     * When it reached done or failed; null while it runs.
+     */
+    completedAt: string | null;
+};
+
+export type SearchResult = {
+    /**
+     * Result id (sres_...).
+     */
+    id: string;
+    /**
+     * The search it belongs to (srch_...).
+     */
+    searchId: string;
+    /**
+     * The post: platform, text, link, publish time and engagement.
+     */
+    post: {
+        /**
+         * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
+         */
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+        /**
+         * post: a top-level post. comment: answers a post or comment (Reddit, Hacker News or YouTube comments, X or Bluesky replies, Stack Overflow answers). repository: a GitHub repository event (see post.repository).
+         */
+        kind: 'post' | 'comment' | 'repository';
+        /**
+         * Permalink of the post.
+         */
+        url: string;
+        /**
+         * Title and body, truncated to 8 KB at ingest.
+         */
+        text: string;
+        /**
+         * The post's own title where the platform has one (a story, thread, issue, question, article, video or titled review). Null on X, Bluesky and LinkedIn, and for posts ingested before October 2026.
+         */
+        title: string | null;
+        /**
+         * A preview image of the post, when the platform sent one with it: a YouTube thumbnail, a DEV cover, a news article's sharing image, a Bluesky link card or image. Null otherwise.
+         */
+        imageUrl: string | null;
+        /**
+         * The subreddit a Reddit post was written in, without the r/ (SaaS). Null on every other platform.
+         */
+        subreddit: string | null;
+        /**
+         * A Reddit post's flair, when its subreddit uses them (Question, Show and Tell). Null otherwise.
+         */
+        flair: string | null;
+        /**
+         * A GitHub repository event's facts, on a mention whose kind is repository; null on every other mention. The sentence is post.title.
+         */
+        repository: {
+            /**
+             * The repository, owner/name.
+             */
+            name: string;
+            /**
+             * What happened:
+             *
+             * - new: it was created.
+             * - traction: under 30 days old, it reached 10 stars.
+             * - stars: it passed a star milestone.
+             * - growth: it gained stars fast in a week.
+             * - top: among the most starred naming the keyword, from a look-back.
+             */
+            event: 'new' | 'traction' | 'stars' | 'growth' | 'top';
+            /**
+             * Its stars when the event was found.
+             */
+            stars: number;
+            /**
+             * Stars gained in the 7 days before the event; null when that week is not known yet.
+             */
+            weeklyStars: number | null;
+        } | null;
+        /**
+         * Links the post carries, in the order written, at most 20. Empty for a post with none, and for posts ingested before September 2026.
+         */
+        links: Array<string>;
+        /**
+         * When the post was published.
+         */
+        publishedAt: string;
+        /**
+         * Counts as the platform reported them at ingest, usually minutes after posting; a missing count is null. Null as a whole when a platform reports none, or before September 2026. X carries all six.
+         */
+        engagement: {
+            /**
+             * Likes or upvotes when the post was ingested; null when the platform does not report them.
+             */
+            likes: number | null;
+            /**
+             * Reposts or shares when ingested; null when not reported.
+             */
+            reposts: number | null;
+            /**
+             * Replies or comments when ingested; null when not reported.
+             */
+            replies: number | null;
+            /**
+             * Quotes when ingested; null when not reported.
+             */
+            quotes: number | null;
+            /**
+             * Views when ingested; null when not reported.
+             */
+            views: number | null;
+            /**
+             * Bookmarks or saves when ingested; null when not reported.
+             */
+            bookmarks: number | null;
+        } | null;
+        /**
+         * The post or comment this one answers; null for top-level posts.
+         */
+        replyTo: {
+            /**
+             * Parent post author as the platform names them.
+             */
+            author: string | null;
+            /**
+             * Parent post URL.
+             */
+            url: string | null;
+            /**
+             * Parent post text, when the platform gave it.
+             */
+            text: string | null;
+        } | null;
+    };
+    /**
+     * Who posted it; null when the platform gave no author at all.
+     */
+    author: {
+        /**
+         * Person id (aut_...) for GET /v1/people/{id}; null when the account is not in the audience yet.
+         */
+        id: string | null;
+        /**
+         * Display name as the platform reports it.
+         */
+        name: string | null;
+        /**
+         * Platform handle derived from the profile URL, formatted as the platform shows it (@name, u/name); null where the platform has none.
+         */
+        handle: string | null;
+        /**
+         * Profile URL.
+         */
+        url: string | null;
+        /**
+         * Profile picture; null where the platform has none.
+         */
+        avatarUrl: string | null;
+        /**
+         * Follower count as of their newest post; null where the platform has none.
+         */
+        followers: number | null;
+        /**
+         * How far their voice carries, 0 to 100 from followers on a log scale: round(20 * log10(followers + 1)), capped at 100 (1,000 followers is 60). Null when followers are unknown.
+         */
+        influence: number | null;
+    } | null;
+    /**
+     * The verdict, judged against your company profile; null while the result waits for the classifier.
+     */
+    classification: {
+        /**
+         * 0 to 100; null only when classification failed.
+         */
+        relevance: number | null;
+        /**
+         * positive, neutral or negative; null when classification failed.
+         */
+        sentiment: 'positive' | 'neutral' | 'negative';
+        /**
+         * Intent and topic tags:
+         *
+         * - buy_intent, question, complaint, praise, comparison, bug_report, pricing, hiring, event, promotional.
+         * - churn_intent: leaving or replacing the keyword.
+         * - testimonial: a customer vouching for it from their own use.
+         * - industry_insight: analysis or data about the field.
+         * - launch: a product or feature launch announcement.
+         * - feedback: a suggestion or request about it.
+         */
+        intents: Array<string>;
+        /**
+         * The post reads as machine-made (a bot or app account, a scheduled or templated post, an AI-written summary). A label only: it stays in the feed, delivered and billed as usual. false while unjudged.
+         */
+        automated: boolean;
+        /**
+         * The language the post is written in, as an ISO 639-1 code (en, es, de); null when unknown, not one of the 20 the classifier names, or classified before languages were recorded.
+         */
+        language: string | null;
+        /**
+         * How sure the classifier is of its relevance verdict, 0 to 1. null when the verdict came without one: the fallback model judged, or the row was scored before confidence was recorded.
+         */
+        confidence: number | null;
+        /**
+         * One sentence from the classifier explaining the score.
+         */
+        note: string | null;
+        /**
+         * true when the model could not score this post; it is not billed.
+         */
+        failed: boolean;
+    } | null;
+    /**
+     * Scored at or above the relevance line (40).
+     */
+    relevant: boolean;
+    /**
+     * The same post is already one of your mentions (a keyword of yours matched it).
+     */
+    alreadyInWorkspace: boolean;
+    /**
+     * When the search stored it.
+     */
+    createdAt: string;
+};
+
 export type Automation = {
     /**
      * Automation id (atm_...).
@@ -3360,13 +3667,21 @@ export type UsageBreakdown = {
          */
         commentCents: number;
         /**
-         * keywordCents plus mentionCents plus commentCents.
+         * keywordCents, mentionCents and commentCents, plus searchCents when the report is not filtered: then the window's whole list price. The rows carry keyword spend only.
          */
         totalCents: number;
         /**
-         * What the ledger has debited for the window's days, by the day each debit settled, for the whole workspace whatever the filters. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger).
+         * What the ledger has debited for the window's days, by the day each debit settled, for the whole workspace whatever the filters, on-demand searches included. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger).
          */
         ledgerDebitCents: number;
+        /**
+         * On-demand search results billed in the window (scored then), for the whole workspace whatever the filters.
+         */
+        searchResults: number;
+        /**
+         * searchResults at $0.008 each, in totals.totalCents when the report is not filtered (never in a row: rows are keyword spend).
+         */
+        searchCents: number;
         /**
          * Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row claims them; charged all the same. Comments never are (by=group puts a deleted keyword's comments on the no-group row).
          */
@@ -3592,9 +3907,9 @@ export type LedgerList = {
          */
         id: string;
         /**
-         * signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments or adjustment.
+         * signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results) or adjustment.
          */
-        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'adjustment';
+        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'debit_searches' | 'adjustment';
         /**
          * Integer USD cents; credits positive, debits negative.
          */
@@ -10284,6 +10599,298 @@ export type UpdateViewResponses = {
 };
 
 export type UpdateViewResponse = UpdateViewResponses[keyof UpdateViewResponses];
+
+export type ListSearchesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page size, 1 to 100.
+         */
+        limit?: number;
+        /**
+         * nextCursor from the previous page.
+         */
+        cursor?: string;
+    };
+    url: '/v1/searches';
+};
+
+export type ListSearchesErrors = {
+    /**
+     * Invalid query or pagination cursor
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListSearchesError = ListSearchesErrors[keyof ListSearchesErrors];
+
+export type ListSearchesResponses = {
+    /**
+     * Searches
+     */
+    200: {
+        /**
+         * Searches, newest first.
+         */
+        data: Array<{
+            /**
+             * Search id (srch_...).
+             */
+            id: string;
+            /**
+             * The term searched, as typed.
+             */
+            term: string;
+            /**
+             * How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range.
+             */
+            range: '24h' | '7d' | '30d';
+            /**
+             * brand, competitor or topic: what the classifier was told the term is.
+             */
+            kind: 'brand' | 'competitor' | 'topic';
+            /**
+             * The hint the classifier read, or null.
+             */
+            context: string | null;
+            /**
+             * queued: accepted, nothing read yet. running: platforms being read or results scored. done: every platform reported and every result scored. failed: no platform could be read.
+             */
+            status: 'queued' | 'running' | 'done' | 'failed';
+            /**
+             * The start of the window read (the end is createdAt).
+             */
+            from: string;
+            /**
+             * One entry per platform asked for, in the order asked.
+             */
+            platforms: Array<{
+                /**
+                 * Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads).
+                 */
+                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+                /**
+                 * queued: not read yet. running: being read or scored. done: read and scored. skipped: not read (see reason). failed: the read failed (see reason).
+                 */
+                status: 'queued' | 'running' | 'done' | 'skipped' | 'failed';
+                /**
+                 * Why a platform was skipped or failed: unsupported (no term search on it), credentials (not connected on this deployment), budget (its monthly vendor budget is spent), rate_limited, error, timeout. null otherwise.
+                 */
+                reason: 'unsupported' | 'credentials' | 'budget' | 'rate_limited' | 'error' | 'timeout';
+                /**
+                 * Results stored for this platform, at most 25.
+                 */
+                results: number;
+                /**
+                 * Of them, scored relevant (40 or more).
+                 */
+                relevant: number;
+            }>;
+            /**
+             * Counts across platforms.
+             */
+            stats: {
+                /**
+                 * Results stored.
+                 */
+                results: number;
+                /**
+                 * Results scored (the rest wait or failed).
+                 */
+                scored: number;
+                /**
+                 * Results scored relevant (40 or more).
+                 */
+                relevant: number;
+            };
+            /**
+             * What the search has cost so far: $0.008 per scored result, rounded to the cent. A result the classifier could not score costs nothing.
+             */
+            costCents: number;
+            /**
+             * The most it can cost: 25 results for each platform read, at $0.008 each. The wallet had to cover it when the search started.
+             */
+            maxCostCents: number;
+            /**
+             * When the search was started.
+             */
+            createdAt: string;
+            /**
+             * When it reached done or failed; null while it runs.
+             */
+            completedAt: string | null;
+        }>;
+        /**
+         * Pass as cursor for the next page; null on the last page.
+         */
+        nextCursor: string | null;
+    };
+};
+
+export type ListSearchesResponse = ListSearchesResponses[keyof ListSearchesResponses];
+
+export type CreateSearchData = {
+    body: {
+        /**
+         * The word or phrase to search, case-insensitive, matched as the phrase (written joined or as a hashtag counts). Quotes are not needed.
+         */
+        term: string;
+        /**
+         * How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range.
+         */
+        range?: '24h' | '7d' | '30d';
+        /**
+         * The platforms to read; omit for every platform that can search a term back in time (bluesky, hackernews, github, stackoverflow, reddit, x, youtube, linkedin, tiktok, instagram, facebook). devto and news have no search and are reported as skipped.
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook'>;
+        /**
+         * What the term is to you, as on a keyword: brand (your company or product), competitor, or topic (the default). The classifier judges relevance with it.
+         */
+        kind?: 'brand' | 'competitor' | 'topic';
+        /**
+         * A sentence the classifier reads for this search only, on top of the company profile: what the term means here, what to ignore.
+         */
+        context?: string;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/searches';
+};
+
+export type CreateSearchErrors = {
+    /**
+     * Invalid body, or no platform asked for can be searched back in time (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * The workspace never topped up (funding_required), or the balance does not cover the most this search can cost (insufficient_balance)
+     */
+    402: ErrorResponse;
+    /**
+     * More than 10 searches in the last hour (rate_limited); Retry-After says when
+     */
+    429: ErrorResponse;
+};
+
+export type CreateSearchError = CreateSearchErrors[keyof CreateSearchErrors];
+
+export type CreateSearchResponses = {
+    /**
+     * The search, queued
+     */
+    201: Search;
+};
+
+export type CreateSearchResponse = CreateSearchResponses[keyof CreateSearchResponses];
+
+export type GetSearchData = {
+    body?: never;
+    path: {
+        /**
+         * Search id (srch_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/searches/{id}';
+};
+
+export type GetSearchErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such search in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type GetSearchError = GetSearchErrors[keyof GetSearchErrors];
+
+export type GetSearchResponses = {
+    /**
+     * The search
+     */
+    200: Search;
+};
+
+export type GetSearchResponse = GetSearchResponses[keyof GetSearchResponses];
+
+export type ListSearchResultsData = {
+    body?: never;
+    path: {
+        /**
+         * Search id (srch_...).
+         */
+        id: string;
+    };
+    query?: {
+        /**
+         * Page size, 1 to 100.
+         */
+        limit?: number;
+        /**
+         * nextCursor from the previous page.
+         */
+        cursor?: string;
+        /**
+         * Only results scored at least this relevant (0 to 100); unscored results are left out when set.
+         */
+        minRelevance?: number | null;
+    };
+    url: '/v1/searches/{id}/results';
+};
+
+export type ListSearchResultsErrors = {
+    /**
+     * Invalid query or pagination cursor
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such search in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type ListSearchResultsError = ListSearchResultsErrors[keyof ListSearchResultsErrors];
+
+export type ListSearchResultsResponses = {
+    /**
+     * Results
+     */
+    200: {
+        /**
+         * Results, newest post first.
+         */
+        data: Array<SearchResult>;
+        /**
+         * Pass as cursor for the next page; null on the last page.
+         */
+        nextCursor: string | null;
+    };
+};
+
+export type ListSearchResultsResponse = ListSearchResultsResponses[keyof ListSearchResultsResponses];
 
 export type ListAutomationsData = {
     body?: never;

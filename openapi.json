@@ -910,6 +910,7 @@
                   "query_needs_one_term",
                   "query_not_supported",
                   "insufficient_balance",
+                  "funding_required",
                   "keyword_limit_reached",
                   "billing_not_configured",
                   "order_not_credited",
@@ -5323,6 +5324,552 @@
           "updatedAt"
         ]
       },
+      "Search": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Search id (srch_...)."
+          },
+          "term": {
+            "type": "string",
+            "description": "The term searched, as typed."
+          },
+          "range": {
+            "type": "string",
+            "enum": [
+              "24h",
+              "7d",
+              "30d"
+            ],
+            "description": "How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "brand",
+              "competitor",
+              "topic"
+            ],
+            "description": "brand, competitor or topic: what the classifier was told the term is."
+          },
+          "context": {
+            "type": "string",
+            "nullable": true,
+            "description": "The hint the classifier read, or null."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ],
+            "description": "queued: accepted, nothing read yet. running: platforms being read or results scored. done: every platform reported and every result scored. failed: no platform could be read."
+          },
+          "from": {
+            "type": "string",
+            "description": "The start of the window read (the end is createdAt)."
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "platform": {
+                  "type": "string",
+                  "enum": [
+                    "bluesky",
+                    "hackernews",
+                    "github",
+                    "stackoverflow",
+                    "devto",
+                    "reddit",
+                    "x",
+                    "youtube",
+                    "news",
+                    "linkedin",
+                    "tiktok",
+                    "instagram",
+                    "facebook",
+                    "appstore",
+                    "googleplay",
+                    "trustpilot",
+                    "googlemaps",
+                    "rss"
+                  ],
+                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "queued",
+                    "running",
+                    "done",
+                    "skipped",
+                    "failed"
+                  ],
+                  "description": "queued: not read yet. running: being read or scored. done: read and scored. skipped: not read (see reason). failed: the read failed (see reason)."
+                },
+                "reason": {
+                  "type": "string",
+                  "nullable": true,
+                  "enum": [
+                    "unsupported",
+                    "credentials",
+                    "budget",
+                    "rate_limited",
+                    "error",
+                    "timeout"
+                  ],
+                  "description": "Why a platform was skipped or failed: unsupported (no term search on it), credentials (not connected on this deployment), budget (its monthly vendor budget is spent), rate_limited, error, timeout. null otherwise."
+                },
+                "results": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Results stored for this platform, at most 25."
+                },
+                "relevant": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Of them, scored relevant (40 or more)."
+                }
+              },
+              "required": [
+                "platform",
+                "status",
+                "reason",
+                "results",
+                "relevant"
+              ]
+            },
+            "description": "One entry per platform asked for, in the order asked."
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "results": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Results stored."
+              },
+              "scored": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Results scored (the rest wait or failed)."
+              },
+              "relevant": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Results scored relevant (40 or more)."
+              }
+            },
+            "required": [
+              "results",
+              "scored",
+              "relevant"
+            ],
+            "description": "Counts across platforms."
+          },
+          "costCents": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "What the search has cost so far: $0.008 per scored result, rounded to the cent. A result the classifier could not score costs nothing."
+          },
+          "maxCostCents": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The most it can cost: 25 results for each platform read, at $0.008 each. The wallet had to cover it when the search started."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the search was started."
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "When it reached done or failed; null while it runs."
+          }
+        },
+        "required": [
+          "id",
+          "term",
+          "range",
+          "kind",
+          "context",
+          "status",
+          "from",
+          "platforms",
+          "stats",
+          "costCents",
+          "maxCostCents",
+          "createdAt",
+          "completedAt"
+        ]
+      },
+      "SearchResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Result id (sres_...)."
+          },
+          "searchId": {
+            "type": "string",
+            "description": "The search it belongs to (srch_...)."
+          },
+          "post": {
+            "type": "object",
+            "properties": {
+              "platform": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ],
+                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "post",
+                  "comment",
+                  "repository"
+                ],
+                "description": "post: a top-level post. comment: answers a post or comment (Reddit, Hacker News or YouTube comments, X or Bluesky replies, Stack Overflow answers). repository: a GitHub repository event (see post.repository)."
+              },
+              "url": {
+                "type": "string",
+                "description": "Permalink of the post."
+              },
+              "text": {
+                "type": "string",
+                "description": "Title and body, truncated to 8 KB at ingest."
+              },
+              "title": {
+                "type": "string",
+                "nullable": true,
+                "description": "The post's own title where the platform has one (a story, thread, issue, question, article, video or titled review). Null on X, Bluesky and LinkedIn, and for posts ingested before October 2026."
+              },
+              "imageUrl": {
+                "type": "string",
+                "nullable": true,
+                "description": "A preview image of the post, when the platform sent one with it: a YouTube thumbnail, a DEV cover, a news article's sharing image, a Bluesky link card or image. Null otherwise."
+              },
+              "subreddit": {
+                "type": "string",
+                "nullable": true,
+                "description": "The subreddit a Reddit post was written in, without the r/ (SaaS). Null on every other platform."
+              },
+              "flair": {
+                "type": "string",
+                "nullable": true,
+                "description": "A Reddit post's flair, when its subreddit uses them (Question, Show and Tell). Null otherwise."
+              },
+              "repository": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The repository, owner/name."
+                  },
+                  "event": {
+                    "type": "string",
+                    "enum": [
+                      "new",
+                      "traction",
+                      "stars",
+                      "growth",
+                      "top"
+                    ],
+                    "description": "What happened:\n\n- new: it was created.\n- traction: under 30 days old, it reached 10 stars.\n- stars: it passed a star milestone.\n- growth: it gained stars fast in a week.\n- top: among the most starred naming the keyword, from a look-back."
+                  },
+                  "stars": {
+                    "type": "integer",
+                    "description": "Its stars when the event was found."
+                  },
+                  "weeklyStars": {
+                    "type": "integer",
+                    "nullable": true,
+                    "description": "Stars gained in the 7 days before the event; null when that week is not known yet."
+                  }
+                },
+                "required": [
+                  "name",
+                  "event",
+                  "stars",
+                  "weeklyStars"
+                ],
+                "description": "A GitHub repository event's facts, on a mention whose kind is repository; null on every other mention. The sentence is post.title."
+              },
+              "links": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Links the post carries, in the order written, at most 20. Empty for a post with none, and for posts ingested before September 2026."
+              },
+              "publishedAt": {
+                "type": "string",
+                "description": "When the post was published."
+              },
+              "engagement": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "likes": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "description": "Likes or upvotes when the post was ingested; null when the platform does not report them."
+                  },
+                  "reposts": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "description": "Reposts or shares when ingested; null when not reported."
+                  },
+                  "replies": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "description": "Replies or comments when ingested; null when not reported."
+                  },
+                  "quotes": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "description": "Quotes when ingested; null when not reported."
+                  },
+                  "views": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "description": "Views when ingested; null when not reported."
+                  },
+                  "bookmarks": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "description": "Bookmarks or saves when ingested; null when not reported."
+                  }
+                },
+                "required": [
+                  "likes",
+                  "reposts",
+                  "replies",
+                  "quotes",
+                  "views",
+                  "bookmarks"
+                ],
+                "description": "Counts as the platform reported them at ingest, usually minutes after posting; a missing count is null. Null as a whole when a platform reports none, or before September 2026. X carries all six."
+              },
+              "replyTo": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "author": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Parent post author as the platform names them."
+                  },
+                  "url": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Parent post URL."
+                  },
+                  "text": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Parent post text, when the platform gave it."
+                  }
+                },
+                "required": [
+                  "author",
+                  "url",
+                  "text"
+                ],
+                "description": "The post or comment this one answers; null for top-level posts."
+              }
+            },
+            "required": [
+              "platform",
+              "kind",
+              "url",
+              "text",
+              "title",
+              "imageUrl",
+              "subreddit",
+              "flair",
+              "repository",
+              "links",
+              "publishedAt",
+              "engagement",
+              "replyTo"
+            ],
+            "description": "The post: platform, text, link, publish time and engagement."
+          },
+          "author": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string",
+                "nullable": true,
+                "description": "Person id (aut_...) for GET /v1/people/{id}; null when the account is not in the audience yet."
+              },
+              "name": {
+                "type": "string",
+                "nullable": true,
+                "description": "Display name as the platform reports it."
+              },
+              "handle": {
+                "type": "string",
+                "nullable": true,
+                "description": "Platform handle derived from the profile URL, formatted as the platform shows it (@name, u/name); null where the platform has none."
+              },
+              "url": {
+                "type": "string",
+                "nullable": true,
+                "description": "Profile URL."
+              },
+              "avatarUrl": {
+                "type": "string",
+                "nullable": true,
+                "description": "Profile picture; null where the platform has none."
+              },
+              "followers": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Follower count as of their newest post; null where the platform has none."
+              },
+              "influence": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 100,
+                "description": "How far their voice carries, 0 to 100 from followers on a log scale: round(20 * log10(followers + 1)), capped at 100 (1,000 followers is 60). Null when followers are unknown."
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "handle",
+              "url",
+              "avatarUrl",
+              "followers",
+              "influence"
+            ],
+            "description": "Who posted it; null when the platform gave no author at all."
+          },
+          "classification": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "relevance": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 100,
+                "description": "0 to 100; null only when classification failed."
+              },
+              "sentiment": {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                  "positive",
+                  "neutral",
+                  "negative"
+                ],
+                "description": "positive, neutral or negative; null when classification failed."
+              },
+              "intents": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Intent and topic tags:\n\n- buy_intent, question, complaint, praise, comparison, bug_report, pricing, hiring, event, promotional.\n- churn_intent: leaving or replacing the keyword.\n- testimonial: a customer vouching for it from their own use.\n- industry_insight: analysis or data about the field.\n- launch: a product or feature launch announcement.\n- feedback: a suggestion or request about it."
+              },
+              "automated": {
+                "type": "boolean",
+                "description": "The post reads as machine-made (a bot or app account, a scheduled or templated post, an AI-written summary). A label only: it stays in the feed, delivered and billed as usual. false while unjudged."
+              },
+              "language": {
+                "type": "string",
+                "nullable": true,
+                "description": "The language the post is written in, as an ISO 639-1 code (en, es, de); null when unknown, not one of the 20 the classifier names, or classified before languages were recorded."
+              },
+              "confidence": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 1,
+                "description": "How sure the classifier is of its relevance verdict, 0 to 1. null when the verdict came without one: the fallback model judged, or the row was scored before confidence was recorded."
+              },
+              "note": {
+                "type": "string",
+                "nullable": true,
+                "description": "One sentence from the classifier explaining the score."
+              },
+              "failed": {
+                "type": "boolean",
+                "description": "true when the model could not score this post; it is not billed."
+              }
+            },
+            "required": [
+              "relevance",
+              "sentiment",
+              "intents",
+              "automated",
+              "language",
+              "confidence",
+              "note",
+              "failed"
+            ],
+            "description": "The verdict, judged against your company profile; null while the result waits for the classifier."
+          },
+          "relevant": {
+            "type": "boolean",
+            "description": "Scored at or above the relevance line (40)."
+          },
+          "alreadyInWorkspace": {
+            "type": "boolean",
+            "description": "The same post is already one of your mentions (a keyword of yours matched it)."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the search stored it."
+          }
+        },
+        "required": [
+          "id",
+          "searchId",
+          "post",
+          "author",
+          "classification",
+          "relevant",
+          "alreadyInWorkspace",
+          "createdAt"
+        ]
+      },
       "Automation": {
         "type": "object",
         "properties": {
@@ -7081,11 +7628,20 @@
               },
               "totalCents": {
                 "type": "integer",
-                "description": "keywordCents plus mentionCents plus commentCents."
+                "description": "keywordCents, mentionCents and commentCents, plus searchCents when the report is not filtered: then the window's whole list price. The rows carry keyword spend only."
               },
               "ledgerDebitCents": {
                 "type": "integer",
-                "description": "What the ledger has debited for the window's days, by the day each debit settled, for the whole workspace whatever the filters. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger)."
+                "description": "What the ledger has debited for the window's days, by the day each debit settled, for the whole workspace whatever the filters, on-demand searches included. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger)."
+              },
+              "searchResults": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "On-demand search results billed in the window (scored then), for the whole workspace whatever the filters."
+              },
+              "searchCents": {
+                "type": "integer",
+                "description": "searchResults at $0.008 each, in totals.totalCents when the report is not filtered (never in a row: rows are keyword spend)."
               },
               "unattributedBillable": {
                 "type": "integer",
@@ -7104,6 +7660,8 @@
               "commentCents",
               "totalCents",
               "ledgerDebitCents",
+              "searchResults",
+              "searchCents",
               "unattributedBillable"
             ],
             "description": "The whole window as one line, the same for every dimension."
@@ -7439,9 +7997,10 @@
                     "debit_keyword_days",
                     "debit_mentions",
                     "debit_comments",
+                    "debit_searches",
                     "adjustment"
                   ],
-                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments or adjustment."
+                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results) or adjustment."
                 },
                 "amountCents": {
                   "type": "integer",
@@ -24111,6 +24670,614 @@
         }
       }
     },
+    "/v1/searches": {
+      "post": {
+        "operationId": "createSearch",
+        "summary": "Start a search",
+        "description": "Search a term over the last 24 hours, 7 or 30 days, without a keyword.\n\n- Results are scored and kept apart from your mentions.\n- $0.008 per scored result; the balance must cover `maxCostCents`.\n- See [Search](/guides/search).",
+        "tags": [
+          "Searches"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "term": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 80,
+                    "description": "The word or phrase to search, case-insensitive, matched as the phrase (written joined or as a hashtag counts). Quotes are not needed."
+                  },
+                  "range": {
+                    "type": "string",
+                    "enum": [
+                      "24h",
+                      "7d",
+                      "30d"
+                    ],
+                    "default": "7d",
+                    "description": "How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range."
+                  },
+                  "platforms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "bluesky",
+                        "hackernews",
+                        "github",
+                        "stackoverflow",
+                        "devto",
+                        "reddit",
+                        "x",
+                        "youtube",
+                        "news",
+                        "linkedin",
+                        "tiktok",
+                        "instagram",
+                        "facebook"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 13,
+                    "description": "The platforms to read; omit for every platform that can search a term back in time (bluesky, hackernews, github, stackoverflow, reddit, x, youtube, linkedin, tiktok, instagram, facebook). devto and news have no search and are reported as skipped."
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "brand",
+                      "competitor",
+                      "topic"
+                    ],
+                    "default": "topic",
+                    "description": "What the term is to you, as on a keyword: brand (your company or product), competitor, or topic (the default). The classifier judges relevance with it."
+                  },
+                  "context": {
+                    "type": "string",
+                    "maxLength": 300,
+                    "description": "A sentence the classifier reads for this search only, on top of the company profile: what the term means here, what to ignore."
+                  }
+                },
+                "required": [
+                  "term"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The search, queued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Search"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body, or no platform asked for can be searched back in time (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "The workspace never topped up (funding_required), or the balance does not cover the most this search can cost (insufficient_balance)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than 10 searches in the last hour (rate_limited); Retry-After says when",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listSearches",
+        "summary": "List searches",
+        "description": "The workspace's searches, newest first, kept for 30 days.",
+        "tags": [
+          "Searches"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Page size, 1 to 100."
+            },
+            "required": false,
+            "description": "Page size, 1 to 100.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "nextCursor from the previous page."
+            },
+            "required": false,
+            "description": "nextCursor from the previous page.",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Searches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Search id (srch_...)."
+                          },
+                          "term": {
+                            "type": "string",
+                            "description": "The term searched, as typed."
+                          },
+                          "range": {
+                            "type": "string",
+                            "enum": [
+                              "24h",
+                              "7d",
+                              "30d"
+                            ],
+                            "description": "How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range."
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "brand",
+                              "competitor",
+                              "topic"
+                            ],
+                            "description": "brand, competitor or topic: what the classifier was told the term is."
+                          },
+                          "context": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The hint the classifier read, or null."
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "queued",
+                              "running",
+                              "done",
+                              "failed"
+                            ],
+                            "description": "queued: accepted, nothing read yet. running: platforms being read or results scored. done: every platform reported and every result scored. failed: no platform could be read."
+                          },
+                          "from": {
+                            "type": "string",
+                            "description": "The start of the window read (the end is createdAt)."
+                          },
+                          "platforms": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "platform": {
+                                  "type": "string",
+                                  "enum": [
+                                    "bluesky",
+                                    "hackernews",
+                                    "github",
+                                    "stackoverflow",
+                                    "devto",
+                                    "reddit",
+                                    "x",
+                                    "youtube",
+                                    "news",
+                                    "linkedin",
+                                    "tiktok",
+                                    "instagram",
+                                    "facebook",
+                                    "appstore",
+                                    "googleplay",
+                                    "trustpilot",
+                                    "googlemaps",
+                                    "rss"
+                                  ],
+                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": [
+                                    "queued",
+                                    "running",
+                                    "done",
+                                    "skipped",
+                                    "failed"
+                                  ],
+                                  "description": "queued: not read yet. running: being read or scored. done: read and scored. skipped: not read (see reason). failed: the read failed (see reason)."
+                                },
+                                "reason": {
+                                  "type": "string",
+                                  "nullable": true,
+                                  "enum": [
+                                    "unsupported",
+                                    "credentials",
+                                    "budget",
+                                    "rate_limited",
+                                    "error",
+                                    "timeout"
+                                  ],
+                                  "description": "Why a platform was skipped or failed: unsupported (no term search on it), credentials (not connected on this deployment), budget (its monthly vendor budget is spent), rate_limited, error, timeout. null otherwise."
+                                },
+                                "results": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "description": "Results stored for this platform, at most 25."
+                                },
+                                "relevant": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "description": "Of them, scored relevant (40 or more)."
+                                }
+                              },
+                              "required": [
+                                "platform",
+                                "status",
+                                "reason",
+                                "results",
+                                "relevant"
+                              ]
+                            },
+                            "description": "One entry per platform asked for, in the order asked."
+                          },
+                          "stats": {
+                            "type": "object",
+                            "properties": {
+                              "results": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Results stored."
+                              },
+                              "scored": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Results scored (the rest wait or failed)."
+                              },
+                              "relevant": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Results scored relevant (40 or more)."
+                              }
+                            },
+                            "required": [
+                              "results",
+                              "scored",
+                              "relevant"
+                            ],
+                            "description": "Counts across platforms."
+                          },
+                          "costCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "What the search has cost so far: $0.008 per scored result, rounded to the cent. A result the classifier could not score costs nothing."
+                          },
+                          "maxCostCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "The most it can cost: 25 results for each platform read, at $0.008 each. The wallet had to cover it when the search started."
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "When the search was started."
+                          },
+                          "completedAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "When it reached done or failed; null while it runs."
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "term",
+                          "range",
+                          "kind",
+                          "context",
+                          "status",
+                          "from",
+                          "platforms",
+                          "stats",
+                          "costCents",
+                          "maxCostCents",
+                          "createdAt",
+                          "completedAt"
+                        ]
+                      },
+                      "description": "Searches, newest first."
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Pass as cursor for the next page; null on the last page."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query or pagination cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/searches/{id}": {
+      "get": {
+        "operationId": "getSearch",
+        "summary": "Get a search",
+        "description": "Its status, each platform's progress and counts, and what it cost so far.",
+        "tags": [
+          "Searches"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Search id (srch_...).",
+              "example": "srch_abc123"
+            },
+            "required": true,
+            "description": "Search id (srch_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The search",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Search"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such search in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/searches/{id}/results": {
+      "get": {
+        "operationId": "listSearchResults",
+        "summary": "List a search's results",
+        "description": "The posts the search found, newest first, with their verdicts.\n\nA verdict is null while it waits; `alreadyInWorkspace` says the post is already one of your mentions. Readable while the search runs.",
+        "tags": [
+          "Searches"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Search id (srch_...).",
+              "example": "srch_abc123"
+            },
+            "required": true,
+            "description": "Search id (srch_...).",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Page size, 1 to 100."
+            },
+            "required": false,
+            "description": "Page size, 1 to 100.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "nextCursor from the previous page."
+            },
+            "required": false,
+            "description": "nextCursor from the previous page.",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Only results scored at least this relevant (0 to 100); unscored results are left out when set."
+            },
+            "required": false,
+            "description": "Only results scored at least this relevant (0 to 100); unscored results are left out when set.",
+            "name": "minRelevance",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SearchResult"
+                      },
+                      "description": "Results, newest post first."
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Pass as cursor for the next page; null on the last page."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query or pagination cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such search in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/automations": {
       "get": {
         "operationId": "listAutomations",
@@ -32935,6 +34102,14 @@
       "retryable": false,
       "description": "The wallet cannot cover one more keyword-day.",
       "fix": "Top up from Billing; tracking resumes on its own."
+    },
+    {
+      "code": "funding_required",
+      "status": 402,
+      "source": "user",
+      "retryable": false,
+      "description": "The workspace has only its welcome credit; on-demand searches need a top-up first.",
+      "fix": "Add funds from Billing, then start the search again."
     },
     {
       "code": "keyword_limit_reached",
