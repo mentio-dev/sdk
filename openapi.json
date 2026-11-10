@@ -129,6 +129,11 @@
             "type": "string",
             "description": "The tracked text, as typed."
           },
+          "query": {
+            "type": "string",
+            "nullable": true,
+            "description": "The boolean query the keyword was written as, as sent; term and matching hold what it compiled to. Null for a keyword defined by its fields, or once its term or term rules changed by hand."
+          },
           "kind": {
             "type": "string",
             "enum": [
@@ -860,6 +865,7 @@
         "required": [
           "id",
           "term",
+          "query",
           "kind",
           "muted",
           "pausedForBalance",
@@ -900,6 +906,9 @@
                   "idempotency_key_reused",
                   "rate_limited",
                   "duplicate_keyword",
+                  "invalid_query",
+                  "query_needs_one_term",
+                  "query_not_supported",
                   "insufficient_balance",
                   "keyword_limit_reached",
                   "billing_not_configured",
@@ -952,6 +961,13 @@
               "retryAfterSeconds": {
                 "type": "integer",
                 "description": "For rate_limited and other retryable errors: how long to wait before retrying (mirrors the Retry-After header)."
+              },
+              "details": {
+                "type": "object",
+                "additionalProperties": {
+                  "nullable": true
+                },
+                "description": "Machine-readable facts about this error, when the code has any: for a keyword query, `reason`, `position` (the character a syntax error was found at) or `terms` (one keyword each)."
               }
             },
             "required": [
@@ -997,7 +1013,13 @@
                 "type": "string",
                 "minLength": 2,
                 "maxLength": 80,
-                "description": "Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it."
+                "description": "Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it. Clears query."
+              },
+              "query": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 1000,
+                "description": "Rewrites the term (a rename) and the term rules from a boolean query; the other matching fields stay. Never with term or those rules (400). A later hand change of either clears it. See [Keywords](/guides/keywords#write-it-as-a-query)."
               },
               "kind": {
                 "type": "string",
@@ -2531,6 +2553,13 @@
                 "nullable": true,
                 "description": "Follower count as of their newest post; null where the platform has none."
               },
+              "influence": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 100,
+                "description": "How far their voice carries, 0 to 100 from followers on a log scale: round(20 * log10(followers + 1)), capped at 100 (1,000 followers is 60). Null when followers are unknown."
+              },
               "tags": {
                 "type": "array",
                 "items": {
@@ -2546,6 +2575,7 @@
               "url",
               "avatarUrl",
               "followers",
+              "influence",
               "tags"
             ],
             "description": "Who posted it; null when the platform gave no author at all."
@@ -2658,6 +2688,23 @@
                 ],
                 "description": "positive, neutral or negative; null until classified."
               },
+              "emotion": {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                  "joy",
+                  "trust",
+                  "anticipation",
+                  "surprise",
+                  "confusion",
+                  "frustration",
+                  "anger",
+                  "fear",
+                  "sadness",
+                  "neutral"
+                ],
+                "description": "The author's dominant emotion toward the keyword, apart from sentiment; null when not judged.\n\n- joy: delight or excitement about it.\n- trust: relies on it, vouches for it.\n- anticipation: looks forward to a launch or update.\n- surprise: caught off guard by it.\n- confusion: unsure how it works, stuck.\n- frustration: annoyed it fails or gets in the way.\n- anger: outraged, feels wronged by it.\n- fear: worried: risk, security, lock-in, cost.\n- sadness: disappointed, regrets a loss or shutdown.\n- neutral: no emotion shown, or only named."
+              },
               "intents": {
                 "type": "array",
                 "items": {
@@ -2766,6 +2813,7 @@
             "required": [
               "relevance",
               "sentiment",
+              "emotion",
               "intents",
               "automated",
               "language",
@@ -3194,6 +3242,13 @@
                 "nullable": true,
                 "description": "Followers when last seen; null when unknown."
               },
+              "influence": {
+                "type": "integer",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 100,
+                "description": "How far their voice carries, 0 to 100 from followers on a log scale: round(20 * log10(followers + 1)), capped at 100 (1,000 followers is 60). Null when followers are unknown."
+              },
               "following": {
                 "type": "integer",
                 "nullable": true,
@@ -3207,6 +3262,7 @@
             },
             "required": [
               "followers",
+              "influence",
               "following",
               "posts"
             ],
@@ -4234,6 +4290,48 @@
             "maxItems": 3,
             "description": "Never these sentiments; an unscored mention still passes."
           },
+          "emotions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "joy",
+                "trust",
+                "anticipation",
+                "surprise",
+                "confusion",
+                "frustration",
+                "anger",
+                "fear",
+                "sadness",
+                "neutral"
+              ],
+              "description": "An emotion toward the keyword (see classification.emotion)."
+            },
+            "maxItems": 10,
+            "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+          },
+          "notEmotions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "joy",
+                "trust",
+                "anticipation",
+                "surprise",
+                "confusion",
+                "frustration",
+                "anger",
+                "fear",
+                "sadness",
+                "neutral"
+              ],
+              "description": "An emotion toward the keyword (see classification.emotion)."
+            },
+            "maxItems": 10,
+            "description": "Never these emotions; a mention whose emotion was not judged still passes."
+          },
           "intents": {
             "type": "array",
             "items": {
@@ -4793,6 +4891,48 @@
                 },
                 "maxItems": 3,
                 "description": "Never these sentiments; an unscored mention still passes."
+              },
+              "emotions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "joy",
+                    "trust",
+                    "anticipation",
+                    "surprise",
+                    "confusion",
+                    "frustration",
+                    "anger",
+                    "fear",
+                    "sadness",
+                    "neutral"
+                  ],
+                  "description": "An emotion toward the keyword (see classification.emotion)."
+                },
+                "maxItems": 10,
+                "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+              },
+              "notEmotions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "joy",
+                    "trust",
+                    "anticipation",
+                    "surprise",
+                    "confusion",
+                    "frustration",
+                    "anger",
+                    "fear",
+                    "sadness",
+                    "neutral"
+                  ],
+                  "description": "An emotion toward the keyword (see classification.emotion)."
+                },
+                "maxItems": 10,
+                "description": "Never these emotions; a mention whose emotion was not judged still passes."
               },
               "intents": {
                 "type": "array",
@@ -5379,6 +5519,48 @@
                 },
                 "maxItems": 3,
                 "description": "Never these sentiments; an unscored mention still passes."
+              },
+              "emotions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "joy",
+                    "trust",
+                    "anticipation",
+                    "surprise",
+                    "confusion",
+                    "frustration",
+                    "anger",
+                    "fear",
+                    "sadness",
+                    "neutral"
+                  ],
+                  "description": "An emotion toward the keyword (see classification.emotion)."
+                },
+                "maxItems": 10,
+                "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+              },
+              "notEmotions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "joy",
+                    "trust",
+                    "anticipation",
+                    "surprise",
+                    "confusion",
+                    "frustration",
+                    "anger",
+                    "fear",
+                    "sadness",
+                    "neutral"
+                  ],
+                  "description": "An emotion toward the keyword (see classification.emotion)."
+                },
+                "maxItems": 10,
+                "description": "Never these emotions; a mention whose emotion was not judged still passes."
               },
               "intents": {
                 "type": "array",
@@ -7464,6 +7646,48 @@
                 },
                 "description": "Only these sentiments."
               },
+              "emotions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "joy",
+                    "trust",
+                    "anticipation",
+                    "surprise",
+                    "confusion",
+                    "frustration",
+                    "anger",
+                    "fear",
+                    "sadness",
+                    "neutral"
+                  ],
+                  "description": "An emotion toward the keyword (see classification.emotion)."
+                },
+                "maxItems": 10,
+                "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+              },
+              "notEmotions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "joy",
+                    "trust",
+                    "anticipation",
+                    "surprise",
+                    "confusion",
+                    "frustration",
+                    "anger",
+                    "fear",
+                    "sadness",
+                    "neutral"
+                  ],
+                  "description": "An emotion toward the keyword (see classification.emotion)."
+                },
+                "maxItems": 10,
+                "description": "Never these emotions: [\"anger\"]. A mention whose emotion was not judged still passes."
+              },
               "intents": {
                 "type": "array",
                 "items": {
@@ -8508,13 +8732,17 @@
               "platform",
               "keyword",
               "sentiment",
+              "emotion",
               "intent",
               "status",
               "hour",
               "person",
               "language",
               "country",
-              "subreddit"
+              "subreddit",
+              "domain",
+              "link",
+              "hashtag"
             ],
             "description": "The dimension the rows are grouped by."
           },
@@ -8525,7 +8753,7 @@
               "properties": {
                 "key": {
                   "type": "string",
-                  "description": "The group: platform name, keyword id, sentiment, intent, status, \"weekday-hour\" for by=hour, an opaque person key, or the subreddit in lowercase."
+                  "description": "The group: platform name, keyword id, sentiment, emotion, intent, status, \"weekday-hour\" for by=hour, an opaque person key, the subreddit in lowercase, the host (by=domain), the URL (by=link) or the hashtag without its #."
                 },
                 "label": {
                   "type": "string",
@@ -8671,7 +8899,7 @@
                 },
                 "share": {
                   "type": "number",
-                  "description": "Percent of the window's matched mentions in this group, one decimal. Intents overlap, so their shares can add up past 100."
+                  "description": "Percent of the window's matched mentions in this group, one decimal. Intents, domains, links and hashtags overlap, so their shares can add up past 100."
                 },
                 "sentiment": {
                   "type": "object",
@@ -9956,7 +10184,7 @@
       "post": {
         "operationId": "createKeyword",
         "summary": "Track a keyword",
-        "description": "Start tracking a word or phrase; mentions arrive from the next poll.\n\n- $5 a month, charged daily; up to 500 per funded workspace.\n- `matching` filters posts before they are stored, so rejected posts never bill.\n- `cap` limits matched mentions per period.\n\nSee [Keywords](/guides/keywords).",
+        "description": "Start tracking a word or phrase; mentions arrive from the next poll.\n\n- $5 a month, charged daily; up to 500 per funded workspace.\n- `matching` filters posts before storage, rejected posts never bill; `query` writes both as one query.\n- `cap` limits mentions per period.\n\nSee [Keywords](/guides/keywords).",
         "tags": [
           "Keywords"
         ],
@@ -9992,7 +10220,13 @@
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 80,
-                    "description": "The word or phrase to track, case-insensitive. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only."
+                    "description": "The word or phrase to track, case-insensitive. Required unless `query` is sent. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only."
+                  },
+                  "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000,
+                    "description": "The keyword as one boolean query instead of term and matching, like \"acme cloud\" AND (pricing OR price*) -jobs ([Keywords](/guides/keywords#write-it-as-a-query)):\n\n- Phrases, words, AND, OR, NOT or -word, parentheses, word-end *\n- Compiled into term and the term rules; never sent with them (400).\n- Each alternative starts with the term; else 400 query_needs_one_term."
                   },
                   "kind": {
                     "type": "string",
@@ -10497,10 +10731,7 @@
                     "type": "boolean",
                     "description": "Whether the keyword also reads the workspace's feeds (GET /v1/feeds); default true. A new keyword reading them gets the look-back of the 8 most recently connected."
                   }
-                },
-                "required": [
-                  "term"
-                ]
+                }
               }
             }
           }
@@ -10517,7 +10748,7 @@
             }
           },
           "400": {
-            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "description": "Invalid request: a parameter or the body failed validation (validation_error), or the query cannot be read (invalid_query), names more than one term (query_needs_one_term) or cannot be one keyword (query_not_supported)",
             "content": {
               "application/json": {
                 "schema": {
@@ -10936,6 +11167,11 @@
                           "term": {
                             "type": "string",
                             "description": "The tracked text, as typed."
+                          },
+                          "query": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The boolean query the keyword was written as, as sent; term and matching hold what it compiled to. Null for a keyword defined by its fields, or once its term or term rules changed by hand."
                           },
                           "kind": {
                             "type": "string",
@@ -11668,6 +11904,7 @@
                         "required": [
                           "id",
                           "term",
+                          "query",
                           "kind",
                           "muted",
                           "pausedForBalance",
@@ -11789,7 +12026,7 @@
       "patch": {
         "operationId": "updateKeyword",
         "summary": "Update a keyword",
-        "description": "Change a keyword's term, mute, kind, platforms, context, matching rules or mention cap.\n\n- A new `term` is tracked from now on, no look-back; old mentions stay.\n- An empty rule list clears it; `cap` null removes the cap.\n- Changes apply to new mentions only.",
+        "description": "Change a keyword's term, query, mute, kind, platforms, context, matching rules or mention cap.\n\n- A new `term` is tracked from now on, no look-back; old mentions stay.\n- An empty rule list clears it; `cap` null removes the cap.\n- Changes apply to new mentions only.",
         "tags": [
           "Keywords"
         ],
@@ -11823,7 +12060,13 @@
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 80,
-                    "description": "Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it."
+                    "description": "Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it. Clears query."
+                  },
+                  "query": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1000,
+                    "description": "Rewrites the term (a rename) and the term rules from a boolean query; the other matching fields stay. Never with term or those rules (400). A later hand change of either clears it. See [Keywords](/guides/keywords#write-it-as-a-query)."
                   },
                   "kind": {
                     "type": "string",
@@ -12349,7 +12592,7 @@
             }
           },
           "400": {
-            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "description": "Invalid request: a parameter or the body failed validation (validation_error), or the query cannot be read (invalid_query), names more than one term (query_needs_one_term) or cannot be one keyword (query_not_supported)",
             "content": {
               "application/json": {
                 "schema": {
@@ -14810,6 +15053,60 @@
           {
             "schema": {
               "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "joy",
+                  "trust",
+                  "anticipation",
+                  "surprise",
+                  "confusion",
+                  "frustration",
+                  "anger",
+                  "fear",
+                  "sadness",
+                  "neutral"
+                ],
+                "description": "An emotion toward the keyword (see classification.emotion)."
+              },
+              "maxItems": 10,
+              "description": "Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes."
+            },
+            "required": false,
+            "description": "Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes.",
+            "name": "emotions",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "joy",
+                  "trust",
+                  "anticipation",
+                  "surprise",
+                  "confusion",
+                  "frustration",
+                  "anger",
+                  "fear",
+                  "sadness",
+                  "neutral"
+                ],
+                "description": "An emotion toward the keyword (see classification.emotion)."
+              },
+              "maxItems": 10,
+              "description": "Never these emotions. A mention whose emotion was not judged still passes."
+            },
+            "required": false,
+            "description": "Never these emotions. A mention whose emotion was not judged still passes.",
+            "name": "notEmotions",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
               "nullable": true,
               "items": {
                 "type": "string",
@@ -15327,13 +15624,15 @@
               "type": "string",
               "enum": [
                 "newest",
-                "priority"
+                "priority",
+                "reach",
+                "engagement"
               ],
               "default": "newest",
-              "description": "newest: by match time, newest first. priority: by attention score, highest first; priority ranks the last 30 days of matches only, older ones stay reachable under newest. Cursors are specific to a sort."
+              "description": "How to order the list:\n\n- newest: by match time.\n- priority: attention score, last 30 days of matches.\n- reach: author followers, unknown last; counts update, so pages can shift.\n- engagement: likes, reposts, replies and quotes; none last.\n- reach and engagement: the last 30 days unless a window is set."
             },
             "required": false,
-            "description": "newest: by match time, newest first. priority: by attention score, highest first; priority ranks the last 30 days of matches only, older ones stay reachable under newest. Cursors are specific to a sort.",
+            "description": "How to order the list:\n\n- newest: by match time.\n- priority: attention score, last 30 days of matches.\n- reach: author followers, unknown last; counts update, so pages can shift.\n- engagement: likes, reposts, replies and quotes; none last.\n- reach and engagement: the last 30 days unless a window is set.",
             "name": "sort",
             "in": "query"
           },
@@ -15988,6 +16287,60 @@
             "required": false,
             "description": "Never these sentiments. A mention the classifier has not scored yet still passes.",
             "name": "notSentiments",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "joy",
+                  "trust",
+                  "anticipation",
+                  "surprise",
+                  "confusion",
+                  "frustration",
+                  "anger",
+                  "fear",
+                  "sadness",
+                  "neutral"
+                ],
+                "description": "An emotion toward the keyword (see classification.emotion)."
+              },
+              "maxItems": 10,
+              "description": "Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes."
+            },
+            "required": false,
+            "description": "Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes.",
+            "name": "emotions",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "joy",
+                  "trust",
+                  "anticipation",
+                  "surprise",
+                  "confusion",
+                  "frustration",
+                  "anger",
+                  "fear",
+                  "sadness",
+                  "neutral"
+                ],
+                "description": "An emotion toward the keyword (see classification.emotion)."
+              },
+              "maxItems": 10,
+              "description": "Never these emotions. A mention whose emotion was not judged still passes."
+            },
+            "required": false,
+            "description": "Never these emotions. A mention whose emotion was not judged still passes.",
+            "name": "notEmotions",
             "in": "query"
           },
           {
@@ -17238,6 +17591,60 @@
             "required": false,
             "description": "Never these sentiments. A mention the classifier has not scored yet still passes.",
             "name": "notSentiments",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "joy",
+                  "trust",
+                  "anticipation",
+                  "surprise",
+                  "confusion",
+                  "frustration",
+                  "anger",
+                  "fear",
+                  "sadness",
+                  "neutral"
+                ],
+                "description": "An emotion toward the keyword (see classification.emotion)."
+              },
+              "maxItems": 10,
+              "description": "Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes."
+            },
+            "required": false,
+            "description": "Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes.",
+            "name": "emotions",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "joy",
+                  "trust",
+                  "anticipation",
+                  "surprise",
+                  "confusion",
+                  "frustration",
+                  "anger",
+                  "fear",
+                  "sadness",
+                  "neutral"
+                ],
+                "description": "An emotion toward the keyword (see classification.emotion)."
+              },
+              "maxItems": 10,
+              "description": "Never these emotions. A mention whose emotion was not judged still passes."
+            },
+            "required": false,
+            "description": "Never these emotions. A mention whose emotion was not judged still passes.",
+            "name": "notEmotions",
             "in": "query"
           },
           {
@@ -19129,6 +19536,13 @@
                                 "nullable": true,
                                 "description": "Followers when last seen; null when unknown."
                               },
+                              "influence": {
+                                "type": "integer",
+                                "nullable": true,
+                                "minimum": 0,
+                                "maximum": 100,
+                                "description": "How far their voice carries, 0 to 100 from followers on a log scale: round(20 * log10(followers + 1)), capped at 100 (1,000 followers is 60). Null when followers are unknown."
+                              },
                               "following": {
                                 "type": "integer",
                                 "nullable": true,
@@ -19142,6 +19556,7 @@
                             },
                             "required": [
                               "followers",
+                              "influence",
                               "following",
                               "posts"
                             ],
@@ -21739,6 +22154,48 @@
                                 "maxItems": 3,
                                 "description": "Never these sentiments; an unscored mention still passes."
                               },
+                              "emotions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "joy",
+                                    "trust",
+                                    "anticipation",
+                                    "surprise",
+                                    "confusion",
+                                    "frustration",
+                                    "anger",
+                                    "fear",
+                                    "sadness",
+                                    "neutral"
+                                  ],
+                                  "description": "An emotion toward the keyword (see classification.emotion)."
+                                },
+                                "maxItems": 10,
+                                "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                              },
+                              "notEmotions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "joy",
+                                    "trust",
+                                    "anticipation",
+                                    "surprise",
+                                    "confusion",
+                                    "frustration",
+                                    "anger",
+                                    "fear",
+                                    "sadness",
+                                    "neutral"
+                                  ],
+                                  "description": "An emotion toward the keyword (see classification.emotion)."
+                                },
+                                "maxItems": 10,
+                                "description": "Never these emotions; a mention whose emotion was not judged still passes."
+                              },
                               "intents": {
                                 "type": "array",
                                 "items": {
@@ -22378,6 +22835,48 @@
                         },
                         "maxItems": 3,
                         "description": "Never these sentiments; an unscored mention still passes."
+                      },
+                      "emotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                      },
+                      "notEmotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Never these emotions; a mention whose emotion was not judged still passes."
                       },
                       "intents": {
                         "type": "array",
@@ -23088,6 +23587,48 @@
                         "maxItems": 3,
                         "description": "Never these sentiments; an unscored mention still passes."
                       },
+                      "emotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                      },
+                      "notEmotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Never these emotions; a mention whose emotion was not judged still passes."
+                      },
                       "intents": {
                         "type": "array",
                         "items": {
@@ -23790,6 +24331,48 @@
                                 "maxItems": 3,
                                 "description": "Never these sentiments; an unscored mention still passes."
                               },
+                              "emotions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "joy",
+                                    "trust",
+                                    "anticipation",
+                                    "surprise",
+                                    "confusion",
+                                    "frustration",
+                                    "anger",
+                                    "fear",
+                                    "sadness",
+                                    "neutral"
+                                  ],
+                                  "description": "An emotion toward the keyword (see classification.emotion)."
+                                },
+                                "maxItems": 10,
+                                "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                              },
+                              "notEmotions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "joy",
+                                    "trust",
+                                    "anticipation",
+                                    "surprise",
+                                    "confusion",
+                                    "frustration",
+                                    "anger",
+                                    "fear",
+                                    "sadness",
+                                    "neutral"
+                                  ],
+                                  "description": "An emotion toward the keyword (see classification.emotion)."
+                                },
+                                "maxItems": 10,
+                                "description": "Never these emotions; a mention whose emotion was not judged still passes."
+                              },
                               "intents": {
                                 "type": "array",
                                 "items": {
@@ -24451,6 +25034,48 @@
                         },
                         "maxItems": 3,
                         "description": "Never these sentiments; an unscored mention still passes."
+                      },
+                      "emotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                      },
+                      "notEmotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Never these emotions; a mention whose emotion was not judged still passes."
                       },
                       "intents": {
                         "type": "array",
@@ -25183,6 +25808,48 @@
                         },
                         "maxItems": 3,
                         "description": "Never these sentiments; an unscored mention still passes."
+                      },
+                      "emotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                      },
+                      "notEmotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Never these emotions; a mention whose emotion was not judged still passes."
                       },
                       "intents": {
                         "type": "array",
@@ -28168,6 +28835,48 @@
                         },
                         "description": "Only these sentiments."
                       },
+                      "emotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                      },
+                      "notEmotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Never these emotions: [\"anger\"]. A mention whose emotion was not judged still passes."
+                      },
                       "intents": {
                         "type": "array",
                         "items": {
@@ -28723,6 +29432,48 @@
                                 },
                                 "description": "Only these sentiments."
                               },
+                              "emotions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "joy",
+                                    "trust",
+                                    "anticipation",
+                                    "surprise",
+                                    "confusion",
+                                    "frustration",
+                                    "anger",
+                                    "fear",
+                                    "sadness",
+                                    "neutral"
+                                  ],
+                                  "description": "An emotion toward the keyword (see classification.emotion)."
+                                },
+                                "maxItems": 10,
+                                "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                              },
+                              "notEmotions": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "joy",
+                                    "trust",
+                                    "anticipation",
+                                    "surprise",
+                                    "confusion",
+                                    "frustration",
+                                    "anger",
+                                    "fear",
+                                    "sadness",
+                                    "neutral"
+                                  ],
+                                  "description": "An emotion toward the keyword (see classification.emotion)."
+                                },
+                                "maxItems": 10,
+                                "description": "Never these emotions: [\"anger\"]. A mention whose emotion was not judged still passes."
+                              },
                               "intents": {
                                 "type": "array",
                                 "items": {
@@ -29272,6 +30023,48 @@
                           "description": "Classifier sentiment."
                         },
                         "description": "Only these sentiments."
+                      },
+                      "emotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes."
+                      },
+                      "notEmotions": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "joy",
+                            "trust",
+                            "anticipation",
+                            "surprise",
+                            "confusion",
+                            "frustration",
+                            "anger",
+                            "fear",
+                            "sadness",
+                            "neutral"
+                          ],
+                          "description": "An emotion toward the keyword (see classification.emotion)."
+                        },
+                        "maxItems": 10,
+                        "description": "Never these emotions: [\"anger\"]. A mention whose emotion was not judged still passes."
                       },
                       "intents": {
                         "type": "array",
@@ -30755,18 +31548,22 @@
                 "platform",
                 "keyword",
                 "sentiment",
+                "emotion",
                 "intent",
                 "status",
                 "hour",
                 "person",
                 "language",
                 "country",
-                "subreddit"
+                "subreddit",
+                "domain",
+                "link",
+                "hashtag"
               ],
-              "description": "The dimension to group by:\n\n- platform or keyword.\n- sentiment: unclassified included.\n- intent: a mention can carry several.\n- status: open, ignored, done.\n- hour: weekday and hour of day in `timezone`.\n- person: who posted; anonymous posts are left out.\n- language: ISO 639-1; \"unknown\" if none, \"other\" if unnamed.\n- country: the author's, ISO 3166-1 alpha-2; \"unknown\", \"other\" likewise.\n- subreddit: Reddit posts only; `share` stays of the whole window."
+              "description": "The dimension to group by:\n\n- platform or keyword.\n- sentiment: unclassified included.\n- emotion: the emotion toward the keyword; \"unclassified\" if not judged.\n- intent: a mention can carry several.\n- status: open, ignored, done.\n- hour: weekday and hour of day in `timezone`.\n- person: who posted; anonymous posts are left out.\n- language: ISO 639-1; \"unknown\" if none, \"other\" if unnamed.\n- country: the author's, ISO 3166-1 alpha-2; \"unknown\", \"other\" likewise.\n- subreddit: Reddit posts only; `share` stays of the whole window.\n- domain: hosts posts link to; a post can carry several.\n- link: URLs posts link to; a post can carry several.\n- hashtag: lowercase, no #; a post can carry several."
             },
             "required": true,
-            "description": "The dimension to group by:\n\n- platform or keyword.\n- sentiment: unclassified included.\n- intent: a mention can carry several.\n- status: open, ignored, done.\n- hour: weekday and hour of day in `timezone`.\n- person: who posted; anonymous posts are left out.\n- language: ISO 639-1; \"unknown\" if none, \"other\" if unnamed.\n- country: the author's, ISO 3166-1 alpha-2; \"unknown\", \"other\" likewise.\n- subreddit: Reddit posts only; `share` stays of the whole window.",
+            "description": "The dimension to group by:\n\n- platform or keyword.\n- sentiment: unclassified included.\n- emotion: the emotion toward the keyword; \"unclassified\" if not judged.\n- intent: a mention can carry several.\n- status: open, ignored, done.\n- hour: weekday and hour of day in `timezone`.\n- person: who posted; anonymous posts are left out.\n- language: ISO 639-1; \"unknown\" if none, \"other\" if unnamed.\n- country: the author's, ISO 3166-1 alpha-2; \"unknown\", \"other\" likewise.\n- subreddit: Reddit posts only; `share` stays of the whole window.\n- domain: hosts posts link to; a post can carry several.\n- link: URLs posts link to; a post can carry several.\n- hashtag: lowercase, no #; a post can carry several.",
             "name": "by",
             "in": "query"
           }
@@ -32109,6 +32906,27 @@
       "source": "user",
       "retryable": false,
       "description": "The group already tracks this term. A term may be tracked once per group; another group may track it too."
+    },
+    {
+      "code": "invalid_query",
+      "status": 400,
+      "source": "user",
+      "retryable": false,
+      "description": "A keyword `query` has a syntax error: an unclosed quote or parenthesis, an operator with nothing after it, a `*` inside a word. The message and `details.position` say at which character."
+    },
+    {
+      "code": "query_needs_one_term",
+      "status": 400,
+      "source": "user",
+      "retryable": false,
+      "description": "A keyword `query` whose alternatives start with different words (acme OR globex): the first word of each is the term searched on every platform, and a keyword has one, so create one keyword per term; `details.terms` lists them."
+    },
+    {
+      "code": "query_not_supported",
+      "status": 400,
+      "source": "user",
+      "retryable": false,
+      "description": "A keyword `query` that the keyword rules cannot express exactly: an exclusion inside one alternative, a NOT inside a NOT, a wildcard on the searched term, too many alternatives or words. `details.reason` names which."
     },
     {
       "code": "insufficient_balance",

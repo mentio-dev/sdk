@@ -42,8 +42,8 @@ export const listKeywords = <ThrowOnError extends boolean = false>(options?: Opt
  * Start tracking a word or phrase; mentions arrive from the next poll.
  *
  * - $5 a month, charged daily; up to 500 per funded workspace.
- * - `matching` filters posts before they are stored, so rejected posts never bill.
- * - `cap` limits matched mentions per period.
+ * - `matching` filters posts before storage, rejected posts never bill; `query` writes both as one query.
+ * - `cap` limits mentions per period.
  *
  * See [Keywords](/guides/keywords).
  */
@@ -80,7 +80,7 @@ export const getKeyword = <ThrowOnError extends boolean = false>(options: Option
 /**
  * Update a keyword
  *
- * Change a keyword's term, mute, kind, platforms, context, matching rules or mention cap.
+ * Change a keyword's term, query, mute, kind, platforms, context, matching rules or mention cap.
  *
  * - A new `term` is tracked from now on, no look-back; old mentions stay.
  * - An empty rule list clears it; `cap` null removes the cap.

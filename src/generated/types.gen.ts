@@ -78,6 +78,10 @@ export type Keyword = {
      */
     term: string;
     /**
+     * The boolean query the keyword was written as, as sent; term and matching hold what it compiled to. Null for a keyword defined by its fields, or once its term or term rules changed by hand.
+     */
+    query: string | null;
+    /**
      * brand (your own name), competitor, or topic.
      */
     kind: 'brand' | 'competitor' | 'topic';
@@ -393,7 +397,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'invalid_query' | 'query_needs_one_term' | 'query_not_supported' | 'insufficient_balance' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -406,6 +410,12 @@ export type ErrorResponse = {
          * For rate_limited and other retryable errors: how long to wait before retrying (mirrors the Retry-After header).
          */
         retryAfterSeconds?: number;
+        /**
+         * Machine-readable facts about this error, when the code has any: for a keyword query, `reason`, `position` (the character a syntax error was found at) or `terms` (one keyword each).
+         */
+        details?: {
+            [key: string]: unknown;
+        };
     };
 };
 
@@ -427,9 +437,13 @@ export type KeywordSuggestion = {
      */
     patch: {
         /**
-         * Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it.
+         * Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it. Clears query.
          */
         term?: string;
+        /**
+         * Rewrites the term (a rename) and the term rules from a boolean query; the other matching fields stay. Never with term or those rules (400). A later hand change of either clears it. See [Keywords](/guides/keywords#write-it-as-a-query).
+         */
+        query?: string;
         /**
          * Reclassify it as brand, competitor or topic.
          */
@@ -1208,6 +1222,10 @@ export type Mention = {
          */
         followers: number | null;
         /**
+         * How far their voice carries, 0 to 100 from followers on a log scale: round(20 * log10(followers + 1)), capped at 100 (1,000 followers is 60). Null when followers are unknown.
+         */
+        influence: number | null;
+        /**
          * Your tags on this person: the workspace's, then those the mention's own keyword group gave them (set with groupId on /v1/people), each once.
          */
         tags: Array<string>;
@@ -1278,6 +1296,21 @@ export type Mention = {
          * positive, neutral or negative; null until classified.
          */
         sentiment: 'positive' | 'neutral' | 'negative';
+        /**
+         * The author's dominant emotion toward the keyword, apart from sentiment; null when not judged.
+         *
+         * - joy: delight or excitement about it.
+         * - trust: relies on it, vouches for it.
+         * - anticipation: looks forward to a launch or update.
+         * - surprise: caught off guard by it.
+         * - confusion: unsure how it works, stuck.
+         * - frustration: annoyed it fails or gets in the way.
+         * - anger: outraged, feels wronged by it.
+         * - fear: worried: risk, security, lock-in, cost.
+         * - sadness: disappointed, regrets a loss or shutdown.
+         * - neutral: no emotion shown, or only named.
+         */
+        emotion: 'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral';
         /**
          * Intent and topic tags:
          *
@@ -1570,6 +1603,10 @@ export type Person = {
          * Followers when last seen; null when unknown.
          */
         followers: number | null;
+        /**
+         * How far their voice carries, 0 to 100 from followers on a log scale: round(20 * log10(followers + 1)), capped at 100 (1,000 followers is 60). Null when followers are unknown.
+         */
+        influence: number | null;
         /**
          * Accounts they follow; null when unknown.
          */
@@ -2041,6 +2078,14 @@ export type FilterGroup = {
      */
     notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
     /**
+     * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+     */
+    emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+    /**
+     * Never these emotions; a mention whose emotion was not judged still passes.
+     */
+    notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+    /**
      * Only mentions carrying any of these intent or topic tags.
      */
     intents?: Array<string>;
@@ -2239,6 +2284,14 @@ export type View = {
          * Never these sentiments; an unscored mention still passes.
          */
         notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+         */
+        emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+        /**
+         * Never these emotions; a mention whose emotion was not judged still passes.
+         */
+        notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
         /**
          * Only mentions carrying any of these intent or topic tags.
          */
@@ -2451,6 +2504,14 @@ export type Automation = {
          * Never these sentiments; an unscored mention still passes.
          */
         notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+         */
+        emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+        /**
+         * Never these emotions; a mention whose emotion was not judged still passes.
+         */
+        notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
         /**
          * Only mentions carrying any of these intent or topic tags.
          */
@@ -3652,6 +3713,14 @@ export type Alert = {
          */
         sentiments?: Array<'positive' | 'neutral' | 'negative'>;
         /**
+         * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+         */
+        emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+        /**
+         * Never these emotions: ["anger"]. A mention whose emotion was not judged still passes.
+         */
+        notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+        /**
          * At least one of these intent or topic tags.
          */
         intents?: Array<string>;
@@ -4189,13 +4258,13 @@ export type AnalyticsBreakdown = {
     /**
      * The dimension the rows are grouped by.
      */
-    by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'country' | 'subreddit';
+    by: 'platform' | 'keyword' | 'sentiment' | 'emotion' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'country' | 'subreddit' | 'domain' | 'link' | 'hashtag';
     /**
      * Most matched first, at most 50 groups. by=hour is chronological and unlimited (168 cells at most).
      */
     data: Array<{
         /**
-         * The group: platform name, keyword id, sentiment, intent, status, "weekday-hour" for by=hour, an opaque person key, or the subreddit in lowercase.
+         * The group: platform name, keyword id, sentiment, emotion, intent, status, "weekday-hour" for by=hour, an opaque person key, the subreddit in lowercase, the host (by=domain), the URL (by=link) or the hashtag without its #.
          */
         key: string;
         /**
@@ -4271,7 +4340,7 @@ export type AnalyticsBreakdown = {
          */
         relevant: number;
         /**
-         * Percent of the window's matched mentions in this group, one decimal. Intents overlap, so their shares can add up past 100.
+         * Percent of the window's matched mentions in this group, one decimal. Intents, domains, links and hashtags overlap, so their shares can add up past 100.
          */
         share: number;
         /**
@@ -5084,6 +5153,10 @@ export type ListKeywordsResponses = {
              */
             term: string;
             /**
+             * The boolean query the keyword was written as, as sent; term and matching hold what it compiled to. Null for a keyword defined by its fields, or once its term or term rules changed by hand.
+             */
+            query: string | null;
+            /**
              * brand (your own name), competitor, or topic.
              */
             kind: 'brand' | 'competitor' | 'topic';
@@ -5402,9 +5475,17 @@ export type ListKeywordsResponse = ListKeywordsResponses[keyof ListKeywordsRespo
 export type CreateKeywordData = {
     body: {
         /**
-         * The word or phrase to track, case-insensitive. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only.
+         * The word or phrase to track, case-insensitive. Required unless `query` is sent. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only.
          */
-        term: string;
+        term?: string;
+        /**
+         * The keyword as one boolean query instead of term and matching, like "acme cloud" AND (pricing OR price*) -jobs ([Keywords](/guides/keywords#write-it-as-a-query)):
+         *
+         * - Phrases, words, AND, OR, NOT or -word, parentheses, word-end *
+         * - Compiled into term and the term rules; never sent with them (400).
+         * - Each alternative starts with the term; else 400 query_needs_one_term.
+         */
+        query?: string;
         /**
          * brand: your own names. competitor: theirs. topic: the space. Drives share of voice and segments.
          */
@@ -5598,7 +5679,7 @@ export type CreateKeywordData = {
 
 export type CreateKeywordErrors = {
     /**
-     * Invalid request: a parameter or the body failed validation (validation_error)
+     * Invalid request: a parameter or the body failed validation (validation_error), or the query cannot be read (invalid_query), names more than one term (query_needs_one_term) or cannot be one keyword (query_not_supported)
      */
     400: ErrorResponse;
     /**
@@ -5700,9 +5781,13 @@ export type UpdateKeywordData = {
      */
     body: {
         /**
-         * Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it.
+         * Renames the keyword: the new term is tracked from now on, with no look-back, keeping its id, settings and old mentions. Double quotes mean the exact phrase only. 409 when its group already tracks it. Clears query.
          */
         term?: string;
+        /**
+         * Rewrites the term (a rename) and the term rules from a boolean query; the other matching fields stay. Never with term or those rules (400). A later hand change of either clears it. See [Keywords](/guides/keywords#write-it-as-a-query).
+         */
+        query?: string;
         /**
          * Reclassify it as brand, competitor or topic.
          */
@@ -5899,7 +5984,7 @@ export type UpdateKeywordData = {
 
 export type UpdateKeywordErrors = {
     /**
-     * Invalid request: a parameter or the body failed validation (validation_error)
+     * Invalid request: a parameter or the body failed validation (validation_error), or the query cannot be read (invalid_query), names more than one term (query_needs_one_term) or cannot be one keyword (query_not_supported)
      */
     400: ErrorResponse;
     /**
@@ -6970,6 +7055,14 @@ export type SearchMentionsData = {
          */
         notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
         /**
+         * Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes.
+         */
+        emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+        /**
+         * Never these emotions. A mention whose emotion was not judged still passes.
+         */
+        notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+        /**
          * Only mentions carrying any of these intent or topic tags.
          */
         intents?: Array<string> | null;
@@ -7086,9 +7179,15 @@ export type SearchMentionsData = {
          */
         until?: string;
         /**
-         * newest: by match time, newest first. priority: by attention score, highest first; priority ranks the last 30 days of matches only, older ones stay reachable under newest. Cursors are specific to a sort.
+         * How to order the list:
+         *
+         * - newest: by match time.
+         * - priority: attention score, last 30 days of matches.
+         * - reach: author followers, unknown last; counts update, so pages can shift.
+         * - engagement: likes, reposts, replies and quotes; none last.
+         * - reach and engagement: the last 30 days unless a window is set.
          */
-        sort?: 'newest' | 'priority';
+        sort?: 'newest' | 'priority' | 'reach' | 'engagement';
         /**
          * nextCursor from the previous page; pass the same filters and sort.
          */
@@ -7290,6 +7389,14 @@ export type ExportMentionsCsvData = {
          * Never these sentiments. A mention the classifier has not scored yet still passes.
          */
         notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes.
+         */
+        emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+        /**
+         * Never these emotions. A mention whose emotion was not judged still passes.
+         */
+        notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
         /**
          * Only mentions carrying any of these intent or topic tags.
          */
@@ -7650,6 +7757,14 @@ export type ExportMentionsJsonData = {
          * Never these sentiments. A mention the classifier has not scored yet still passes.
          */
         notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+        /**
+         * Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes.
+         */
+        emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+        /**
+         * Never these emotions. A mention whose emotion was not judged still passes.
+         */
+        notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
         /**
          * Only mentions carrying any of these intent or topic tags.
          */
@@ -8218,6 +8333,10 @@ export type ListPeopleResponses = {
                  * Followers when last seen; null when unknown.
                  */
                 followers: number | null;
+                /**
+                 * How far their voice carries, 0 to 100 from followers on a log scale: round(20 * log10(followers + 1)), capped at 100 (1,000 followers is 60). Null when followers are unknown.
+                 */
+                influence: number | null;
                 /**
                  * Accounts they follow; null when unknown.
                  */
@@ -9459,6 +9578,14 @@ export type ListViewsResponses = {
                  */
                 notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
                 /**
+                 * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+                 */
+                emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+                /**
+                 * Never these emotions; a mention whose emotion was not judged still passes.
+                 */
+                notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+                /**
                  * Only mentions carrying any of these intent or topic tags.
                  */
                 intents?: Array<string>;
@@ -9671,6 +9798,14 @@ export type CreateViewData = {
              * Never these sentiments; an unscored mention still passes.
              */
             notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+             */
+            emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
+             * Never these emotions; a mention whose emotion was not judged still passes.
+             */
+            notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
             /**
              * Only mentions carrying any of these intent or topic tags.
              */
@@ -9977,6 +10112,14 @@ export type UpdateViewData = {
              */
             notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
             /**
+             * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+             */
+            emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
+             * Never these emotions; a mention whose emotion was not judged still passes.
+             */
+            notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
              * Only mentions carrying any of these intent or topic tags.
              */
             intents?: Array<string>;
@@ -10244,6 +10387,14 @@ export type ListAutomationsResponses = {
                  */
                 notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
                 /**
+                 * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+                 */
+                emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+                /**
+                 * Never these emotions; a mention whose emotion was not judged still passes.
+                 */
+                notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+                /**
                  * Only mentions carrying any of these intent or topic tags.
                  */
                 intents?: Array<string>;
@@ -10469,6 +10620,14 @@ export type CreateAutomationData = {
              * Never these sentiments; an unscored mention still passes.
              */
             notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+             */
+            emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
+             * Never these emotions; a mention whose emotion was not judged still passes.
+             */
+            notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
             /**
              * Only mentions carrying any of these intent or topic tags.
              */
@@ -10787,6 +10946,14 @@ export type UpdateAutomationData = {
              * Never these sentiments; an unscored mention still passes.
              */
             notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+             */
+            emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
+             * Never these emotions; a mention whose emotion was not judged still passes.
+             */
+            notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
             /**
              * Only mentions carrying any of these intent or topic tags.
              */
@@ -12271,6 +12438,14 @@ export type UpdateAlertData = {
              */
             sentiments?: Array<'positive' | 'neutral' | 'negative'>;
             /**
+             * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+             */
+            emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
+             * Never these emotions: ["anger"]. A mention whose emotion was not judged still passes.
+             */
+            notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
              * At least one of these intent or topic tags.
              */
             intents?: Array<string>;
@@ -12497,6 +12672,14 @@ export type ListAlertsResponses = {
                  */
                 sentiments?: Array<'positive' | 'neutral' | 'negative'>;
                 /**
+                 * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+                 */
+                emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+                /**
+                 * Never these emotions: ["anger"]. A mention whose emotion was not judged still passes.
+                 */
+                notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+                /**
                  * At least one of these intent or topic tags.
                  */
                 intents?: Array<string>;
@@ -12693,6 +12876,14 @@ export type CreateAlertData = {
              * Only these sentiments.
              */
             sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions showing any of these emotions toward the keyword. A mention whose emotion was not judged never passes.
+             */
+            emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
+             * Never these emotions: ["anger"]. A mention whose emotion was not judged still passes.
+             */
+            notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
             /**
              * At least one of these intent or topic tags.
              */
@@ -13266,6 +13457,7 @@ export type GetAnalyticsBreakdownData = {
          *
          * - platform or keyword.
          * - sentiment: unclassified included.
+         * - emotion: the emotion toward the keyword; "unclassified" if not judged.
          * - intent: a mention can carry several.
          * - status: open, ignored, done.
          * - hour: weekday and hour of day in `timezone`.
@@ -13273,8 +13465,11 @@ export type GetAnalyticsBreakdownData = {
          * - language: ISO 639-1; "unknown" if none, "other" if unnamed.
          * - country: the author's, ISO 3166-1 alpha-2; "unknown", "other" likewise.
          * - subreddit: Reddit posts only; `share` stays of the whole window.
+         * - domain: hosts posts link to; a post can carry several.
+         * - link: URLs posts link to; a post can carry several.
+         * - hashtag: lowercase, no #; a post can carry several.
          */
-        by: 'platform' | 'keyword' | 'sentiment' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'country' | 'subreddit';
+        by: 'platform' | 'keyword' | 'sentiment' | 'emotion' | 'intent' | 'status' | 'hour' | 'person' | 'language' | 'country' | 'subreddit' | 'domain' | 'link' | 'hashtag';
     };
     url: '/v1/analytics/breakdown';
 };
