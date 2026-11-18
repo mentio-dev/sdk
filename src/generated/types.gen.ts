@@ -1015,17 +1015,21 @@ export type WorkspaceFilters = {
 
 export type MentionBatchResult = {
     /**
-     * The ids changed, in the order sent. A pending mention given only a status is not changed: it is in pending alone.
+     * The ids changed, in the order sent (with filter: newest first). A pending mention given only a status is not changed: it is in pending alone.
      */
     updated: Array<string>;
     /**
-     * The ids this workspace has no mention by, in the order sent; nothing was done to them.
+     * The ids this workspace has no mention by, in the order sent; nothing was done to them. Always empty with filter.
      */
     notFound: Array<string>;
     /**
      * Of the updated ids, those still waiting for the classifier: they took the labels and the assignee, but their status stays until they are scored. Empty unless the update set a status.
      */
     pending: Array<string>;
+    /**
+     * With filter: more mentions match, so call again with the same filter and this cursor. null when every one has been covered, and always null with ids.
+     */
+    nextCursor: string | null;
 };
 
 export type Mention = {
@@ -7045,9 +7049,296 @@ export type UpdateFiltersResponse = UpdateFiltersResponses[keyof UpdateFiltersRe
 export type UpdateMentionsData = {
     body: {
         /**
-         * Mention ids (mm_...), 1 to 100: a page of GET /v1/mentions.
+         * Mention ids (mm_...), 1 to 100: a page of GET /v1/mentions. Send ids or filter, never both.
          */
-        ids: Array<string>;
+        ids?: Array<string>;
+        /**
+         * Instead of ids: act on every mention these filters select, up to 1000 a call, newest first. While nextCursor comes back, call again with the same filter and that cursor; the set is fixed when the first call runs, so mentions arriving meanwhile are left alone.
+         */
+        filter?: {
+            /**
+             * Deprecated: use keywordIds. Only matches of this keyword; combines with keywordIds as either.
+             *
+             * @deprecated
+             */
+            keywordId?: string;
+            /**
+             * Deprecated: use platforms. Only posts from this platform; combines with platforms as either.
+             *
+             * @deprecated
+             */
+            platform?: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+            /**
+             * Only mentions in this status. Omit for every status.
+             */
+            status?: 'open' | 'ignored' | 'done';
+            /**
+             * true: only mentions the classifier scored relevant; false: only the rest (unclassified included).
+             */
+            relevant?: boolean;
+            /**
+             * Deprecated: use sentiments. Only this sentiment; combines with sentiments as either.
+             *
+             * @deprecated
+             */
+            sentiment?: 'positive' | 'neutral' | 'negative';
+            /**
+             * Deprecated: use intents. Only mentions carrying this intent or topic tag, combined with intents as either (buy_intent, question, complaint, praise, comparison, churn_intent, bug_report, pricing, hiring, event, promotional, testimonial, industry_insight, launch, feedback).
+             *
+             * @deprecated
+             */
+            intent?: string;
+            /**
+             * true: only mentions that read as machine-made (a bot account, a scheduled or templated post, AI-written text); false: only the rest, mentions judged before this existed included. Omitted: everything.
+             */
+            automated?: boolean;
+            /**
+             * true: only posts by companies, brands and organizations (a LinkedIn company page, a GitHub organization, a business account); false: only posts by people, mentions judged before this existed included. Omitted: everything.
+             */
+            organization?: boolean;
+            /**
+             * Only this person (an id from /v1/people), merged accounts included. Implies includeMuted.
+             */
+            personId?: string;
+            /**
+             * true: include mentions by people you muted, hidden by default: muted for the workspace, or for the mention's own keyword group.
+             */
+            includeMuted?: boolean;
+            /**
+             * true: include mentions their keyword's display lists hide (a language or country it does not show), hidden by default.
+             */
+            includeHidden?: boolean;
+            /**
+             * true: list cross-posts (a mention whose duplicateOf is set) as mentions of their own. By default each is listed only in its original's duplicates.
+             */
+            includeDuplicates?: boolean;
+            /**
+             * Only mentions assigned to this workspace member (user id).
+             */
+            assigneeId?: string;
+            /**
+             * true: only mentions currently snoozed. Otherwise snoozed mentions stay out until they wake.
+             */
+            snoozed?: boolean;
+            /**
+             * Hide these authors: display names, handles or profile URLs. Repeatable, or one comma-separated value.
+             */
+            notAuthors?: Array<string> | null;
+            /**
+             * Deprecated: use notAuthors, the same filter. Both may be sent; every author named in either is hidden.
+             *
+             * @deprecated
+             */
+            excludeAuthors?: Array<string> | null;
+            /**
+             * Only mentions scored at least this; unclassified ones are excluded.
+             */
+            minRelevance?: number | null;
+            /**
+             * Only mentions whose classifier confidence is at least this, 0 to 1. Mentions without a confidence are excluded.
+             */
+            minConfidence?: number | null;
+            /**
+             * Only authors with at least this many followers. Unknown reach never passes.
+             */
+            minFollowers?: number | null;
+            /**
+             * Only authors with at most this many followers. Unknown reach never passes.
+             */
+            maxFollowers?: number | null;
+            /**
+             * Only posts (post), only comments (comment) or only GitHub repository events (repository). Omitted: all.
+             */
+            kind?: 'post' | 'comment' | 'repository';
+            /**
+             * true: only replies and comments (posts answering another post); false: only top-level posts. Omitted: both.
+             */
+            isReply?: boolean;
+            /**
+             * Apply an alert rule's filter (an id from GET /v1/alerts) on top of the other filters: the same mentions the rule would send, for a feed-shaped export or a preview. Unknown ids are a 404.
+             */
+            alertId?: string;
+            /**
+             * Apply a saved view's filter (an id from GET /v1/views) on top of the other filters, every condition ANDed: exactly what the view selects. Unknown ids are a 404.
+             */
+            viewId?: string;
+            /**
+             * Only matches of keywords of any of these kinds: brand, competitor, topic. Repeatable, or comma-separated.
+             */
+            keywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Never matches of keywords of these kinds. Repeatable, or comma-separated.
+             */
+            notKeywordKinds?: Array<'brand' | 'competitor' | 'topic'>;
+            /**
+             * Only authors tagged with any of these (exact, case-sensitive), in the workspace's tags or those of the mention's own keyword group. Repeatable, or comma-separated.
+             */
+            tags?: Array<string> | null;
+            /**
+             * Only posts linking to any of these hosts, the host itself or a subdomain of it (octolens.com also matches blog.octolens.com). Repeatable, or comma-separated.
+             */
+            linkHosts?: Array<string> | null;
+            /**
+             * Only posts from any of these platforms.
+             */
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+            /**
+             * Never posts from these platforms.
+             */
+            notPlatforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+            /**
+             * Only matches of any of these keywords.
+             */
+            keywordIds?: Array<string> | null;
+            /**
+             * Only matches of keywords in any of these groups (grp_...). Repeatable, or comma-separated.
+             */
+            groupIds?: Array<string> | null;
+            /**
+             * Never matches of keywords in these groups.
+             */
+            notGroupIds?: Array<string> | null;
+            /**
+             * Never matches of these keywords.
+             */
+            notKeywordIds?: Array<string> | null;
+            /**
+             * Only these sentiments.
+             */
+            sentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Never these sentiments. A mention the classifier has not scored yet still passes.
+             */
+            notSentiments?: Array<'positive' | 'neutral' | 'negative'>;
+            /**
+             * Only mentions showing any of these emotions toward the keyword (joy, trust, anticipation, surprise, confusion, frustration, anger, fear, sadness, neutral). A mention whose emotion was not judged never passes.
+             */
+            emotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
+             * Never these emotions. A mention whose emotion was not judged still passes.
+             */
+            notEmotions?: Array<'joy' | 'trust' | 'anticipation' | 'surprise' | 'confusion' | 'frustration' | 'anger' | 'fear' | 'sadness' | 'neutral'>;
+            /**
+             * Only mentions carrying any of these intent or topic tags.
+             */
+            intents?: Array<string> | null;
+            /**
+             * Never mentions carrying these intent or topic tags.
+             */
+            notIntents?: Array<string> | null;
+            /**
+             * Never posts linking to these hosts, the host itself or a subdomain of it.
+             */
+            notLinkHosts?: Array<string> | null;
+            /**
+             * Only Reddit posts from any of these subreddits: subreddits=SaaS,startups (names without the r/, any case). Every other post fails it. Repeatable, or comma-separated.
+             */
+            subreddits?: Array<string> | null;
+            /**
+             * Never Reddit posts from these subreddits; posts from other platforms still pass.
+             */
+            notSubreddits?: Array<string> | null;
+            /**
+             * Never authors tagged with any of these, in the workspace's tags or those of the mention's own keyword group.
+             */
+            notTags?: Array<string> | null;
+            /**
+             * Only mentions carrying any of these labels (exact, case-sensitive). Repeatable, or comma-separated.
+             */
+            labels?: Array<string> | null;
+            /**
+             * Never mentions carrying any of these labels. Repeatable, or comma-separated.
+             */
+            notLabels?: Array<string> | null;
+            /**
+             * Only posts in any of these languages (ISO 639-1: en, es, de). A post whose language is unknown never passes.
+             */
+            languages?: Array<string>;
+            /**
+             * Never posts in these languages. A post whose language is unknown still passes.
+             */
+            notLanguages?: Array<string>;
+            /**
+             * Only posts whose author is in any of these countries (ISO 3166-1 alpha-2: us, in, de), as the classifier read the author's profile and the post. A post whose country is unknown never passes.
+             */
+            countries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * Never posts whose author is in these countries: notCountries=in. A post whose country is unknown still passes.
+             */
+            notCountries?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+            /**
+             * Only app store reviews with any of these star ratings (1 to 5): ratings=1,2 is the unhappy ones. Every other post fails it.
+             */
+            ratings?: Array<number>;
+            /**
+             * Never reviews with these star ratings (1 to 5): notRatings=5 hides the five star reviews. Posts that are not reviews still pass.
+             */
+            notRatings?: Array<number>;
+            /**
+             * Only posts with at least this many likes (upvotes, reactions), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minLikes?: number | null;
+            /**
+             * Only posts with at least this many reposts (shares, retweets), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReposts?: number | null;
+            /**
+             * Only posts with at least this many replies (comments), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minReplies?: number | null;
+            /**
+             * Only posts with at least this many quotes, as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minQuotes?: number | null;
+            /**
+             * Only posts with at least this many views (plays), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minViews?: number | null;
+            /**
+             * Only posts with at least this many bookmarks (saves), as the platform reported them when the post was found. A post without that count never passes.
+             */
+            minBookmarks?: number | null;
+            /**
+             * OR across groups of conditions, as URL-encoded JSON: a mention passes when one group holds, on top of every other filter. Each group holds view-filter conditions, no nesting. See [anyOf](/conventions#or-across-groups-anyof).
+             */
+            anyOf?: string;
+            /**
+             * Substring search in the post text or the author's name.
+             */
+            q?: string;
+            /**
+             * A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.
+             */
+            range?: '7d' | '30d' | '90d' | '365d';
+            /**
+             * Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+             */
+            from?: string;
+            /**
+             * End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+             */
+            to?: string;
+            /**
+             * IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.
+             */
+            timezone?: string;
+            /**
+             * Deprecated: use from. Only posts published at or after this instant (ISO 8601, or epoch ms).
+             *
+             * @deprecated
+             */
+            since?: string;
+            /**
+             * Deprecated: use to. Only posts published at or before this instant (ISO 8601, or epoch ms).
+             *
+             * @deprecated
+             */
+            until?: string;
+        };
+        /**
+         * With filter only: nextCursor from the previous call, to carry on where it stopped.
+         */
+        cursor?: string;
         /**
          * Every field is optional, at least one is required; omitted fields are untouched.
          */
@@ -7083,13 +7374,17 @@ export type UpdateMentionsData = {
 
 export type UpdateMentionsErrors = {
     /**
-     * Invalid request (an empty update, more than 100 ids), or invalid_assignee: the assignee is not a workspace member
+     * Invalid request (an empty update, more than 100 ids, both or neither of ids and filter, a filter too complex, an invalid cursor), or invalid_assignee: the assignee is not a workspace member
      */
     400: ErrorResponse;
     /**
      * Missing or invalid API key
      */
     401: ErrorResponse;
+    /**
+     * The filter names an alert rule or view that does not exist
+     */
+    404: ErrorResponse;
 };
 
 export type UpdateMentionsError = UpdateMentionsErrors[keyof UpdateMentionsErrors];
