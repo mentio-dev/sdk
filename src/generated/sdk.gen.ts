@@ -249,11 +249,12 @@ export const updateFilters = <ThrowOnError extends boolean = false>(options: Opt
 /**
  * Update many mentions
  *
- * Change many mentions at once: status, assignee, labels to add or remove. Name them by `ids` (up to 100), or by `filter` to act on everything the mentions list would show (Mark all as done).
+ * Change many mentions at once: status, assignee, labels to add or remove.
  *
- * - By ids, all of it lands or none of it; unknown ids come back in `notFound`.
- * - By filter, up to 1,000 a call, newest first: while `nextCursor` comes back, call again with the same filter and that cursor. Mentions matched after the first call are left alone.
- * - Removals run before additions. See [Labels and automations](/guides/labels).
+ * - By `ids`: up to 100, all or nothing; unknown ids come back in `notFound`.
+ * - By `filter`: every mention the list shows, 1,000 a call; repeat with `nextCursor` until null.
+ *
+ * See [Labels and automations](/guides/labels).
  */
 export const updateMentions = <ThrowOnError extends boolean = false>(options: Options<UpdateMentionsData, ThrowOnError>): RequestResult<UpdateMentionsResponses, UpdateMentionsErrors, ThrowOnError> => (options.client ?? client).post<UpdateMentionsResponses, UpdateMentionsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],

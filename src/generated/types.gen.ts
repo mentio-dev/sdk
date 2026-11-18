@@ -7053,7 +7053,7 @@ export type UpdateMentionsData = {
          */
         ids?: Array<string>;
         /**
-         * Instead of ids: act on every mention these filters select, up to 1000 a call, newest first. While nextCursor comes back, call again with the same filter and that cursor; the set is fixed when the first call runs, so mentions arriving meanwhile are left alone.
+         * Instead of ids: every mention GET /v1/mentions would list with these filters, up to 1000 a call, newest first. Repeat with the same filter and nextCursor until it is null.
          */
         filter?: {
             /**
