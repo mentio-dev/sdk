@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateAutomationData, CreateAutomationErrors, CreateAutomationResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateFeedData, CreateFeedErrors, CreateFeedResponses, CreateGroupData, CreateGroupErrors, CreateGroupResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSearchData, CreateSearchErrors, CreateSearchResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateTopUpData, CreateTopUpErrors, CreateTopUpResponses, CreateViewData, CreateViewErrors, CreateViewResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteAutomationData, DeleteAutomationErrors, DeleteAutomationResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteFeedData, DeleteFeedErrors, DeleteFeedResponses, DeleteGroupData, DeleteGroupErrors, DeleteGroupResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, DismissAttentionData, DismissAttentionErrors, DismissAttentionResponses, DuplicateKeywordData, DuplicateKeywordErrors, DuplicateKeywordResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportMentionsJsonData, ExportMentionsJsonErrors, ExportMentionsJsonResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetAutomationData, GetAutomationErrors, GetAutomationResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetFeedData, GetFeedErrors, GetFeedResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetGroupData, GetGroupErrors, GetGroupResponses, GetHealthData, GetHealthResponses, GetInvoiceUrlData, GetInvoiceUrlErrors, GetInvoiceUrlResponses, GetKeywordData, GetKeywordErrors, GetKeywordHealthData, GetKeywordHealthErrors, GetKeywordHealthResponses, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetReviewsReportData, GetReviewsReportErrors, GetReviewsReportResponses, GetSearchData, GetSearchErrors, GetSearchResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageBreakdownData, GetUsageBreakdownErrors, GetUsageBreakdownResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, GetWalletData, GetWalletErrors, GetWalletResponses, ImportFeedsData, ImportFeedsErrors, ImportFeedsResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListAttentionData, ListAttentionErrors, ListAttentionResponses, ListAutomationsData, ListAutomationsErrors, ListAutomationsResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListFeedsData, ListFeedsErrors, ListFeedsResponses, ListGroupsData, ListGroupsErrors, ListGroupsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListInvoicesData, ListInvoicesErrors, ListInvoicesResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListLedgerData, ListLedgerErrors, ListLedgerResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListMentionCommentsData, ListMentionCommentsErrors, ListMentionCommentsResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSearchesData, ListSearchesErrors, ListSearchesResponses, ListSearchResultsData, ListSearchResultsErrors, ListSearchResultsResponses, ListSegmentPresetsData, ListSegmentPresetsErrors, ListSegmentPresetsResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListViewsData, ListViewsErrors, ListViewsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateAutomationData, UpdateAutomationErrors, UpdateAutomationResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateFeedData, UpdateFeedErrors, UpdateFeedResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateGroupData, UpdateGroupErrors, UpdateGroupResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdateMentionsData, UpdateMentionsErrors, UpdateMentionsResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
+import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateAutomationData, CreateAutomationErrors, CreateAutomationResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateExportData, CreateExportErrors, CreateExportResponses, CreateExportScheduleData, CreateExportScheduleErrors, CreateExportScheduleResponses, CreateFeedData, CreateFeedErrors, CreateFeedResponses, CreateGroupData, CreateGroupErrors, CreateGroupResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordResponses, CreateSearchData, CreateSearchErrors, CreateSearchResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateTopUpData, CreateTopUpErrors, CreateTopUpResponses, CreateViewData, CreateViewErrors, CreateViewResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteAutomationData, DeleteAutomationErrors, DeleteAutomationResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteExportData, DeleteExportErrors, DeleteExportResponses, DeleteExportScheduleData, DeleteExportScheduleErrors, DeleteExportScheduleResponses, DeleteFeedData, DeleteFeedErrors, DeleteFeedResponses, DeleteGroupData, DeleteGroupErrors, DeleteGroupResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, DismissAttentionData, DismissAttentionErrors, DismissAttentionResponses, DuplicateKeywordData, DuplicateKeywordErrors, DuplicateKeywordResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportMentionsJsonData, ExportMentionsJsonErrors, ExportMentionsJsonResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetAutomationData, GetAutomationErrors, GetAutomationResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetExportData, GetExportErrors, GetExportFileData, GetExportFileErrors, GetExportFileResponses, GetExportResponses, GetExportScheduleData, GetExportScheduleErrors, GetExportScheduleResponses, GetFeedData, GetFeedErrors, GetFeedResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetGroupData, GetGroupErrors, GetGroupResponses, GetHealthData, GetHealthResponses, GetInvoiceUrlData, GetInvoiceUrlErrors, GetInvoiceUrlResponses, GetKeywordData, GetKeywordErrors, GetKeywordHealthData, GetKeywordHealthErrors, GetKeywordHealthResponses, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetReviewsReportData, GetReviewsReportErrors, GetReviewsReportResponses, GetSearchData, GetSearchErrors, GetSearchResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageBreakdownData, GetUsageBreakdownErrors, GetUsageBreakdownResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, GetWalletData, GetWalletErrors, GetWalletResponses, ImportFeedsData, ImportFeedsErrors, ImportFeedsResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListAttentionData, ListAttentionErrors, ListAttentionResponses, ListAutomationsData, ListAutomationsErrors, ListAutomationsResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListExportSchedulesData, ListExportSchedulesErrors, ListExportSchedulesResponses, ListExportsData, ListExportsErrors, ListExportsResponses, ListFeedsData, ListFeedsErrors, ListFeedsResponses, ListGroupsData, ListGroupsErrors, ListGroupsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListInvoicesData, ListInvoicesErrors, ListInvoicesResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListLedgerData, ListLedgerErrors, ListLedgerResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListMentionCommentsData, ListMentionCommentsErrors, ListMentionCommentsResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSearchesData, ListSearchesErrors, ListSearchesResponses, ListSearchResultsData, ListSearchResultsErrors, ListSearchResultsResponses, ListSegmentPresetsData, ListSegmentPresetsErrors, ListSegmentPresetsResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListViewsData, ListViewsErrors, ListViewsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, TestExportScheduleData, TestExportScheduleErrors, TestExportScheduleResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateAutomationData, UpdateAutomationErrors, UpdateAutomationResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateExportScheduleData, UpdateExportScheduleErrors, UpdateExportScheduleResponses, UpdateFeedData, UpdateFeedErrors, UpdateFeedResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateGroupData, UpdateGroupErrors, UpdateGroupResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdateMentionsData, UpdateMentionsErrors, UpdateMentionsResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -687,6 +687,151 @@ export const getSearch = <ThrowOnError extends boolean = false>(options: Options
 export const listSearchResults = <ThrowOnError extends boolean = false>(options: Options<ListSearchResultsData, ThrowOnError>): RequestResult<ListSearchResultsResponses, ListSearchResultsErrors, ThrowOnError> => (options.client ?? client).get<ListSearchResultsResponses, ListSearchResultsErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/searches/{id}/results',
+    ...options
+});
+
+/**
+ * List exports
+ *
+ * The workspace's exports, newest first, kept 90 days; their files are kept 7.
+ */
+export const listExports = <ThrowOnError extends boolean = false>(options?: Options<ListExportsData, ThrowOnError>): RequestResult<ListExportsResponses, ListExportsErrors, ThrowOnError> => (options?.client ?? client).get<ListExportsResponses, ListExportsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/exports',
+    ...options
+});
+
+/**
+ * Start an export
+ *
+ * Export the mentions a filter selects to a CSV or JSON Lines file, in the background.
+ *
+ * - Up to 1,000,000 rows; GET /v1/mentions' filters, viewId included.
+ * - Poll GET /v1/exports/{id}, then download.
+ * - Not billed; 2 at once per workspace.
+ *
+ * See [Exports](/guides/exports).
+ */
+export const createExport = <ThrowOnError extends boolean = false>(options: Options<CreateExportData, ThrowOnError>): RequestResult<CreateExportResponses, CreateExportErrors, ThrowOnError> => (options.client ?? client).post<CreateExportResponses, CreateExportErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/exports',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete an export
+ *
+ * Deletes the file and the export: its signed links stop working at once. A running export stops.
+ */
+export const deleteExport = <ThrowOnError extends boolean = false>(options: Options<DeleteExportData, ThrowOnError>): RequestResult<DeleteExportResponses, DeleteExportErrors, ThrowOnError> => (options.client ?? client).delete<DeleteExportResponses, DeleteExportErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/exports/{id}',
+    ...options
+});
+
+/**
+ * Get an export
+ *
+ * Its status and progress. Once succeeded, `download.url` is a signed link to the file valid for an hour; read again for a fresh one.
+ */
+export const getExport = <ThrowOnError extends boolean = false>(options: Options<GetExportData, ThrowOnError>): RequestResult<GetExportResponses, GetExportErrors, ThrowOnError> => (options.client ?? client).get<GetExportResponses, GetExportErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/exports/{id}',
+    ...options
+});
+
+/**
+ * Download an export
+ *
+ * The file of a succeeded export, streamed: CSV (text/csv) or JSON Lines (application/x-ndjson).
+ */
+export const getExportFile = <ThrowOnError extends boolean = false>(options: Options<GetExportFileData, ThrowOnError>): RequestResult<GetExportFileResponses, GetExportFileErrors, ThrowOnError> => (options.client ?? client).get<GetExportFileResponses, GetExportFileErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/exports/{id}/file',
+    ...options
+});
+
+/**
+ * List export schedules
+ *
+ * The workspace's recurring exports, oldest first.
+ */
+export const listExportSchedules = <ThrowOnError extends boolean = false>(options?: Options<ListExportSchedulesData, ThrowOnError>): RequestResult<ListExportSchedulesResponses, ListExportSchedulesErrors, ThrowOnError> => (options?.client ?? client).get<ListExportSchedulesResponses, ListExportSchedulesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/export-schedules',
+    ...options
+});
+
+/**
+ * Create an export schedule
+ *
+ * Export the mentions matched since the last run, hourly, daily or weekly (UTC).
+ *
+ * - link: an export.ready webhook event with a signed download link.
+ * - s3: the file written into your own S3-compatible bucket (S3, R2, GCS, B2, MinIO).
+ * - At most 10 per workspace.
+ *
+ * See [Exports](/guides/exports).
+ */
+export const createExportSchedule = <ThrowOnError extends boolean = false>(options: Options<CreateExportScheduleData, ThrowOnError>): RequestResult<CreateExportScheduleResponses, CreateExportScheduleErrors, ThrowOnError> => (options.client ?? client).post<CreateExportScheduleResponses, CreateExportScheduleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/export-schedules',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete an export schedule
+ *
+ * It stops; the exports it already made stay until they age out.
+ */
+export const deleteExportSchedule = <ThrowOnError extends boolean = false>(options: Options<DeleteExportScheduleData, ThrowOnError>): RequestResult<DeleteExportScheduleResponses, DeleteExportScheduleErrors, ThrowOnError> => (options.client ?? client).delete<DeleteExportScheduleResponses, DeleteExportScheduleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/export-schedules/{id}',
+    ...options
+});
+
+/**
+ * Get an export schedule
+ */
+export const getExportSchedule = <ThrowOnError extends boolean = false>(options: Options<GetExportScheduleData, ThrowOnError>): RequestResult<GetExportScheduleResponses, GetExportScheduleErrors, ThrowOnError> => (options.client ?? client).get<GetExportScheduleResponses, GetExportScheduleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/export-schedules/{id}',
+    ...options
+});
+
+/**
+ * Update an export schedule
+ *
+ * Omitted fields are untouched. A new timing keeps the delta: the next run starts where the last one ended. Enabled again, it starts from the next run.
+ */
+export const updateExportSchedule = <ThrowOnError extends boolean = false>(options: Options<UpdateExportScheduleData, ThrowOnError>): RequestResult<UpdateExportScheduleResponses, UpdateExportScheduleErrors, ThrowOnError> => (options.client ?? client).patch<UpdateExportScheduleResponses, UpdateExportScheduleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/export-schedules/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Test an export schedule's bucket
+ *
+ * Writes a tiny text file to the bucket with the stored credentials.
+ *
+ * A mistake shows now rather than at the first run; a link destination has nothing to test.
+ */
+export const testExportSchedule = <ThrowOnError extends boolean = false>(options: Options<TestExportScheduleData, ThrowOnError>): RequestResult<TestExportScheduleResponses, TestExportScheduleErrors, ThrowOnError> => (options.client ?? client).post<TestExportScheduleResponses, TestExportScheduleErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/export-schedules/{id}/test',
     ...options
 });
 
