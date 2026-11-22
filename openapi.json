@@ -656,6 +656,30 @@
                   "minWeeklyStars"
                 ],
                 "description": "GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed."
+              },
+              "onlyAuthors": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                },
+                "maxItems": 100,
+                "description": "When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt."
+              },
+              "termIn": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "title",
+                    "body",
+                    "url",
+                    "author"
+                  ]
+                },
+                "maxItems": 4,
+                "description": "Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).\n\n- title: the post's title (none on X, Bluesky or LinkedIn).\n- body: the text after the title.\n- url: the post's link.\n- author: the author's name or handle."
               }
             },
             "required": [
@@ -667,7 +691,9 @@
               "caseSensitive",
               "exactPhrase",
               "subreddits",
-              "repositories"
+              "repositories",
+              "onlyAuthors",
+              "termIn"
             ],
             "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
           },
@@ -1560,6 +1586,30 @@
                             "minWeeklyStars"
                           ],
                           "description": "GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed."
+                        },
+                        "onlyAuthors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "maxItems": 100,
+                          "description": "When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt."
+                        },
+                        "termIn": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "title",
+                              "body",
+                              "url",
+                              "author"
+                            ]
+                          },
+                          "maxItems": 4,
+                          "description": "Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).\n\n- title: the post's title (none on X, Bluesky or LinkedIn).\n- body: the text after the title.\n- url: the post's link.\n- author: the author's name or handle."
                         }
                       },
                       "required": [
@@ -1571,7 +1621,9 @@
                         "caseSensitive",
                         "exactPhrase",
                         "subreddits",
-                        "repositories"
+                        "repositories",
+                        "onlyAuthors",
+                        "termIn"
                       ],
                       "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
                     },
@@ -2196,6 +2248,30 @@
                   "exactPhrase": {
                     "type": "boolean",
                     "description": "true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only)."
+                  },
+                  "onlyAuthors": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500
+                    },
+                    "maxItems": 100,
+                    "description": "When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt."
+                  },
+                  "termIn": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "title",
+                        "body",
+                        "url",
+                        "author"
+                      ]
+                    },
+                    "maxItems": 4,
+                    "description": "Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).\n\n- title: the post's title (none on X, Bluesky or LinkedIn).\n- body: the text after the title.\n- url: the post's link.\n- author: the author's name or handle."
                   },
                   "repositories": {
                     "type": "object",
@@ -14898,6 +14974,30 @@
                         "type": "boolean",
                         "description": "true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only)."
                       },
+                      "onlyAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "maxItems": 100,
+                        "description": "When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt."
+                      },
+                      "termIn": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "title",
+                            "body",
+                            "url",
+                            "author"
+                          ]
+                        },
+                        "maxItems": 4,
+                        "description": "Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).\n\n- title: the post's title (none on X, Bluesky or LinkedIn).\n- body: the text after the title.\n- url: the post's link.\n- author: the author's name or handle."
+                      },
                       "repositories": {
                         "type": "object",
                         "properties": {
@@ -16280,6 +16380,30 @@
                                   "minWeeklyStars"
                                 ],
                                 "description": "GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed."
+                              },
+                              "onlyAuthors": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 500
+                                },
+                                "maxItems": 100,
+                                "description": "When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt."
+                              },
+                              "termIn": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "title",
+                                    "body",
+                                    "url",
+                                    "author"
+                                  ]
+                                },
+                                "maxItems": 4,
+                                "description": "Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).\n\n- title: the post's title (none on X, Bluesky or LinkedIn).\n- body: the text after the title.\n- url: the post's link.\n- author: the author's name or handle."
                               }
                             },
                             "required": [
@@ -16291,7 +16415,9 @@
                               "caseSensitive",
                               "exactPhrase",
                               "subreddits",
-                              "repositories"
+                              "repositories",
+                              "onlyAuthors",
+                              "termIn"
                             ],
                             "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
                           },
@@ -16722,6 +16848,30 @@
                             "exactPhrase": {
                               "type": "boolean",
                               "description": "true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only)."
+                            },
+                            "onlyAuthors": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 500
+                              },
+                              "maxItems": 100,
+                              "description": "When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt."
+                            },
+                            "termIn": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "title",
+                                  "body",
+                                  "url",
+                                  "author"
+                                ]
+                              },
+                              "maxItems": 4,
+                              "description": "Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).\n\n- title: the post's title (none on X, Bluesky or LinkedIn).\n- body: the text after the title.\n- url: the post's link.\n- author: the author's name or handle."
                             },
                             "repositories": {
                               "type": "object",
@@ -17389,6 +17539,30 @@
                       "exactPhrase": {
                         "type": "boolean",
                         "description": "true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only)."
+                      },
+                      "onlyAuthors": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 500
+                        },
+                        "maxItems": 100,
+                        "description": "When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt."
+                      },
+                      "termIn": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "title",
+                            "body",
+                            "url",
+                            "author"
+                          ]
+                        },
+                        "maxItems": 4,
+                        "description": "Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).\n\n- title: the post's title (none on X, Bluesky or LinkedIn).\n- body: the text after the title.\n- url: the post's link.\n- author: the author's name or handle."
                       },
                       "repositories": {
                         "type": "object",

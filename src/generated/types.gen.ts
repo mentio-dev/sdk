@@ -266,6 +266,19 @@ export type Keyword = {
              */
             minWeeklyStars: number | null;
         };
+        /**
+         * When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt.
+         */
+        onlyAuthors: Array<string>;
+        /**
+         * Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).
+         *
+         * - title: the post's title (none on X, Bluesky or LinkedIn).
+         * - body: the text after the title.
+         * - url: the post's link.
+         * - author: the author's name or handle.
+         */
+        termIn: Array<'title' | 'body' | 'url' | 'author'>;
     };
     /**
      * Computed over this workspace's matches.
@@ -638,6 +651,19 @@ export type KeywordBatchResult = {
                      */
                     minWeeklyStars: number | null;
                 };
+                /**
+                 * When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt.
+                 */
+                onlyAuthors: Array<string>;
+                /**
+                 * Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).
+                 *
+                 * - title: the post's title (none on X, Bluesky or LinkedIn).
+                 * - body: the text after the title.
+                 * - url: the post's link.
+                 * - author: the author's name or handle.
+                 */
+                termIn: Array<'title' | 'body' | 'url' | 'author'>;
             };
             /**
              * Computed over this workspace's matches.
@@ -982,6 +1008,19 @@ export type KeywordSuggestion = {
              * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
              */
             exactPhrase?: boolean;
+            /**
+             * When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt.
+             */
+            onlyAuthors?: Array<string>;
+            /**
+             * Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).
+             *
+             * - title: the post's title (none on X, Bluesky or LinkedIn).
+             * - body: the text after the title.
+             * - url: the post's link.
+             * - author: the author's name or handle.
+             */
+            termIn?: Array<'title' | 'body' | 'url' | 'author'>;
             /**
              * GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum.
              */
@@ -7458,6 +7497,19 @@ export type ListKeywordsResponses = {
                      */
                     minWeeklyStars: number | null;
                 };
+                /**
+                 * When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt.
+                 */
+                onlyAuthors: Array<string>;
+                /**
+                 * Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).
+                 *
+                 * - title: the post's title (none on X, Bluesky or LinkedIn).
+                 * - body: the text after the title.
+                 * - url: the post's link.
+                 * - author: the author's name or handle.
+                 */
+                termIn: Array<'title' | 'body' | 'url' | 'author'>;
             };
             /**
              * Computed over this workspace's matches.
@@ -7652,6 +7704,19 @@ export type CreateKeywordData = {
              * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
              */
             exactPhrase?: boolean;
+            /**
+             * When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt.
+             */
+            onlyAuthors?: Array<string>;
+            /**
+             * Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).
+             *
+             * - title: the post's title (none on X, Bluesky or LinkedIn).
+             * - body: the text after the title.
+             * - url: the post's link.
+             * - author: the author's name or handle.
+             */
+            termIn?: Array<'title' | 'body' | 'url' | 'author'>;
             /**
              * GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum.
              */
@@ -7891,6 +7956,19 @@ export type CreateKeywordsData = {
                  * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
                  */
                 exactPhrase?: boolean;
+                /**
+                 * When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt.
+                 */
+                onlyAuthors?: Array<string>;
+                /**
+                 * Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).
+                 *
+                 * - title: the post's title (none on X, Bluesky or LinkedIn).
+                 * - body: the text after the title.
+                 * - url: the post's link.
+                 * - author: the author's name or handle.
+                 */
+                termIn?: Array<'title' | 'body' | 'url' | 'author'>;
                 /**
                  * GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum.
                  */
@@ -8194,6 +8272,19 @@ export type UpdateKeywordData = {
              * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
              */
             exactPhrase?: boolean;
+            /**
+             * When non-empty, only posts BY these accounts match, in the forms excludedAuthors takes; a Bluesky handle is stored with its DID. Reviews and comments read under a mention are exempt.
+             */
+            onlyAuthors?: Array<string>;
+            /**
+             * Where the term must appear, any part listed; empty: anywhere; reviews are exempt. See [Keywords](/guides/keywords#where-the-term-must-appear).
+             *
+             * - title: the post's title (none on X, Bluesky or LinkedIn).
+             * - body: the text after the title.
+             * - url: the post's link.
+             * - author: the author's name or handle.
+             */
+            termIn?: Array<'title' | 'body' | 'url' | 'author'>;
             /**
              * GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum.
              */
