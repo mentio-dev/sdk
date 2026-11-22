@@ -48,6 +48,34 @@
         ],
         "description": "The group the keyword belongs to."
       },
+      "KeywordSubreddit": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The subreddit, without r/."
+          },
+          "keep": {
+            "type": "string",
+            "enum": [
+              "relevant",
+              "all"
+            ],
+            "description": "relevant: the classifier keeps the posts relevant to the keyword's context (else your company); the rest are dropped unbilled. all: every new post is a mention, billed like any."
+          },
+          "url": {
+            "type": "string",
+            "description": "The subreddit on reddit.com."
+          }
+        },
+        "required": [
+          "name",
+          "keep",
+          "url"
+        ],
+        "description": "The subreddit this keyword follows instead of a phrase (its term reads r/<name>); null on a phrase keyword."
+      },
       "KeywordFeed": {
         "type": "object",
         "properties": {
@@ -499,7 +527,10 @@
                 "mastodon"
               ]
             },
-            "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
+            "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews). [\"reddit\"] on a keyword that follows a subreddit."
+          },
+          "subreddit": {
+            "$ref": "#/components/schemas/KeywordSubreddit"
           },
           "feeds": {
             "type": "array",
@@ -914,6 +945,7 @@
           "display",
           "group",
           "platforms",
+          "subreddit",
           "feeds",
           "readsWorkspaceFeeds",
           "reviewSources",
@@ -1433,7 +1465,10 @@
                           "mastodon"
                         ]
                       },
-                      "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
+                      "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews). [\"reddit\"] on a keyword that follows a subreddit."
+                    },
+                    "subreddit": {
+                      "$ref": "#/components/schemas/KeywordSubreddit"
                     },
                     "feeds": {
                       "type": "array",
@@ -1848,6 +1883,7 @@
                     "display",
                     "group",
                     "platforms",
+                    "subreddit",
                     "feeds",
                     "readsWorkspaceFeeds",
                     "reviewSources",
@@ -2676,6 +2712,23 @@
               "readsWorkspaceFeeds": {
                 "type": "boolean",
                 "description": "true: the keyword also reads the workspace's feeds (GET /v1/feeds), live from now on. false: its own feeds alone."
+              },
+              "subreddit": {
+                "type": "object",
+                "properties": {
+                  "keep": {
+                    "type": "string",
+                    "enum": [
+                      "relevant",
+                      "all"
+                    ],
+                    "description": "relevant: the classifier keeps the posts relevant to the keyword's context (else your company); the rest are dropped unbilled. all: every new post is a mention, billed like any."
+                  }
+                },
+                "required": [
+                  "keep"
+                ],
+                "description": "A keyword that follows a subreddit: what it keeps from now on. The subreddit itself cannot change (create another keyword), and a phrase keyword cannot become one (400)."
               }
             },
             "description": "The body to send to PATCH /v1/keywords/{id} as is to apply it. A list holds the whole new list, current entries kept."
@@ -3446,9 +3499,10 @@
                 "type": "string",
                 "enum": [
                   "phrase",
-                  "close_words"
+                  "close_words",
+                  "subreddit"
                 ],
-                "description": "phrase: the post holds the term as written. close_words: it holds the term's words close together, in another order or form (kept and billed only because the classifier scored it relevant)."
+                "description": "phrase: the post holds the term as written. close_words: its words close together, in another order or form (kept because the classifier scored it relevant). subreddit: a post of the followed subreddit, which need not name anything."
               },
               "matchedIn": {
                 "type": "string",
@@ -15099,13 +15153,37 @@
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 80,
-                    "description": "The word or phrase to track, case-insensitive. Required unless `query` is sent. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only."
+                    "description": "The word or phrase to track, case-insensitive; send exactly one of term, `query` and `subreddit`. A multi-word term also matches its words close together (see matching.exactPhrase); double quotes mean the exact phrase only."
                   },
                   "query": {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 1000,
                     "description": "The keyword as one boolean query instead of term and matching, like \"acme cloud\" AND (pricing OR price*) -jobs ([Keywords](/guides/keywords#write-it-as-a-query)):\n\n- Phrases, words, AND, OR, NOT or -word, parentheses, word-end *\n- Compiled into term and the term rules; never sent with them (400).\n- Each alternative starts with the term; else 400 query_needs_one_term."
+                  },
+                  "subreddit": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300,
+                        "description": "The subreddit: SaaS, r/SaaS or a reddit.com link to it. A name Reddit would not allow is a 400."
+                      },
+                      "keep": {
+                        "type": "string",
+                        "enum": [
+                          "relevant",
+                          "all"
+                        ],
+                        "default": "relevant",
+                        "description": "relevant: the classifier keeps the posts relevant to the keyword's context (else your company); the rest are dropped unbilled. all: every new post is a mention, billed like any."
+                      }
+                    },
+                    "required": [
+                      "name"
+                    ],
+                    "description": "Follow a whole subreddit in place of `term`: its new posts are read every 3 hours, named or not. Send no `platforms`; `context` says what to keep. See [Follow a whole subreddit](/platforms/reddit#follow-a-whole-subreddit)."
                   },
                   "kind": {
                     "type": "string",
@@ -15144,7 +15222,7 @@
                         "mastodon"
                       ]
                     },
-                    "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds."
+                    "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds. Not with `subreddit` (its platform is Reddit)."
                   },
                   "context": {
                     "type": "string",
@@ -15657,7 +15735,7 @@
             }
           },
           "400": {
-            "description": "Invalid request: a parameter or the body failed validation (validation_error), or the query cannot be read (invalid_query), names more than one term (query_needs_one_term) or cannot be one keyword (query_not_supported)",
+            "description": "Invalid request: a parameter or the body failed validation (validation_error, also for two of term, query and subreddit), or the query cannot be read (invalid_query), names more than one term (query_needs_one_term) or cannot be one keyword (query_not_supported)",
             "content": {
               "application/json": {
                 "schema": {
@@ -16465,7 +16543,10 @@
                                 "mastodon"
                               ]
                             },
-                            "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
+                            "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews). [\"reddit\"] on a keyword that follows a subreddit."
+                          },
+                          "subreddit": {
+                            "$ref": "#/components/schemas/KeywordSubreddit"
                           },
                           "feeds": {
                             "type": "array",
@@ -16880,6 +16961,7 @@
                           "display",
                           "group",
                           "platforms",
+                          "subreddit",
                           "feeds",
                           "readsWorkspaceFeeds",
                           "reviewSources",
@@ -16974,7 +17056,7 @@
                           "type": "string",
                           "minLength": 2,
                           "maxLength": 80,
-                          "description": "The word or phrase to track, case-insensitive. Required unless `query` is sent. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only."
+                          "description": "The word or phrase to track, case-insensitive; send exactly one of term, `query` and `subreddit`. A multi-word term also matches its words close together (see matching.exactPhrase); double quotes mean the exact phrase only."
                         },
                         "query": {
                           "type": "string",
@@ -17019,7 +17101,7 @@
                               "mastodon"
                             ]
                           },
-                          "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds."
+                          "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds. Not with `subreddit` (its platform is Reddit)."
                         },
                         "context": {
                           "type": "string",
@@ -17447,7 +17529,7 @@
                           "description": "Whether the keyword also reads the workspace's feeds (GET /v1/feeds); default true. A new keyword reading them gets the look-back of the 8 most recently connected."
                         }
                       },
-                      "description": "One keyword, as POST /v1/keywords takes it, without reviewSources and feeds (add those to the keyword afterwards)."
+                      "description": "One keyword, as POST /v1/keywords takes it, without reviewSources and feeds (add those afterwards) or subreddit (follow one with POST /v1/keywords)."
                     },
                     "minItems": 1,
                     "maxItems": 100,
@@ -18205,6 +18287,23 @@
                   "readsWorkspaceFeeds": {
                     "type": "boolean",
                     "description": "true: the keyword also reads the workspace's feeds (GET /v1/feeds), live from now on. false: its own feeds alone."
+                  },
+                  "subreddit": {
+                    "type": "object",
+                    "properties": {
+                      "keep": {
+                        "type": "string",
+                        "enum": [
+                          "relevant",
+                          "all"
+                        ],
+                        "description": "relevant: the classifier keeps the posts relevant to the keyword's context (else your company); the rest are dropped unbilled. all: every new post is a mention, billed like any."
+                      }
+                    },
+                    "required": [
+                      "keep"
+                    ],
+                    "description": "A keyword that follows a subreddit: what it keeps from now on. The subreddit itself cannot change (create another keyword), and a phrase keyword cannot become one (400)."
                   }
                 },
                 "description": "Omitted fields are untouched."

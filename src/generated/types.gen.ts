@@ -26,6 +26,24 @@ export type GroupRef = {
     isDefault: boolean;
 };
 
+/**
+ * The subreddit this keyword follows instead of a phrase (its term reads r/<name>); null on a phrase keyword.
+ */
+export type KeywordSubreddit = {
+    /**
+     * The subreddit, without r/.
+     */
+    name: string;
+    /**
+     * relevant: the classifier keeps the posts relevant to the keyword's context (else your company); the rest are dropped unbilled. all: every new post is a mention, billed like any.
+     */
+    keep: 'relevant' | 'all';
+    /**
+     * The subreddit on reddit.com.
+     */
+    url: string;
+} | null;
+
 export type KeywordFeed = {
     /**
      * The feed itself (after redirects): what is polled.
@@ -180,9 +198,10 @@ export type Keyword = {
     };
     group: GroupRef;
     /**
-     * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
+     * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews). ["reddit"] on a keyword that follows a subreddit.
      */
     platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon'> | null;
+    subreddit: KeywordSubreddit;
     /**
      * RSS and Atom feeds this keyword reads; empty for none.
      */
@@ -565,9 +584,10 @@ export type KeywordBatchResult = {
             };
             group: GroupRef;
             /**
-             * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
+             * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews). ["reddit"] on a keyword that follows a subreddit.
              */
             platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon'> | null;
+            subreddit: KeywordSubreddit;
             /**
              * RSS and Atom feeds this keyword reads; empty for none.
              */
@@ -1156,6 +1176,15 @@ export type KeywordSuggestion = {
          * true: the keyword also reads the workspace's feeds (GET /v1/feeds), live from now on. false: its own feeds alone.
          */
         readsWorkspaceFeeds?: boolean;
+        /**
+         * A keyword that follows a subreddit: what it keeps from now on. The subreddit itself cannot change (create another keyword), and a phrase keyword cannot become one (400).
+         */
+        subreddit?: {
+            /**
+             * relevant: the classifier keeps the posts relevant to the keyword's context (else your company); the rest are dropped unbilled. all: every new post is a mention, billed like any.
+             */
+            keep: 'relevant' | 'all';
+        };
     };
     /**
      * What the change would have done over the window, measured with the matcher's own rules. Null for a context, which changes scores, not matches.
@@ -1601,9 +1630,9 @@ export type Mention = {
         term: string;
         group: GroupRef;
         /**
-         * phrase: the post holds the term as written. close_words: it holds the term's words close together, in another order or form (kept and billed only because the classifier scored it relevant).
+         * phrase: the post holds the term as written. close_words: its words close together, in another order or form (kept because the classifier scored it relevant). subreddit: a post of the followed subreddit, which need not name anything.
          */
-        matchedAs: 'phrase' | 'close_words';
+        matchedAs: 'phrase' | 'close_words' | 'subreddit';
         /**
          * text: the term is in the post itself (its text, caption, hashtags or review). speech: it is only in what is said in the video (TikTok), whose transcript follows the 🎙 mark in post.text.
          */
@@ -7563,9 +7592,10 @@ export type ListKeywordsResponses = {
             };
             group: GroupRef;
             /**
-             * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
+             * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews). ["reddit"] on a keyword that follows a subreddit.
              */
             platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon'> | null;
+            subreddit: KeywordSubreddit;
             /**
              * RSS and Atom feeds this keyword reads; empty for none.
              */
@@ -7801,7 +7831,7 @@ export type ListKeywordsResponse = ListKeywordsResponses[keyof ListKeywordsRespo
 export type CreateKeywordData = {
     body: {
         /**
-         * The word or phrase to track, case-insensitive. Required unless `query` is sent. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only.
+         * The word or phrase to track, case-insensitive; send exactly one of term, `query` and `subreddit`. A multi-word term also matches its words close together (see matching.exactPhrase); double quotes mean the exact phrase only.
          */
         term?: string;
         /**
@@ -7813,11 +7843,24 @@ export type CreateKeywordData = {
          */
         query?: string;
         /**
+         * Follow a whole subreddit in place of `term`: its new posts are read every 3 hours, named or not. Send no `platforms`; `context` says what to keep. See [Follow a whole subreddit](/platforms/reddit#follow-a-whole-subreddit).
+         */
+        subreddit?: {
+            /**
+             * The subreddit: SaaS, r/SaaS or a reddit.com link to it. A name Reddit would not allow is a 400.
+             */
+            name: string;
+            /**
+             * relevant: the classifier keeps the posts relevant to the keyword's context (else your company); the rest are dropped unbilled. all: every new post is a mention, billed like any.
+             */
+            keep?: 'relevant' | 'all';
+        };
+        /**
          * brand: your own names. competitor: theirs. topic: the space. Drives share of voice and segments.
          */
         kind?: 'brand' | 'competitor' | 'topic';
         /**
-         * Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds.
+         * Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds. Not with `subreddit` (its platform is Reddit).
          */
         platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon'> | null;
         /**
@@ -8018,7 +8061,7 @@ export type CreateKeywordData = {
 
 export type CreateKeywordErrors = {
     /**
-     * Invalid request: a parameter or the body failed validation (validation_error), or the query cannot be read (invalid_query), names more than one term (query_needs_one_term) or cannot be one keyword (query_not_supported)
+     * Invalid request: a parameter or the body failed validation (validation_error, also for two of term, query and subreddit), or the query cannot be read (invalid_query), names more than one term (query_needs_one_term) or cannot be one keyword (query_not_supported)
      */
     400: ErrorResponse;
     /**
@@ -8053,7 +8096,7 @@ export type CreateKeywordsData = {
          */
         keywords: Array<{
             /**
-             * The word or phrase to track, case-insensitive. Required unless `query` is sent. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only.
+             * The word or phrase to track, case-insensitive; send exactly one of term, `query` and `subreddit`. A multi-word term also matches its words close together (see matching.exactPhrase); double quotes mean the exact phrase only.
              */
             term?: string;
             /**
@@ -8069,7 +8112,7 @@ export type CreateKeywordsData = {
              */
             kind?: 'brand' | 'competitor' | 'topic';
             /**
-             * Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds.
+             * Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds. Not with `subreddit` (its platform is Reddit).
              */
             platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon'> | null;
             /**
@@ -8572,6 +8615,15 @@ export type UpdateKeywordData = {
          * true: the keyword also reads the workspace's feeds (GET /v1/feeds), live from now on. false: its own feeds alone.
          */
         readsWorkspaceFeeds?: boolean;
+        /**
+         * A keyword that follows a subreddit: what it keeps from now on. The subreddit itself cannot change (create another keyword), and a phrase keyword cannot become one (400).
+         */
+        subreddit?: {
+            /**
+             * relevant: the classifier keeps the posts relevant to the keyword's context (else your company); the rest are dropped unbilled. all: every new post is a mention, billed like any.
+             */
+            keep: 'relevant' | 'all';
+        };
     };
     path: {
         /**
