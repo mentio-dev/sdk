@@ -1000,6 +1000,1051 @@
           "error"
         ]
       },
+      "KeywordBatchResult": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "index": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Position of the keyword in the request, from 0."
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "created",
+                    "failed"
+                  ],
+                  "description": "created: the keyword exists now. failed: nothing was created for it; error says why."
+                },
+                "keyword": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Keyword id (kw_...)."
+                    },
+                    "term": {
+                      "type": "string",
+                      "description": "The tracked text, as typed."
+                    },
+                    "query": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "The boolean query the keyword was written as, as sent; term and matching hold what it compiled to. Null for a keyword defined by its fields, or once its term or term rules changed by hand."
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "brand",
+                        "competitor",
+                        "topic"
+                      ],
+                      "description": "brand (your own name), competitor, or topic."
+                    },
+                    "muted": {
+                      "type": "boolean",
+                      "description": "Not polled or matched. Paused by you, by the wallet (see pausedForBalance) or by the noise brake (see pausedForNoise). A keyword at its mention cap is not muted (see pausedForCap)."
+                    },
+                    "pausedForBalance": {
+                      "type": "boolean",
+                      "description": "Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too."
+                    },
+                    "pausedForNoise": {
+                      "type": "boolean",
+                      "description": "Muted by the noise brake: under 30% of 20 or more scored matches were relevant, on welcome credit. Changing its rules, platforms or context, or unmuting, resumes it (balance permitting); a top-up does not. See [Billing](/billing)."
+                    },
+                    "pausedForCap": {
+                      "type": "boolean",
+                      "description": "At its monthly mention cap: not matched until the first of next month (UTC) or until the cap is raised. Not muted: it keeps its place and its daily keyword charge."
+                    },
+                    "cap": {
+                      "type": "object",
+                      "nullable": true,
+                      "properties": {
+                        "mentions": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 1000000,
+                          "description": "Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                        },
+                        "per": {
+                          "type": "string",
+                          "enum": [
+                            "day",
+                            "week",
+                            "month"
+                          ],
+                          "default": "month",
+                          "description": "The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts."
+                        },
+                        "used": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Charged items (matches plus thread comments) counted in the current period: today, this week from Monday or this month, UTC. The keyword pauses when it reaches mentions."
+                        },
+                        "welcome": {
+                          "type": "boolean",
+                          "description": "Set by Mentio, not you: a workspace on its welcome credit collects at most 200 mentions a keyword a month. The first top-up removes it."
+                        },
+                        "own": {
+                          "type": "integer",
+                          "nullable": true,
+                          "description": "Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing."
+                        },
+                        "ownPer": {
+                          "type": "string",
+                          "nullable": true,
+                          "enum": [
+                            "day",
+                            "week",
+                            "month"
+                          ],
+                          "description": "The period of your own cap (null when own is null); with welcome false, the same as per."
+                        },
+                        "resumesAt": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "While paused for its cap (pausedForCap): when its next period starts and it matches again. Null otherwise."
+                        }
+                      },
+                      "required": [
+                        "mentions",
+                        "used",
+                        "welcome",
+                        "own",
+                        "ownPer",
+                        "resumesAt"
+                      ],
+                      "description": "The mention cap and its period, or null for none."
+                    },
+                    "comments": {
+                      "type": "object",
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean",
+                          "description": "Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments)."
+                        },
+                        "maxPerPost": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100,
+                          "description": "The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these."
+                        }
+                      },
+                      "required": [
+                        "enabled",
+                        "maxPerPost"
+                      ],
+                      "description": "Comments under this keyword's relevant mentions, read several times per thread on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments; see [Comments](/guides/comments)."
+                    },
+                    "display": {
+                      "type": "object",
+                      "properties": {
+                        "languages": {
+                          "type": "object",
+                          "properties": {
+                            "only": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "en",
+                                  "es",
+                                  "de",
+                                  "fr",
+                                  "pt",
+                                  "it",
+                                  "nl",
+                                  "ca",
+                                  "pl",
+                                  "tr",
+                                  "sv",
+                                  "da",
+                                  "ru",
+                                  "uk",
+                                  "ar",
+                                  "hi",
+                                  "id",
+                                  "ja",
+                                  "zh",
+                                  "ko"
+                                ]
+                              },
+                              "maxItems": 60,
+                              "description": "When non-empty, a post whose language is known and not listed is hidden, one the classifier cannot name included. A post whose language nobody could tell is always shown."
+                            },
+                            "excluded": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "en",
+                                  "es",
+                                  "de",
+                                  "fr",
+                                  "pt",
+                                  "it",
+                                  "nl",
+                                  "ca",
+                                  "pl",
+                                  "tr",
+                                  "sv",
+                                  "da",
+                                  "ru",
+                                  "uk",
+                                  "ar",
+                                  "hi",
+                                  "id",
+                                  "ja",
+                                  "zh",
+                                  "ko"
+                                ]
+                              },
+                              "maxItems": 60,
+                              "description": "A post whose language is listed is hidden."
+                            }
+                          },
+                          "required": [
+                            "only",
+                            "excluded"
+                          ],
+                          "description": "By the language the post is written in (ISO 639-1)."
+                        },
+                        "countries": {
+                          "type": "object",
+                          "properties": {
+                            "only": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "us",
+                                  "ca",
+                                  "mx",
+                                  "br",
+                                  "ar",
+                                  "co",
+                                  "cl",
+                                  "pe",
+                                  "gb",
+                                  "ie",
+                                  "fr",
+                                  "de",
+                                  "es",
+                                  "pt",
+                                  "it",
+                                  "nl",
+                                  "be",
+                                  "ch",
+                                  "at",
+                                  "se",
+                                  "no",
+                                  "dk",
+                                  "fi",
+                                  "pl",
+                                  "cz",
+                                  "ro",
+                                  "gr",
+                                  "hu",
+                                  "ua",
+                                  "ru",
+                                  "lt",
+                                  "lv",
+                                  "ee",
+                                  "tr",
+                                  "il",
+                                  "ae",
+                                  "sa",
+                                  "eg",
+                                  "ng",
+                                  "ke",
+                                  "za",
+                                  "ma",
+                                  "in",
+                                  "pk",
+                                  "bd",
+                                  "lk",
+                                  "np",
+                                  "cn",
+                                  "hk",
+                                  "tw",
+                                  "jp",
+                                  "kr",
+                                  "sg",
+                                  "my",
+                                  "id",
+                                  "ph",
+                                  "vn",
+                                  "th",
+                                  "au",
+                                  "nz"
+                                ]
+                              },
+                              "maxItems": 60,
+                              "description": "When non-empty, a post whose author's country is known and not listed is hidden, one the classifier cannot name included. A post whose author's country nobody could tell is always shown."
+                            },
+                            "excluded": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "us",
+                                  "ca",
+                                  "mx",
+                                  "br",
+                                  "ar",
+                                  "co",
+                                  "cl",
+                                  "pe",
+                                  "gb",
+                                  "ie",
+                                  "fr",
+                                  "de",
+                                  "es",
+                                  "pt",
+                                  "it",
+                                  "nl",
+                                  "be",
+                                  "ch",
+                                  "at",
+                                  "se",
+                                  "no",
+                                  "dk",
+                                  "fi",
+                                  "pl",
+                                  "cz",
+                                  "ro",
+                                  "gr",
+                                  "hu",
+                                  "ua",
+                                  "ru",
+                                  "lt",
+                                  "lv",
+                                  "ee",
+                                  "tr",
+                                  "il",
+                                  "ae",
+                                  "sa",
+                                  "eg",
+                                  "ng",
+                                  "ke",
+                                  "za",
+                                  "ma",
+                                  "in",
+                                  "pk",
+                                  "bd",
+                                  "lk",
+                                  "np",
+                                  "cn",
+                                  "hk",
+                                  "tw",
+                                  "jp",
+                                  "kr",
+                                  "sg",
+                                  "my",
+                                  "id",
+                                  "ph",
+                                  "vn",
+                                  "th",
+                                  "au",
+                                  "nz"
+                                ]
+                              },
+                              "maxItems": 60,
+                              "description": "A post whose author's country is listed is hidden."
+                            }
+                          },
+                          "required": [
+                            "only",
+                            "excluded"
+                          ],
+                          "description": "By where the author is (ISO 3166-1 alpha-2), as the classifier read their profile and the post."
+                        }
+                      },
+                      "required": [
+                        "languages",
+                        "countries"
+                      ],
+                      "description": "Which of this keyword's mentions you see, by language and country. A hidden post is still matched, classified and billed, but kept out of lists, exports, search, alerts and digests (includeHidden=true shows it). See [Keywords](/guides/keywords#show-only-some-languages-or-countries)."
+                    },
+                    "group": {
+                      "$ref": "#/components/schemas/GroupRef"
+                    },
+                    "platforms": {
+                      "type": "array",
+                      "nullable": true,
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "bluesky",
+                          "hackernews",
+                          "github",
+                          "stackoverflow",
+                          "devto",
+                          "reddit",
+                          "x",
+                          "youtube",
+                          "news",
+                          "linkedin",
+                          "tiktok",
+                          "instagram",
+                          "facebook",
+                          "podcasts",
+                          "web",
+                          "substack",
+                          "producthunt",
+                          "threads",
+                          "mastodon"
+                        ]
+                      },
+                      "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
+                    },
+                    "feeds": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/KeywordFeed"
+                      },
+                      "description": "RSS and Atom feeds this keyword reads; empty for none."
+                    },
+                    "readsWorkspaceFeeds": {
+                      "type": "boolean",
+                      "description": "true (the default): the keyword also reads every feed of the workspace (GET /v1/feeds), on top of its own `feeds`. false: its own feeds alone."
+                    },
+                    "reviewSources": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ReviewSource"
+                      },
+                      "description": "Where this keyword collects reviews from (App Store and Google Play apps, Trustpilot pages, Google Maps places); empty for none."
+                    },
+                    "context": {
+                      "type": "string",
+                      "nullable": true,
+                      "maxLength": 300,
+                      "description": "A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+                    },
+                    "matching": {
+                      "type": "object",
+                      "properties": {
+                        "requiredTerms": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "maxItems": 50,
+                          "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement."
+                        },
+                        "requiredMode": {
+                          "type": "string",
+                          "enum": [
+                            "any",
+                            "all"
+                          ],
+                          "description": "any: at least one required term must appear. all: every one must."
+                        },
+                        "requiredGroups": {
+                          "type": "array",
+                          "items": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80
+                            },
+                            "minItems": 1,
+                            "maxItems": 10
+                          },
+                          "maxItems": 50,
+                          "description": "Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword)."
+                        },
+                        "excludedTerms": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "maxItems": 50,
+                          "description": "A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot)."
+                        },
+                        "excludedAuthors": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500
+                          },
+                          "maxItems": 100,
+                          "description": "Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list."
+                        },
+                        "caseSensitive": {
+                          "type": "boolean",
+                          "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                        },
+                        "exactPhrase": {
+                          "type": "boolean",
+                          "description": "true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only)."
+                        },
+                        "subreddits": {
+                          "type": "object",
+                          "properties": {
+                            "only": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100
+                              },
+                              "maxItems": 50,
+                              "description": "When non-empty, this keyword takes Reddit posts from these subreddits ONLY and `excluded` is ignored. r/name or name, stored bare and lowercase."
+                            },
+                            "excluded": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 100
+                              },
+                              "maxItems": 50,
+                              "description": "Reddit posts from these subreddits are dropped for this keyword. r/name or name."
+                            }
+                          },
+                          "required": [
+                            "only",
+                            "excluded"
+                          ],
+                          "description": "Reddit only, for this keyword alone; the workspace filters' own subreddit lists (GET /v1/filters) still apply to every keyword, and a post must pass both."
+                        },
+                        "repositories": {
+                          "type": "object",
+                          "properties": {
+                            "events": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "new",
+                                  "traction",
+                                  "stars",
+                                  "growth"
+                                ]
+                              },
+                              "description": "The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).\n\n- traction: under 30 days old, it reached 10 stars.\n- stars: it passed a milestone (100, 250, 500, 1,000 ...).\n- growth: it gained stars fast in a week.\n- new: every repository created; opt in, mostly noise."
+                            },
+                            "minStars": {
+                              "type": "integer",
+                              "nullable": true,
+                              "minimum": 0,
+                              "maximum": 1000000,
+                              "description": "Only repositories with at least this many stars; null for no minimum."
+                            },
+                            "minWeeklyStars": {
+                              "type": "integer",
+                              "nullable": true,
+                              "minimum": 25,
+                              "maximum": 1000000,
+                              "description": "Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing."
+                            }
+                          },
+                          "required": [
+                            "events",
+                            "minStars",
+                            "minWeeklyStars"
+                          ],
+                          "description": "GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed."
+                        }
+                      },
+                      "required": [
+                        "requiredTerms",
+                        "requiredMode",
+                        "requiredGroups",
+                        "excludedTerms",
+                        "excludedAuthors",
+                        "caseSensitive",
+                        "exactPhrase",
+                        "subreddits",
+                        "repositories"
+                      ],
+                      "description": "Matching rules applied before a mention is stored; a rejected post is never billed."
+                    },
+                    "stats": {
+                      "type": "object",
+                      "properties": {
+                        "mentions": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Every match ever, relevant or not: the number billing counts."
+                        },
+                        "relevant": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Matches scored at or above the relevance threshold."
+                        },
+                        "last7d": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Matches published in the last 7 days."
+                        },
+                        "thisMonth": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "description": "Matches recorded this calendar month (UTC), plus the thread comments delivered under this keyword's mentions: the count a cap compares against."
+                        },
+                        "lastMentionAt": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Newest matched post; null until the first one."
+                        },
+                        "feedback": {
+                          "type": "object",
+                          "properties": {
+                            "relevant": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "description": "Mentions a person marked relevant."
+                            },
+                            "notRelevant": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "description": "Mentions a person marked not relevant: the noise the classifier let through."
+                            }
+                          },
+                          "required": [
+                            "relevant",
+                            "notRelevant"
+                          ],
+                          "description": "Your verdicts on this keyword's mentions (PATCH /v1/mentions/{id} relevant)."
+                        },
+                        "noise": {
+                          "type": "object",
+                          "properties": {
+                            "scored": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "description": "Matches of the last 14 days (by match time) the classifier has scored."
+                            },
+                            "relevant": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "description": "Of those, the ones scored relevant."
+                            },
+                            "noisy": {
+                              "type": "boolean",
+                              "description": "At least 20 scored matches in the last 14 days and under 30% of them relevant: tighten the keyword with required terms, excluded terms or context. Every match bills, relevant or not."
+                            }
+                          },
+                          "required": [
+                            "scored",
+                            "relevant",
+                            "noisy"
+                          ],
+                          "description": "Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks."
+                        },
+                        "health": {
+                          "type": "string",
+                          "enum": [
+                            "healthy",
+                            "noisy",
+                            "quiet",
+                            "capped",
+                            "paused",
+                            "new"
+                          ],
+                          "description": "The first status that applies over the last 14 days; see [Keyword health](/guides/keyword-health).\n\n- paused: muted.\n- capped: at its mention cap.\n- noisy: 20 or more scored matches, under 30% relevant.\n- new: under 7 days old, or changed lately with few scored matches.\n- quiet: 7 days or older, nothing relevant.\n- healthy: none of the above."
+                        },
+                        "cost": {
+                          "type": "object",
+                          "properties": {
+                            "keywordDays": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "description": "Days this month the keyword was charged for: unmuted at the daily tick. A keyword created today reads 0 until tomorrow's tick."
+                            },
+                            "keywordCents": {
+                              "type": "integer",
+                              "description": "Those days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total."
+                            },
+                            "billableMentions": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "description": "Matches billed this month, counted when they were scored (the clock the ledger settles by), so it can trail thisMonth by the matches still being scored and never counts one that failed to score."
+                            },
+                            "mentionCents": {
+                              "type": "integer",
+                              "description": "Those matches at $0.008 each, rounded once on the total."
+                            },
+                            "billableComments": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "description": "Comments billed this month under this keyword: comments delivered in its threads and comments it matched, each once per workspace."
+                            },
+                            "commentCents": {
+                              "type": "integer",
+                              "description": "Those comments at $0.008 each, rounded once on the total."
+                            },
+                            "totalCents": {
+                              "type": "integer",
+                              "description": "keywordCents plus mentionCents plus commentCents: what this keyword has cost this month, in USD cents."
+                            }
+                          },
+                          "required": [
+                            "keywordDays",
+                            "keywordCents",
+                            "billableMentions",
+                            "mentionCents",
+                            "billableComments",
+                            "commentCents",
+                            "totalCents"
+                          ],
+                          "description": "What this keyword has cost this calendar month (UTC) at list price: its row in GET /v1/usage/breakdown?month=<this month>. The ledger differs only by cumulative rounding."
+                        }
+                      },
+                      "required": [
+                        "mentions",
+                        "relevant",
+                        "last7d",
+                        "thisMonth",
+                        "lastMentionAt",
+                        "feedback",
+                        "noise",
+                        "health",
+                        "cost"
+                      ],
+                      "description": "Computed over this workspace's matches."
+                    },
+                    "polling": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "platform": {
+                            "type": "string",
+                            "enum": [
+                              "bluesky",
+                              "hackernews",
+                              "github",
+                              "stackoverflow",
+                              "devto",
+                              "reddit",
+                              "x",
+                              "youtube",
+                              "news",
+                              "linkedin",
+                              "tiktok",
+                              "instagram",
+                              "facebook",
+                              "podcasts",
+                              "web",
+                              "substack",
+                              "producthunt",
+                              "threads",
+                              "mastodon",
+                              "appstore",
+                              "googleplay",
+                              "trustpilot",
+                              "googlemaps",
+                              "rss"
+                            ],
+                            "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          },
+                          "lastPolledAt": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Newest poll of this platform for the term; null until the first one."
+                          },
+                          "emptyPolls": {
+                            "type": "integer",
+                            "description": "Consecutive polls that found nothing new; the scheduler slows down as it grows."
+                          }
+                        },
+                        "required": [
+                          "platform",
+                          "lastPolledAt",
+                          "emptyPolls"
+                        ]
+                      },
+                      "description": "Poll health per platform polled on a schedule. Live feeds (Bluesky) have no entry."
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "description": "ISO 8601 timestamp, UTC."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "term",
+                    "query",
+                    "kind",
+                    "muted",
+                    "pausedForBalance",
+                    "pausedForNoise",
+                    "pausedForCap",
+                    "cap",
+                    "comments",
+                    "display",
+                    "group",
+                    "platforms",
+                    "feeds",
+                    "readsWorkspaceFeeds",
+                    "reviewSources",
+                    "context",
+                    "matching",
+                    "stats",
+                    "polling",
+                    "createdAt"
+                  ],
+                  "description": "The created keyword; null when it failed."
+                },
+                "error": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "The error code it would have got alone: duplicate_keyword, validation_error, invalid_query, query_needs_one_term, query_not_supported, not_found (its group), insufficient_balance, keyword_limit_reached."
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "What went wrong, for a person."
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "description": "Why it failed; null when created."
+                }
+              },
+              "required": [
+                "index",
+                "status",
+                "keyword",
+                "error"
+              ]
+            },
+            "description": "One result per keyword sent, in the same order."
+          },
+          "created": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Keywords created."
+          },
+          "failed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Keywords refused."
+          }
+        },
+        "required": [
+          "data",
+          "created",
+          "failed"
+        ]
+      },
+      "KeywordDeletionPreview": {
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Keyword id (kw_...)."
+              },
+              "term": {
+                "type": "string",
+                "description": "The tracked term."
+              },
+              "name": {
+                "type": "string",
+                "description": "The keyword as Mentio names it: the term, or \"term (Group)\" outside the default group."
+              }
+            },
+            "required": [
+              "id",
+              "term",
+              "name"
+            ],
+            "description": "The keyword."
+          },
+          "matches": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Its mentions, every match ever: deleted with it (a post another keyword also matched stays there)."
+          },
+          "thisMonth": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Of those, recorded this calendar month (UTC), plus the thread comments delivered under it."
+          },
+          "cost": {
+            "type": "object",
+            "properties": {
+              "keywordDays": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Days this month the keyword was charged for: unmuted at the daily tick. A keyword created today reads 0 until tomorrow's tick."
+              },
+              "keywordCents": {
+                "type": "integer",
+                "description": "Those days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total."
+              },
+              "billableMentions": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Matches billed this month, counted when they were scored (the clock the ledger settles by), so it can trail thisMonth by the matches still being scored and never counts one that failed to score."
+              },
+              "mentionCents": {
+                "type": "integer",
+                "description": "Those matches at $0.008 each, rounded once on the total."
+              },
+              "billableComments": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Comments billed this month under this keyword: comments delivered in its threads and comments it matched, each once per workspace."
+              },
+              "commentCents": {
+                "type": "integer",
+                "description": "Those comments at $0.008 each, rounded once on the total."
+              },
+              "totalCents": {
+                "type": "integer",
+                "description": "keywordCents plus mentionCents plus commentCents: what this keyword has cost this month, in USD cents."
+              }
+            },
+            "required": [
+              "keywordDays",
+              "keywordCents",
+              "billableMentions",
+              "mentionCents",
+              "billableComments",
+              "commentCents",
+              "totalCents"
+            ],
+            "description": "What it has cost this month so far. Deleting refunds nothing: charges already made stay on the ledger, and from the next daily charge it costs nothing."
+          },
+          "alerts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Alert rule id (feed_...)."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Its name."
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether it is on now."
+                },
+                "effect": {
+                  "type": "string",
+                  "enum": [
+                    "disabled",
+                    "narrowed",
+                    "empty"
+                  ],
+                  "description": "disabled: it named only this keyword and is switched off (never widened to every keyword). narrowed: it stops naming this keyword and keeps working on the rest. empty: a view naming only this keyword keeps it and shows nothing."
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "enabled",
+                "effect"
+              ]
+            },
+            "description": "Alert rules whose filter names the keyword."
+          },
+          "automations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Automation id (atm_...)."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Its name."
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether it is on now."
+                },
+                "effect": {
+                  "type": "string",
+                  "enum": [
+                    "disabled",
+                    "narrowed",
+                    "empty"
+                  ],
+                  "description": "disabled: it named only this keyword and is switched off (never widened to every keyword). narrowed: it stops naming this keyword and keeps working on the rest. empty: a view naming only this keyword keeps it and shows nothing."
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "enabled",
+                "effect"
+              ]
+            },
+            "description": "Automations whose filter names the keyword."
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "View id (vw_...)."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Its name."
+                },
+                "effect": {
+                  "type": "string",
+                  "enum": [
+                    "disabled",
+                    "narrowed",
+                    "empty"
+                  ],
+                  "description": "disabled: it named only this keyword and is switched off (never widened to every keyword). narrowed: it stops naming this keyword and keeps working on the rest. empty: a view naming only this keyword keeps it and shows nothing."
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "effect"
+              ]
+            },
+            "description": "Saved views whose filter names the keyword."
+          }
+        },
+        "required": [
+          "keyword",
+          "matches",
+          "thisMonth",
+          "cost",
+          "alerts",
+          "automations",
+          "views"
+        ]
+      },
       "KeywordSuggestion": {
         "type": "object",
         "properties": {
@@ -5448,9 +6493,11 @@
             "enum": [
               "24h",
               "7d",
-              "30d"
+              "30d",
+              "90d",
+              "365d"
             ],
-            "description": "How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range."
+            "description": "How far back the search reads, ending now. See [Search](/guides/search#platforms).\n\n- 24h, 7d, 30d: every platform (instagram at most 7 days).\n- 90d, 365d: only platforms reaching that far; the others are skipped (window)."
           },
           "kind": {
             "type": "string",
@@ -5531,13 +6578,14 @@
                   "nullable": true,
                   "enum": [
                     "unsupported",
+                    "window",
                     "credentials",
                     "budget",
                     "rate_limited",
                     "error",
                     "timeout"
                   ],
-                  "description": "Why a platform was skipped or failed: unsupported (no term search on it), credentials (not connected on this deployment), budget (its monthly vendor budget is spent), rate_limited, error, timeout. null otherwise."
+                  "description": "Why a platform was skipped or failed; null otherwise.\n\n- unsupported: no term search on it.\n- window: its search cannot reach that far back.\n- credentials: not connected on this deployment.\n- budget: its monthly vendor budget is spent.\n- rate_limited, error, timeout: the read failed."
                 },
                 "results": {
                   "type": "integer",
@@ -7840,6 +8888,306 @@
           "updatedAt"
         ]
       },
+      "KeywordEstimate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Estimate id (est_...)."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "done",
+              "failed"
+            ],
+            "description": "queued: accepted, nothing sampled yet. running: platforms being sampled. done: every platform reported. failed: no platform of any term has a number."
+          },
+          "includePaid": {
+            "type": "boolean",
+            "description": "Whether paid platforms were sampled."
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "bluesky",
+                "hackernews",
+                "github",
+                "stackoverflow",
+                "devto",
+                "reddit",
+                "x",
+                "youtube",
+                "news",
+                "linkedin",
+                "tiktok",
+                "instagram",
+                "facebook",
+                "podcasts",
+                "web",
+                "substack",
+                "producthunt",
+                "threads",
+                "mastodon",
+                "appstore",
+                "googleplay",
+                "trustpilot",
+                "googlemaps",
+                "rss"
+              ],
+              "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+            },
+            "description": "The platforms asked for."
+          },
+          "terms": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "term": {
+                  "type": "string",
+                  "description": "The candidate keyword, normalized as a keyword stores it."
+                },
+                "monthly": {
+                  "type": "object",
+                  "properties": {
+                    "low": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "Low end of the expected matched mentions a month."
+                    },
+                    "high": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "High end of the expected matched mentions a month."
+                    }
+                  },
+                  "required": [
+                    "low",
+                    "high"
+                  ],
+                  "description": "Sum over the platforms that have a number."
+                },
+                "complete": {
+                  "type": "boolean",
+                  "description": "true when every platform asked for has a number; false when some were skipped or failed (their volume is not in the sum)."
+                },
+                "cost": {
+                  "type": "object",
+                  "properties": {
+                    "keywordCents": {
+                      "type": "integer",
+                      "description": "The keyword fee for a month ($5)."
+                    },
+                    "mentionsLowCents": {
+                      "type": "integer",
+                      "description": "Matched mentions a month at $0.008, low end."
+                    },
+                    "mentionsHighCents": {
+                      "type": "integer",
+                      "description": "Matched mentions a month at $0.008, high end."
+                    },
+                    "totalLowCents": {
+                      "type": "integer",
+                      "description": "Keyword fee plus mentions, low end."
+                    },
+                    "totalHighCents": {
+                      "type": "integer",
+                      "description": "Keyword fee plus mentions, high end."
+                    }
+                  },
+                  "required": [
+                    "keywordCents",
+                    "mentionsLowCents",
+                    "mentionsHighCents",
+                    "totalLowCents",
+                    "totalHighCents"
+                  ],
+                  "description": "What tracking this term would cost a month at today's prices, with no mention cap."
+                },
+                "platforms": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "platform": {
+                        "type": "string",
+                        "enum": [
+                          "bluesky",
+                          "hackernews",
+                          "github",
+                          "stackoverflow",
+                          "devto",
+                          "reddit",
+                          "x",
+                          "youtube",
+                          "news",
+                          "linkedin",
+                          "tiktok",
+                          "instagram",
+                          "facebook",
+                          "podcasts",
+                          "web",
+                          "substack",
+                          "producthunt",
+                          "threads",
+                          "mastodon",
+                          "appstore",
+                          "googleplay",
+                          "trustpilot",
+                          "googlemaps",
+                          "rss"
+                        ],
+                        "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "queued",
+                          "running",
+                          "done",
+                          "skipped",
+                          "failed"
+                        ],
+                        "description": "queued: not sampled yet. running: being sampled. done: it has a number. skipped: no number (see reason). failed: the sample failed (see reason)."
+                      },
+                      "reason": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                          "unsupported",
+                          "paid",
+                          "quota",
+                          "credentials",
+                          "budget",
+                          "rate_limited",
+                          "error",
+                          "timeout"
+                        ],
+                        "description": "Why a platform has no number; null otherwise.\n\n- unsupported: no term search, and no index for the term.\n- paid: a paid platform, includePaid was false.\n- quota: youtube, its quota is kept for live tracking.\n- credentials, budget: not connected, or its monthly budget is spent.\n- rate_limited, error, timeout: the sample failed."
+                      },
+                      "method": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                          "index",
+                          "sample"
+                        ],
+                        "description": "index: counted from the posts Mentio already reads for this term (the closest to what a keyword gets). sample: one page of the platform's own search, extrapolated to a month. null without a number."
+                      },
+                      "monthly": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                          "low": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Low end of the expected matched mentions a month."
+                          },
+                          "high": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "High end of the expected matched mentions a month."
+                          }
+                        },
+                        "required": [
+                          "low",
+                          "high"
+                        ],
+                        "description": "Expected matched mentions a month on this platform; null without a number."
+                      },
+                      "sample": {
+                        "type": "object",
+                        "nullable": true,
+                        "properties": {
+                          "read": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Posts read (index: posts counted)."
+                          },
+                          "matched": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Of them, holding the term and passing the rules."
+                          },
+                          "days": {
+                            "type": "number",
+                            "minimum": 0,
+                            "description": "The span of time they cover, in days."
+                          }
+                        },
+                        "required": [
+                          "read",
+                          "matched",
+                          "days"
+                        ],
+                        "description": "What the number rests on; null without a number."
+                      },
+                      "costCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "What sampling this platform cost: 0 for index numbers and free platforms."
+                      }
+                    },
+                    "required": [
+                      "platform",
+                      "status",
+                      "reason",
+                      "method",
+                      "monthly",
+                      "sample",
+                      "costCents"
+                    ]
+                  },
+                  "description": "One entry per platform asked for."
+                }
+              },
+              "required": [
+                "term",
+                "monthly",
+                "complete",
+                "cost",
+                "platforms"
+              ]
+            },
+            "description": "One entry per term, in the order sent."
+          },
+          "costCents": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "What the estimate has cost so far (paid samples read); charged to the wallet when it completes."
+          },
+          "maxCostCents": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The most it can cost: every paid sample it may read. The wallet had to cover it when it started."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the estimate was started."
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "description": "When it reached done or failed; null while it runs."
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "includePaid",
+          "platforms",
+          "terms",
+          "costCents",
+          "maxCostCents",
+          "createdAt",
+          "completedAt"
+        ]
+      },
       "Automation": {
         "type": "object",
         "properties": {
@@ -8958,6 +10306,305 @@
           "keywordsAffected"
         ]
       },
+      "UnansweredInfluencerEventData": {
+        "type": "object",
+        "properties": {
+          "attentionId": {
+            "type": "string",
+            "description": "The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away."
+          },
+          "url": {
+            "type": "string",
+            "description": "Where to look in the dashboard."
+          },
+          "author": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The person (aut_...): GET /v1/people/{id}."
+              },
+              "name": {
+                "type": "string",
+                "nullable": true,
+                "description": "Their name on the platform."
+              },
+              "url": {
+                "type": "string",
+                "nullable": true,
+                "description": "Their profile."
+              },
+              "platform": {
+                "type": "string",
+                "enum": [
+                  "bluesky",
+                  "hackernews",
+                  "github",
+                  "stackoverflow",
+                  "devto",
+                  "reddit",
+                  "x",
+                  "youtube",
+                  "news",
+                  "linkedin",
+                  "tiktok",
+                  "instagram",
+                  "facebook",
+                  "podcasts",
+                  "web",
+                  "substack",
+                  "producthunt",
+                  "threads",
+                  "mastodon",
+                  "appstore",
+                  "googleplay",
+                  "trustpilot",
+                  "googlemaps",
+                  "rss"
+                ],
+                "description": "Where they posted."
+              },
+              "followers": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Followers when they last posted."
+              },
+              "influence": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "0 to 100, from followers (100 at 100,000 or more)."
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "url",
+              "platform",
+              "followers",
+              "influence"
+            ],
+            "description": "Who posted."
+          },
+          "keyword": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Keyword id (kw_...)."
+              },
+              "term": {
+                "type": "string",
+                "description": "The tracked term."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ],
+                "description": "brand, competitor or topic."
+              },
+              "name": {
+                "type": "string",
+                "description": "The keyword as Mentio names it: the term, or \"term (Group)\" outside the default group."
+              },
+              "groupId": {
+                "type": "string",
+                "description": "Its group (grp_...)."
+              }
+            },
+            "required": [
+              "id",
+              "term",
+              "kind",
+              "name",
+              "groupId"
+            ],
+            "description": "The keyword the item is about."
+          },
+          "mentions": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Their relevant mentions of the last 48 hours still open (not done or ignored) 3 hours or more after they matched."
+          },
+          "mention": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "The newest of them (mm_...): GET /v1/mentions/{id}."
+              },
+              "url": {
+                "type": "string",
+                "description": "The post."
+              },
+              "relevance": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100,
+                "description": "Its relevance score."
+              },
+              "publishedAt": {
+                "type": "string",
+                "description": "When it was posted."
+              },
+              "matchedAt": {
+                "type": "string",
+                "description": "When Mentio matched it."
+              }
+            },
+            "required": [
+              "id",
+              "url",
+              "relevance",
+              "publishedAt",
+              "matchedAt"
+            ],
+            "description": "The newest open mention, the one to answer first."
+          }
+        },
+        "required": [
+          "attentionId",
+          "url",
+          "author",
+          "keyword",
+          "mentions",
+          "mention"
+        ]
+      },
+      "TopicClusterEventData": {
+        "type": "object",
+        "properties": {
+          "attentionId": {
+            "type": "string",
+            "description": "The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away."
+          },
+          "url": {
+            "type": "string",
+            "description": "Where to look in the dashboard."
+          },
+          "keyword": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Keyword id (kw_...)."
+              },
+              "term": {
+                "type": "string",
+                "description": "The tracked term."
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "competitor",
+                  "topic"
+                ],
+                "description": "brand, competitor or topic."
+              },
+              "name": {
+                "type": "string",
+                "description": "The keyword as Mentio names it: the term, or \"term (Group)\" outside the default group."
+              },
+              "groupId": {
+                "type": "string",
+                "description": "Its group (grp_...)."
+              }
+            },
+            "required": [
+              "id",
+              "term",
+              "kind",
+              "name",
+              "groupId"
+            ],
+            "description": "The keyword the item is about."
+          },
+          "window": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "description": "Start, inclusive."
+              },
+              "to": {
+                "type": "string",
+                "description": "End, exclusive."
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "description": "The stretch of time the counts cover, by match time."
+          },
+          "tag": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "intent",
+                  "hashtag"
+                ],
+                "description": "intent: a tag the classifier gave (question, complaint, comparison...). hashtag: a hashtag the posts carry, lowercase, without the #."
+              },
+              "value": {
+                "type": "string",
+                "description": "The tag."
+              }
+            },
+            "required": [
+              "type",
+              "value"
+            ],
+            "description": "What the posts share."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Relevant posts of the window carrying it (posts at most 3 days old when matched)."
+          },
+          "authors": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Different authors among them."
+          },
+          "baseline": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Posts carrying it in the 7 days before the window."
+              },
+              "perDay": {
+                "type": "number",
+                "minimum": 0,
+                "description": "The usual daily count, smoothed so a tag the keyword never had still needs a crowd."
+              }
+            },
+            "required": [
+              "count",
+              "perDay"
+            ],
+            "description": "What the keyword usually gets."
+          }
+        },
+        "required": [
+          "attentionId",
+          "url",
+          "keyword",
+          "window",
+          "tag",
+          "count",
+          "authors",
+          "baseline"
+        ]
+      },
       "AttentionItem": {
         "type": "object",
         "properties": {
@@ -8973,9 +10620,11 @@
               "keyword.noisy",
               "channel.failing",
               "feed.failing",
-              "feed.recovered"
+              "feed.recovered",
+              "mention.unanswered_influencer",
+              "mention.topic_cluster"
             ],
-            "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+            "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
           },
           "status": {
             "type": "string",
@@ -8994,13 +10643,14 @@
                 "enum": [
                   "keyword",
                   "channel",
-                  "feed"
+                  "feed",
+                  "mention"
                 ],
-                "description": "keyword, channel or feed."
+                "description": "keyword, channel, feed or mention."
               },
               "id": {
                 "type": "string",
-                "description": "The keyword (kw_...), the channel (dest_...) or the feed (fd_...)."
+                "description": "The keyword (kw_...), the channel (dest_...), the feed (fd_...) or the mention (mm_...)."
               }
             },
             "required": [
@@ -9043,6 +10693,12 @@
               },
               {
                 "$ref": "#/components/schemas/FeedFailingEventData"
+              },
+              {
+                "$ref": "#/components/schemas/UnansweredInfluencerEventData"
+              },
+              {
+                "$ref": "#/components/schemas/TopicClusterEventData"
               }
             ],
             "description": "The facts as they stood when it opened: the same object the account event of the same name carries as `data`."
@@ -9612,11 +11268,11 @@
               },
               "totalCents": {
                 "type": "integer",
-                "description": "keywordCents, mentionCents and commentCents, plus searchCents when the report is not filtered: then the window's whole list price. The rows carry keyword spend only."
+                "description": "keywordCents, mentionCents and commentCents, plus searchCents and estimateCents when the report is not filtered: then the window's whole list price. The rows carry keyword spend only."
               },
               "ledgerDebitCents": {
                 "type": "integer",
-                "description": "What the ledger has debited for the window's days, by the day each debit settled, for the whole workspace whatever the filters, on-demand searches included. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger)."
+                "description": "What the ledger has debited for the window's days, by the day each debit settled (estimates: when charged), for the whole workspace whatever the filters, searches included. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger)."
               },
               "searchResults": {
                 "type": "integer",
@@ -9626,6 +11282,15 @@
               "searchCents": {
                 "type": "integer",
                 "description": "searchResults at $0.008 each, in totals.totalCents when the report is not filtered (never in a row: rows are keyword spend)."
+              },
+              "estimateSamples": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Paid platform samples of keyword estimates charged in the window, for the whole workspace."
+              },
+              "estimateCents": {
+                "type": "integer",
+                "description": "Paid samples of keyword estimates charged in the window, for the whole workspace; in totals.totalCents when the report is not filtered."
               },
               "unattributedBillable": {
                 "type": "integer",
@@ -9646,6 +11311,8 @@
               "ledgerDebitCents",
               "searchResults",
               "searchCents",
+              "estimateSamples",
+              "estimateCents",
               "unattributedBillable"
             ],
             "description": "The whole window as one line, the same for every dimension."
@@ -9982,9 +11649,10 @@
                     "debit_mentions",
                     "debit_comments",
                     "debit_searches",
+                    "debit_estimates",
                     "adjustment"
                   ],
-                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results) or adjustment."
+                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results), debit_estimates (paid samples of keyword estimates) or adjustment."
                 },
                 "amountCents": {
                   "type": "integer",
@@ -9998,7 +11666,7 @@
                 "units": {
                   "type": "integer",
                   "nullable": true,
-                  "description": "Debit rows: cumulative units (mentions or keyword-days) settled up to this row."
+                  "description": "Debit rows: cumulative units (mentions or keyword-days) settled up to this row; on debit_estimates, the paid samples of that one estimate."
                 },
                 "note": {
                   "type": "string",
@@ -12134,9 +13802,11 @@
                     "keyword.noisy",
                     "channel.failing",
                     "feed.failing",
-                    "feed.recovered"
+                    "feed.recovered",
+                    "mention.unanswered_influencer",
+                    "mention.topic_cluster"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
                 },
                 "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
               }
@@ -12262,9 +13932,11 @@
                     "keyword.noisy",
                     "channel.failing",
                     "feed.failing",
-                    "feed.recovered"
+                    "feed.recovered",
+                    "mention.unanswered_influencer",
+                    "mention.topic_cluster"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
                 },
                 "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
               }
@@ -12385,9 +14057,11 @@
                     "channel.failing",
                     "feed.failing",
                     "feed.recovered",
+                    "mention.unanswered_influencer",
+                    "mention.topic_cluster",
                     "export.ready"
                   ],
-                  "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- export.ready: a scheduled export finished; data carries a signed download link."
+                  "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
                 },
                 "description": "The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes and the attention events. Empty when it receives none; mention and digest deliveries come through rules as before."
               },
@@ -12509,9 +14183,11 @@
                     "keyword.noisy",
                     "channel.failing",
                     "feed.failing",
-                    "feed.recovered"
+                    "feed.recovered",
+                    "mention.unanswered_influencer",
+                    "mention.topic_cluster"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
                 },
                 "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
               }
@@ -12619,9 +14295,11 @@
                     "keyword.noisy",
                     "channel.failing",
                     "feed.failing",
-                    "feed.recovered"
+                    "feed.recovered",
+                    "mention.unanswered_influencer",
+                    "mention.topic_cluster"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
                 },
                 "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
               }
@@ -12728,9 +14406,11 @@
                     "keyword.noisy",
                     "channel.failing",
                     "feed.failing",
-                    "feed.recovered"
+                    "feed.recovered",
+                    "mention.unanswered_influencer",
+                    "mention.topic_cluster"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
                 },
                 "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
               }
@@ -12816,11 +14496,13 @@
                 "keyword.noisy",
                 "channel.failing",
                 "feed.failing",
-                "feed.recovered"
+                "feed.recovered",
+                "mention.unanswered_influencer",
+                "mention.topic_cluster"
               ],
-              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
             },
-            "maxItems": 6,
+            "maxItems": 8,
             "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
           }
         },
@@ -12860,11 +14542,13 @@
                 "keyword.noisy",
                 "channel.failing",
                 "feed.failing",
-                "feed.recovered"
+                "feed.recovered",
+                "mention.unanswered_influencer",
+                "mention.topic_cluster"
               ],
-              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
             },
-            "maxItems": 6,
+            "maxItems": 8,
             "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
           }
         },
@@ -12918,11 +14602,13 @@
                 "channel.failing",
                 "feed.failing",
                 "feed.recovered",
+                "mention.unanswered_influencer",
+                "mention.topic_cluster",
                 "export.ready"
               ],
-              "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- export.ready: a scheduled export finished; data carries a signed download link."
+              "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
             },
-            "maxItems": 13,
+            "maxItems": 15,
             "description": "Account events to receive at this endpoint (keyword and wallet state changes, attention events), on top of whatever rules send here. Omit for none."
           }
         },
@@ -12961,11 +14647,13 @@
                 "keyword.noisy",
                 "channel.failing",
                 "feed.failing",
-                "feed.recovered"
+                "feed.recovered",
+                "mention.unanswered_influencer",
+                "mention.topic_cluster"
               ],
-              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
             },
-            "maxItems": 6,
+            "maxItems": 8,
             "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
           }
         },
@@ -13004,11 +14692,13 @@
                 "keyword.noisy",
                 "channel.failing",
                 "feed.failing",
-                "feed.recovered"
+                "feed.recovered",
+                "mention.unanswered_influencer",
+                "mention.topic_cluster"
               ],
-              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
             },
-            "maxItems": 6,
+            "maxItems": 8,
             "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
           }
         },
@@ -14860,6 +16550,619 @@
           },
           "401": {
             "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/keywords/batch": {
+      "post": {
+        "operationId": "createKeywords",
+        "summary": "Track many keywords",
+        "description": "Create up to 100 keywords in one call, as POST /v1/keywords would, without reviewSources and feeds.\n\n- Each is created or refused on its own; `data` answers in order.\n- The wallet is checked keyword by keyword; none created for it is a 402.\n\nSee [Keywords](/guides/keywords#add-many-at-once).",
+        "tags": [
+          "Keywords"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "keywords": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "term": {
+                          "type": "string",
+                          "minLength": 2,
+                          "maxLength": 80,
+                          "description": "The word or phrase to track, case-insensitive. Required unless `query` is sent. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only."
+                        },
+                        "query": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1000,
+                          "description": "The keyword as one boolean query instead of term and matching, like \"acme cloud\" AND (pricing OR price*) -jobs ([Keywords](/guides/keywords#write-it-as-a-query)):\n\n- Phrases, words, AND, OR, NOT or -word, parentheses, word-end *\n- Compiled into term and the term rules; never sent with them (400).\n- Each alternative starts with the term; else 400 query_needs_one_term."
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "brand",
+                            "competitor",
+                            "topic"
+                          ],
+                          "default": "brand",
+                          "description": "brand: your own names. competitor: theirs. topic: the space. Drives share of voice and segments."
+                        },
+                        "platforms": {
+                          "type": "array",
+                          "nullable": true,
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "bluesky",
+                              "hackernews",
+                              "github",
+                              "stackoverflow",
+                              "devto",
+                              "reddit",
+                              "x",
+                              "youtube",
+                              "news",
+                              "linkedin",
+                              "tiktok",
+                              "instagram",
+                              "facebook",
+                              "podcasts",
+                              "web",
+                              "substack",
+                              "producthunt",
+                              "threads",
+                              "mastodon"
+                            ]
+                          },
+                          "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds."
+                        },
+                        "context": {
+                          "type": "string",
+                          "nullable": true,
+                          "maxLength": 300,
+                          "description": "A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. \"Arc is our browser; ignore the geometry word.\" Null clears it."
+                        },
+                        "matching": {
+                          "type": "object",
+                          "properties": {
+                            "requiredTerms": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 80
+                              },
+                              "maxItems": 50,
+                              "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement."
+                            },
+                            "requiredMode": {
+                              "type": "string",
+                              "enum": [
+                                "any",
+                                "all"
+                              ],
+                              "description": "any: at least one required term must appear. all: every one must."
+                            },
+                            "requiredGroups": {
+                              "type": "array",
+                              "items": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 80
+                                },
+                                "minItems": 1,
+                                "maxItems": 10
+                              },
+                              "maxItems": 50,
+                              "description": "Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword)."
+                            },
+                            "excludedTerms": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 80
+                              },
+                              "maxItems": 50,
+                              "description": "A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot)."
+                            },
+                            "excludedAuthors": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 500
+                              },
+                              "maxItems": 100,
+                              "description": "Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list."
+                            },
+                            "caseSensitive": {
+                              "type": "boolean",
+                              "description": "true: the term must appear in the case it was typed (RAG, never rag). Default false."
+                            },
+                            "exactPhrase": {
+                              "type": "boolean",
+                              "description": "true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only)."
+                            },
+                            "repositories": {
+                              "type": "object",
+                              "properties": {
+                                "events": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "enum": [
+                                      "new",
+                                      "traction",
+                                      "stars",
+                                      "growth"
+                                    ]
+                                  },
+                                  "description": "The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).\n\n- traction: under 30 days old, it reached 10 stars.\n- stars: it passed a milestone (100, 250, 500, 1,000 ...).\n- growth: it gained stars fast in a week.\n- new: every repository created; opt in, mostly noise."
+                                },
+                                "minStars": {
+                                  "type": "integer",
+                                  "nullable": true,
+                                  "minimum": 0,
+                                  "maximum": 1000000,
+                                  "description": "Only repositories with at least this many stars; null for no minimum."
+                                },
+                                "minWeeklyStars": {
+                                  "type": "integer",
+                                  "nullable": true,
+                                  "minimum": 25,
+                                  "maximum": 1000000,
+                                  "description": "Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing."
+                                }
+                              },
+                              "description": "GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum."
+                            },
+                            "subreddits": {
+                              "type": "object",
+                              "properties": {
+                                "only": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                  },
+                                  "maxItems": 50,
+                                  "description": "Replaces the keyword's allowlist; [] clears it."
+                                },
+                                "excluded": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 100
+                                  },
+                                  "maxItems": 50,
+                                  "description": "Replaces the keyword's deny list; [] clears it."
+                                }
+                              },
+                              "description": "Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted."
+                            }
+                          },
+                          "description": "Omitted fields are untouched; an empty list clears one."
+                        },
+                        "cap": {
+                          "type": "object",
+                          "nullable": true,
+                          "properties": {
+                            "mentions": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 1000000,
+                              "description": "Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills."
+                            },
+                            "per": {
+                              "type": "string",
+                              "enum": [
+                                "day",
+                                "week",
+                                "month"
+                              ],
+                              "default": "month",
+                              "description": "The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts."
+                            }
+                          },
+                          "required": [
+                            "mentions"
+                          ],
+                          "description": "A mention cap per day, week or month (per, default month); omit or null for none."
+                        },
+                        "comments": {
+                          "type": "object",
+                          "properties": {
+                            "enabled": {
+                              "type": "boolean",
+                              "description": "Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments)."
+                            },
+                            "maxPerPost": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 100,
+                              "description": "The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these."
+                            }
+                          },
+                          "description": "Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post)."
+                        },
+                        "display": {
+                          "type": "object",
+                          "properties": {
+                            "languages": {
+                              "type": "object",
+                              "properties": {
+                                "only": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "enum": [
+                                      "en",
+                                      "es",
+                                      "de",
+                                      "fr",
+                                      "pt",
+                                      "it",
+                                      "nl",
+                                      "ca",
+                                      "pl",
+                                      "tr",
+                                      "sv",
+                                      "da",
+                                      "ru",
+                                      "uk",
+                                      "ar",
+                                      "hi",
+                                      "id",
+                                      "ja",
+                                      "zh",
+                                      "ko"
+                                    ]
+                                  },
+                                  "maxItems": 60,
+                                  "description": "Replaces the list; [] clears it."
+                                },
+                                "excluded": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "enum": [
+                                      "en",
+                                      "es",
+                                      "de",
+                                      "fr",
+                                      "pt",
+                                      "it",
+                                      "nl",
+                                      "ca",
+                                      "pl",
+                                      "tr",
+                                      "sv",
+                                      "da",
+                                      "ru",
+                                      "uk",
+                                      "ar",
+                                      "hi",
+                                      "id",
+                                      "ja",
+                                      "zh",
+                                      "ko"
+                                    ]
+                                  },
+                                  "maxItems": 60,
+                                  "description": "Replaces the list; [] clears it."
+                                }
+                              },
+                              "description": "By the language of the post (ISO 639-1); omitted: untouched."
+                            },
+                            "countries": {
+                              "type": "object",
+                              "properties": {
+                                "only": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "enum": [
+                                      "us",
+                                      "ca",
+                                      "mx",
+                                      "br",
+                                      "ar",
+                                      "co",
+                                      "cl",
+                                      "pe",
+                                      "gb",
+                                      "ie",
+                                      "fr",
+                                      "de",
+                                      "es",
+                                      "pt",
+                                      "it",
+                                      "nl",
+                                      "be",
+                                      "ch",
+                                      "at",
+                                      "se",
+                                      "no",
+                                      "dk",
+                                      "fi",
+                                      "pl",
+                                      "cz",
+                                      "ro",
+                                      "gr",
+                                      "hu",
+                                      "ua",
+                                      "ru",
+                                      "lt",
+                                      "lv",
+                                      "ee",
+                                      "tr",
+                                      "il",
+                                      "ae",
+                                      "sa",
+                                      "eg",
+                                      "ng",
+                                      "ke",
+                                      "za",
+                                      "ma",
+                                      "in",
+                                      "pk",
+                                      "bd",
+                                      "lk",
+                                      "np",
+                                      "cn",
+                                      "hk",
+                                      "tw",
+                                      "jp",
+                                      "kr",
+                                      "sg",
+                                      "my",
+                                      "id",
+                                      "ph",
+                                      "vn",
+                                      "th",
+                                      "au",
+                                      "nz"
+                                    ]
+                                  },
+                                  "maxItems": 60,
+                                  "description": "Replaces the list; [] clears it."
+                                },
+                                "excluded": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string",
+                                    "enum": [
+                                      "us",
+                                      "ca",
+                                      "mx",
+                                      "br",
+                                      "ar",
+                                      "co",
+                                      "cl",
+                                      "pe",
+                                      "gb",
+                                      "ie",
+                                      "fr",
+                                      "de",
+                                      "es",
+                                      "pt",
+                                      "it",
+                                      "nl",
+                                      "be",
+                                      "ch",
+                                      "at",
+                                      "se",
+                                      "no",
+                                      "dk",
+                                      "fi",
+                                      "pl",
+                                      "cz",
+                                      "ro",
+                                      "gr",
+                                      "hu",
+                                      "ua",
+                                      "ru",
+                                      "lt",
+                                      "lv",
+                                      "ee",
+                                      "tr",
+                                      "il",
+                                      "ae",
+                                      "sa",
+                                      "eg",
+                                      "ng",
+                                      "ke",
+                                      "za",
+                                      "ma",
+                                      "in",
+                                      "pk",
+                                      "bd",
+                                      "lk",
+                                      "np",
+                                      "cn",
+                                      "hk",
+                                      "tw",
+                                      "jp",
+                                      "kr",
+                                      "sg",
+                                      "my",
+                                      "id",
+                                      "ph",
+                                      "vn",
+                                      "th",
+                                      "au",
+                                      "nz"
+                                    ]
+                                  },
+                                  "maxItems": 60,
+                                  "description": "Replaces the list; [] clears it."
+                                }
+                              },
+                              "description": "By where the author is (ISO 3166-1 alpha-2); omitted: untouched."
+                            }
+                          },
+                          "description": "Which of this keyword's mentions you see, by language and country; each list is replaced when sent, kept when omitted. Hidden mentions are still billed."
+                        },
+                        "groupId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "description": "The group to track it in (grp_...); omit for the workspace's default group. A term may be tracked once per group."
+                        },
+                        "readsWorkspaceFeeds": {
+                          "type": "boolean",
+                          "description": "Whether the keyword also reads the workspace's feeds (GET /v1/feeds); default true. A new keyword reading them gets the look-back of the 8 most recently connected."
+                        }
+                      },
+                      "description": "One keyword, as POST /v1/keywords takes it, without reviewSources and feeds (add those to the keyword afterwards)."
+                    },
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "description": "The keywords to create, 1 to 100 (10 before the first top-up), in order. Each is created or refused on its own."
+                  }
+                },
+                "required": [
+                  "keywords"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "One result per keyword sent: the created keyword, or why it was refused",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordBatchResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: the body failed validation (validation_error), for instance more than 100 keywords",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Nothing was created and the wallet (insufficient_balance) or the 500-keyword ceiling (keyword_limit_reached) refused at least one keyword, or more than 10 keywords before the first top-up (funding_required)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/keywords/{id}/deletion-preview": {
+      "get": {
+        "operationId": "getKeywordDeletionPreview",
+        "summary": "Preview a keyword deletion",
+        "description": "What DELETE /v1/keywords/{id} would remove or change, without changing anything.\n\n- Its mentions and what it cost this month (charges already made stay).\n- Alert rules, automations and views naming it, and the effect on each: disabled, narrowed or empty.",
+        "tags": [
+          "Keywords"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Keyword id (kw_...).",
+              "example": "kw_abc123"
+            },
+            "required": true,
+            "description": "Keyword id (kw_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "What deleting the keyword would do",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordDeletionPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Keyword not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -28012,10 +30315,12 @@
                     "enum": [
                       "24h",
                       "7d",
-                      "30d"
+                      "30d",
+                      "90d",
+                      "365d"
                     ],
                     "default": "7d",
-                    "description": "How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range."
+                    "description": "How far back the search reads, ending now. See [Search](/guides/search#platforms).\n\n- 24h, 7d, 30d: every platform (instagram at most 7 days).\n- 90d, 365d: only platforms reaching that far; the others are skipped (window)."
                   },
                   "platforms": {
                     "type": "array",
@@ -28186,9 +30491,11 @@
                             "enum": [
                               "24h",
                               "7d",
-                              "30d"
+                              "30d",
+                              "90d",
+                              "365d"
                             ],
-                            "description": "How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range."
+                            "description": "How far back the search reads, ending now. See [Search](/guides/search#platforms).\n\n- 24h, 7d, 30d: every platform (instagram at most 7 days).\n- 90d, 365d: only platforms reaching that far; the others are skipped (window)."
                           },
                           "kind": {
                             "type": "string",
@@ -28269,13 +30576,14 @@
                                   "nullable": true,
                                   "enum": [
                                     "unsupported",
+                                    "window",
                                     "credentials",
                                     "budget",
                                     "rate_limited",
                                     "error",
                                     "timeout"
                                   ],
-                                  "description": "Why a platform was skipped or failed: unsupported (no term search on it), credentials (not connected on this deployment), budget (its monthly vendor budget is spent), rate_limited, error, timeout. null otherwise."
+                                  "description": "Why a platform was skipped or failed; null otherwise.\n\n- unsupported: no term search on it.\n- window: its search cannot reach that far back.\n- credentials: not connected on this deployment.\n- budget: its monthly vendor budget is spent.\n- rate_limited, error, timeout: the read failed."
                                 },
                                 "results": {
                                   "type": "integer",
@@ -31915,6 +34223,353 @@
         }
       }
     },
+    "/v1/keyword-estimates": {
+      "post": {
+        "operationId": "createKeywordEstimate",
+        "summary": "Estimate keyword volume",
+        "description": "Estimate how many mentions a month up to 10 candidate keywords would bring, and their cost.\n\n- Free by default; `includePaid` also samples paid platforms.\n- Poll until `status` is done. See [Keyword estimates](/guides/keyword-estimates).",
+        "tags": [
+          "Keywords"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "terms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 2,
+                      "maxLength": 80,
+                      "description": "A candidate keyword, as you would type it (double quotes set exactPhrase for that term)."
+                    },
+                    "minItems": 1,
+                    "maxItems": 10,
+                    "description": "Up to 10 candidate keywords, each estimated on its own."
+                  },
+                  "platforms": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "bluesky",
+                        "hackernews",
+                        "github",
+                        "stackoverflow",
+                        "devto",
+                        "reddit",
+                        "x",
+                        "youtube",
+                        "news",
+                        "linkedin",
+                        "tiktok",
+                        "instagram",
+                        "facebook",
+                        "podcasts",
+                        "web",
+                        "substack",
+                        "producthunt",
+                        "threads",
+                        "mastodon"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 19,
+                    "description": "The platforms the keyword would track; omit for every platform (what a new keyword tracks)."
+                  },
+                  "matching": {
+                    "type": "object",
+                    "properties": {
+                      "requiredTerms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "maxItems": 50,
+                        "description": "The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement."
+                      },
+                      "requiredMode": {
+                        "type": "string",
+                        "enum": [
+                          "any",
+                          "all"
+                        ],
+                        "description": "any: at least one required term must appear. all: every one must."
+                      },
+                      "requiredGroups": {
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "minItems": 1,
+                          "maxItems": 10
+                        },
+                        "maxItems": 50,
+                        "description": "Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword)."
+                      },
+                      "excludedTerms": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80
+                        },
+                        "maxItems": 50,
+                        "description": "A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot)."
+                      },
+                      "exactPhrase": {
+                        "type": "boolean",
+                        "description": "true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only)."
+                      }
+                    },
+                    "description": "The rules the keyword would carry, as on a keyword: a sampled post must pass them to count. Omitted fields take the keyword defaults."
+                  },
+                  "includePaid": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Also sample the paid platforms. See [Keyword estimates](/guides/keyword-estimates#cost).\n\n- false (default): index numbers and free samples only; costs nothing.\n- true: also the paid platforms, 2 to 20 cents per term and platform read; funded only."
+                  }
+                },
+                "required": [
+                  "terms"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The estimate, queued (or done already when every number came from the index)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordEstimate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid body (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "includePaid on a workspace that never topped up (funding_required), or a balance that does not cover maxCostCents (insufficient_balance)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "More than 30 estimates or 60 platform samples in the last hour (rate_limited); Retry-After says when",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listKeywordEstimates",
+        "summary": "List keyword estimates",
+        "description": "The workspace's estimates, newest first, kept for 30 days.",
+        "tags": [
+          "Keywords"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Page size, 1 to 100."
+            },
+            "required": false,
+            "description": "Page size, 1 to 100.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "nextCursor from the previous page."
+            },
+            "required": false,
+            "description": "nextCursor from the previous page.",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estimates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/KeywordEstimate"
+                      },
+                      "description": "Estimates, newest first."
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Pass as cursor for the next page; null on the last page."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query or pagination cursor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/keyword-estimates/{id}": {
+      "get": {
+        "operationId": "getKeywordEstimate",
+        "summary": "Get a keyword estimate",
+        "description": "Each term's expected matched mentions a month per platform, the monthly cost range, and what the estimate itself cost.",
+        "tags": [
+          "Keywords"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Estimate id (est_...).",
+              "example": "est_abc123"
+            },
+            "required": true,
+            "description": "Estimate id (est_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The estimate",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KeywordEstimate"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such estimate in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/automations": {
       "get": {
         "operationId": "listAutomations",
@@ -34336,10 +36991,10 @@
           {
             "schema": {
               "type": "string",
-              "description": "Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing (feed.recovered never opens an item)."
+              "description": "Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, mention.unanswered_influencer, mention.topic_cluster (feed.recovered never opens an item)."
             },
             "required": false,
-            "description": "Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing (feed.recovered never opens an item).",
+            "description": "Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, mention.unanswered_influencer, mention.topic_cluster (feed.recovered never opens an item).",
             "name": "kind",
             "in": "query"
           },
@@ -40096,11 +42751,13 @@
                         "channel.failing",
                         "feed.failing",
                         "feed.recovered",
+                        "mention.unanswered_influencer",
+                        "mention.topic_cluster",
                         "export.ready"
                       ],
-                      "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- export.ready: a scheduled export finished; data carries a signed download link."
+                      "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
                     },
-                    "maxItems": 13,
+                    "maxItems": 15,
                     "description": "Replaces the account events the channel receives; empty unsubscribes it from all. A webhook takes any; Slack, email, Telegram, Discord and Teams take the attention events only. See [Account events](/webhooks/account-events)."
                   }
                 },

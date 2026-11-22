@@ -424,6 +424,491 @@ export type ErrorResponse = {
     };
 };
 
+export type KeywordBatchResult = {
+    /**
+     * One result per keyword sent, in the same order.
+     */
+    data: Array<{
+        /**
+         * Position of the keyword in the request, from 0.
+         */
+        index: number;
+        /**
+         * created: the keyword exists now. failed: nothing was created for it; error says why.
+         */
+        status: 'created' | 'failed';
+        /**
+         * The created keyword; null when it failed.
+         */
+        keyword: {
+            /**
+             * Keyword id (kw_...).
+             */
+            id: string;
+            /**
+             * The tracked text, as typed.
+             */
+            term: string;
+            /**
+             * The boolean query the keyword was written as, as sent; term and matching hold what it compiled to. Null for a keyword defined by its fields, or once its term or term rules changed by hand.
+             */
+            query: string | null;
+            /**
+             * brand (your own name), competitor, or topic.
+             */
+            kind: 'brand' | 'competitor' | 'topic';
+            /**
+             * Not polled or matched. Paused by you, by the wallet (see pausedForBalance) or by the noise brake (see pausedForNoise). A keyword at its mention cap is not muted (see pausedForCap).
+             */
+            muted: boolean;
+            /**
+             * Muted by the wallet for lack of balance; a top-up resumes it, unmuting by hand needs balance too.
+             */
+            pausedForBalance: boolean;
+            /**
+             * Muted by the noise brake: under 30% of 20 or more scored matches were relevant, on welcome credit. Changing its rules, platforms or context, or unmuting, resumes it (balance permitting); a top-up does not. See [Billing](/billing).
+             */
+            pausedForNoise: boolean;
+            /**
+             * At its monthly mention cap: not matched until the first of next month (UTC) or until the cap is raised. Not muted: it keeps its place and its daily keyword charge.
+             */
+            pausedForCap: boolean;
+            /**
+             * The mention cap and its period, or null for none.
+             */
+            cap: {
+                /**
+                 * Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+                 */
+                mentions: number;
+                /**
+                 * The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts.
+                 */
+                per?: 'day' | 'week' | 'month';
+                /**
+                 * Charged items (matches plus thread comments) counted in the current period: today, this week from Monday or this month, UTC. The keyword pauses when it reaches mentions.
+                 */
+                used: number;
+                /**
+                 * Set by Mentio, not you: a workspace on its welcome credit collects at most 200 mentions a keyword a month. The first top-up removes it.
+                 */
+                welcome: boolean;
+                /**
+                 * Your own cap. With welcome true, the cap the keyword gets back at the first top-up (null for none); otherwise the same as mentions. Sending mentions: 200 back while welcome is true changes nothing.
+                 */
+                own: number | null;
+                /**
+                 * The period of your own cap (null when own is null); with welcome false, the same as per.
+                 */
+                ownPer: 'day' | 'week' | 'month';
+                /**
+                 * While paused for its cap (pausedForCap): when its next period starts and it matches again. Null otherwise.
+                 */
+                resumesAt: string | null;
+            } | null;
+            /**
+             * Comments under this keyword's relevant mentions, read several times per thread on Hacker News, Bluesky, GitHub, Stack Overflow, DEV, YouTube and Reddit. List them with GET /v1/mentions/{id}/comments; see [Comments](/guides/comments).
+             */
+            comments: {
+                /**
+                 * Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments).
+                 */
+                enabled: boolean;
+                /**
+                 * The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these.
+                 */
+                maxPerPost: number;
+            };
+            /**
+             * Which of this keyword's mentions you see, by language and country. A hidden post is still matched, classified and billed, but kept out of lists, exports, search, alerts and digests (includeHidden=true shows it). See [Keywords](/guides/keywords#show-only-some-languages-or-countries).
+             */
+            display: {
+                /**
+                 * By the language the post is written in (ISO 639-1).
+                 */
+                languages: {
+                    /**
+                     * When non-empty, a post whose language is known and not listed is hidden, one the classifier cannot name included. A post whose language nobody could tell is always shown.
+                     */
+                    only: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                    /**
+                     * A post whose language is listed is hidden.
+                     */
+                    excluded: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                };
+                /**
+                 * By where the author is (ISO 3166-1 alpha-2), as the classifier read their profile and the post.
+                 */
+                countries: {
+                    /**
+                     * When non-empty, a post whose author's country is known and not listed is hidden, one the classifier cannot name included. A post whose author's country nobody could tell is always shown.
+                     */
+                    only: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                    /**
+                     * A post whose author's country is listed is hidden.
+                     */
+                    excluded: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                };
+            };
+            group: GroupRef;
+            /**
+             * Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews).
+             */
+            platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon'> | null;
+            /**
+             * RSS and Atom feeds this keyword reads; empty for none.
+             */
+            feeds: Array<KeywordFeed>;
+            /**
+             * true (the default): the keyword also reads every feed of the workspace (GET /v1/feeds), on top of its own `feeds`. false: its own feeds alone.
+             */
+            readsWorkspaceFeeds: boolean;
+            /**
+             * Where this keyword collects reviews from (App Store and Google Play apps, Trustpilot pages, Google Maps places); empty for none.
+             */
+            reviewSources: Array<ReviewSource>;
+            /**
+             * A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+             */
+            context: string | null;
+            /**
+             * Matching rules applied before a mention is stored; a rejected post is never billed.
+             */
+            matching: {
+                /**
+                 * The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement.
+                 */
+                requiredTerms: Array<string>;
+                /**
+                 * any: at least one required term must appear. all: every one must.
+                 */
+                requiredMode: 'any' | 'all';
+                /**
+                 * Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword).
+                 */
+                requiredGroups: Array<Array<string>>;
+                /**
+                 * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
+                 */
+                excludedTerms: Array<string>;
+                /**
+                 * Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list.
+                 */
+                excludedAuthors: Array<string>;
+                /**
+                 * true: the term must appear in the case it was typed (RAG, never rag). Default false.
+                 */
+                caseSensitive: boolean;
+                /**
+                 * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
+                 */
+                exactPhrase: boolean;
+                /**
+                 * Reddit only, for this keyword alone; the workspace filters' own subreddit lists (GET /v1/filters) still apply to every keyword, and a post must pass both.
+                 */
+                subreddits: {
+                    /**
+                     * When non-empty, this keyword takes Reddit posts from these subreddits ONLY and `excluded` is ignored. r/name or name, stored bare and lowercase.
+                     */
+                    only: Array<string>;
+                    /**
+                     * Reddit posts from these subreddits are dropped for this keyword. r/name or name.
+                     */
+                    excluded: Array<string>;
+                };
+                /**
+                 * GitHub only: which repository events naming this keyword become mentions. An event outside the rule is dropped before it is stored, so it is never billed.
+                 */
+                repositories: {
+                    /**
+                     * The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).
+                     *
+                     * - traction: under 30 days old, it reached 10 stars.
+                     * - stars: it passed a milestone (100, 250, 500, 1,000 ...).
+                     * - growth: it gained stars fast in a week.
+                     * - new: every repository created; opt in, mostly noise.
+                     */
+                    events: Array<'new' | 'traction' | 'stars' | 'growth'>;
+                    /**
+                     * Only repositories with at least this many stars; null for no minimum.
+                     */
+                    minStars: number | null;
+                    /**
+                     * Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing.
+                     */
+                    minWeeklyStars: number | null;
+                };
+            };
+            /**
+             * Computed over this workspace's matches.
+             */
+            stats: {
+                /**
+                 * Every match ever, relevant or not: the number billing counts.
+                 */
+                mentions: number;
+                /**
+                 * Matches scored at or above the relevance threshold.
+                 */
+                relevant: number;
+                /**
+                 * Matches published in the last 7 days.
+                 */
+                last7d: number;
+                /**
+                 * Matches recorded this calendar month (UTC), plus the thread comments delivered under this keyword's mentions: the count a cap compares against.
+                 */
+                thisMonth: number;
+                /**
+                 * Newest matched post; null until the first one.
+                 */
+                lastMentionAt: string | null;
+                /**
+                 * Your verdicts on this keyword's mentions (PATCH /v1/mentions/{id} relevant).
+                 */
+                feedback: {
+                    /**
+                     * Mentions a person marked relevant.
+                     */
+                    relevant: number;
+                    /**
+                     * Mentions a person marked not relevant: the noise the classifier let through.
+                     */
+                    notRelevant: number;
+                };
+                /**
+                 * Relevance over the last 14 days of scored matches, so a keyword tightened today stops being flagged within two weeks.
+                 */
+                noise: {
+                    /**
+                     * Matches of the last 14 days (by match time) the classifier has scored.
+                     */
+                    scored: number;
+                    /**
+                     * Of those, the ones scored relevant.
+                     */
+                    relevant: number;
+                    /**
+                     * At least 20 scored matches in the last 14 days and under 30% of them relevant: tighten the keyword with required terms, excluded terms or context. Every match bills, relevant or not.
+                     */
+                    noisy: boolean;
+                };
+                /**
+                 * The first status that applies over the last 14 days; see [Keyword health](/guides/keyword-health).
+                 *
+                 * - paused: muted.
+                 * - capped: at its mention cap.
+                 * - noisy: 20 or more scored matches, under 30% relevant.
+                 * - new: under 7 days old, or changed lately with few scored matches.
+                 * - quiet: 7 days or older, nothing relevant.
+                 * - healthy: none of the above.
+                 */
+                health: 'healthy' | 'noisy' | 'quiet' | 'capped' | 'paused' | 'new';
+                /**
+                 * What this keyword has cost this calendar month (UTC) at list price: its row in GET /v1/usage/breakdown?month=<this month>. The ledger differs only by cumulative rounding.
+                 */
+                cost: {
+                    /**
+                     * Days this month the keyword was charged for: unmuted at the daily tick. A keyword created today reads 0 until tomorrow's tick.
+                     */
+                    keywordDays: number;
+                    /**
+                     * Those days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total.
+                     */
+                    keywordCents: number;
+                    /**
+                     * Matches billed this month, counted when they were scored (the clock the ledger settles by), so it can trail thisMonth by the matches still being scored and never counts one that failed to score.
+                     */
+                    billableMentions: number;
+                    /**
+                     * Those matches at $0.008 each, rounded once on the total.
+                     */
+                    mentionCents: number;
+                    /**
+                     * Comments billed this month under this keyword: comments delivered in its threads and comments it matched, each once per workspace.
+                     */
+                    billableComments: number;
+                    /**
+                     * Those comments at $0.008 each, rounded once on the total.
+                     */
+                    commentCents: number;
+                    /**
+                     * keywordCents plus mentionCents plus commentCents: what this keyword has cost this month, in USD cents.
+                     */
+                    totalCents: number;
+                };
+            };
+            /**
+             * Poll health per platform polled on a schedule. Live feeds (Bluesky) have no entry.
+             */
+            polling: Array<{
+                /**
+                 * Platform, one of:
+                 * - Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon
+                 * - Developer: hackernews, github, stackoverflow, devto
+                 * - Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)
+                 * - Web: web (blogs), substack, producthunt
+                 * - Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)
+                 */
+                platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+                /**
+                 * Newest poll of this platform for the term; null until the first one.
+                 */
+                lastPolledAt: string | null;
+                /**
+                 * Consecutive polls that found nothing new; the scheduler slows down as it grows.
+                 */
+                emptyPolls: number;
+            }>;
+            /**
+             * ISO 8601 timestamp, UTC.
+             */
+            createdAt: string;
+        } | null;
+        /**
+         * Why it failed; null when created.
+         */
+        error: {
+            /**
+             * The error code it would have got alone: duplicate_keyword, validation_error, invalid_query, query_needs_one_term, query_not_supported, not_found (its group), insufficient_balance, keyword_limit_reached.
+             */
+            code: string;
+            /**
+             * What went wrong, for a person.
+             */
+            message: string;
+        } | null;
+    }>;
+    /**
+     * Keywords created.
+     */
+    created: number;
+    /**
+     * Keywords refused.
+     */
+    failed: number;
+};
+
+export type KeywordDeletionPreview = {
+    /**
+     * The keyword.
+     */
+    keyword: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+        /**
+         * The tracked term.
+         */
+        term: string;
+        /**
+         * The keyword as Mentio names it: the term, or "term (Group)" outside the default group.
+         */
+        name: string;
+    };
+    /**
+     * Its mentions, every match ever: deleted with it (a post another keyword also matched stays there).
+     */
+    matches: number;
+    /**
+     * Of those, recorded this calendar month (UTC), plus the thread comments delivered under it.
+     */
+    thisMonth: number;
+    /**
+     * What it has cost this month so far. Deleting refunds nothing: charges already made stay on the ledger, and from the next daily charge it costs nothing.
+     */
+    cost: {
+        /**
+         * Days this month the keyword was charged for: unmuted at the daily tick. A keyword created today reads 0 until tomorrow's tick.
+         */
+        keywordDays: number;
+        /**
+         * Those days at the keyword rate ($5 a month, 500/30 cents a day), rounded once on the total.
+         */
+        keywordCents: number;
+        /**
+         * Matches billed this month, counted when they were scored (the clock the ledger settles by), so it can trail thisMonth by the matches still being scored and never counts one that failed to score.
+         */
+        billableMentions: number;
+        /**
+         * Those matches at $0.008 each, rounded once on the total.
+         */
+        mentionCents: number;
+        /**
+         * Comments billed this month under this keyword: comments delivered in its threads and comments it matched, each once per workspace.
+         */
+        billableComments: number;
+        /**
+         * Those comments at $0.008 each, rounded once on the total.
+         */
+        commentCents: number;
+        /**
+         * keywordCents plus mentionCents plus commentCents: what this keyword has cost this month, in USD cents.
+         */
+        totalCents: number;
+    };
+    /**
+     * Alert rules whose filter names the keyword.
+     */
+    alerts: Array<{
+        /**
+         * Alert rule id (feed_...).
+         */
+        id: string;
+        /**
+         * Its name.
+         */
+        name: string;
+        /**
+         * Whether it is on now.
+         */
+        enabled: boolean;
+        /**
+         * disabled: it named only this keyword and is switched off (never widened to every keyword). narrowed: it stops naming this keyword and keeps working on the rest. empty: a view naming only this keyword keeps it and shows nothing.
+         */
+        effect: 'disabled' | 'narrowed' | 'empty';
+    }>;
+    /**
+     * Automations whose filter names the keyword.
+     */
+    automations: Array<{
+        /**
+         * Automation id (atm_...).
+         */
+        id: string;
+        /**
+         * Its name.
+         */
+        name: string;
+        /**
+         * Whether it is on now.
+         */
+        enabled: boolean;
+        /**
+         * disabled: it named only this keyword and is switched off (never widened to every keyword). narrowed: it stops naming this keyword and keeps working on the rest. empty: a view naming only this keyword keeps it and shows nothing.
+         */
+        effect: 'disabled' | 'narrowed' | 'empty';
+    }>;
+    /**
+     * Saved views whose filter names the keyword.
+     */
+    views: Array<{
+        /**
+         * View id (vw_...).
+         */
+        id: string;
+        /**
+         * Its name.
+         */
+        name: string;
+        /**
+         * disabled: it named only this keyword and is switched off (never widened to every keyword). narrowed: it stops naming this keyword and keeps working on the rest. empty: a view naming only this keyword keeps it and shows nothing.
+         */
+        effect: 'disabled' | 'narrowed' | 'empty';
+    }>;
+};
+
 export type KeywordSuggestion = {
     /**
      * excluded_terms and excluded_authors add to the matching rules; required_terms sets them; platforms drops the platforms that are almost all noise; context rewrites the sentence the classifier reads.
@@ -2466,9 +2951,12 @@ export type Search = {
      */
     term: string;
     /**
-     * How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range.
+     * How far back the search reads, ending now. See [Search](/guides/search#platforms).
+     *
+     * - 24h, 7d, 30d: every platform (instagram at most 7 days).
+     * - 90d, 365d: only platforms reaching that far; the others are skipped (window).
      */
-    range: '24h' | '7d' | '30d';
+    range: '24h' | '7d' | '30d' | '90d' | '365d';
     /**
      * brand, competitor or topic: what the classifier was told the term is.
      */
@@ -2503,9 +2991,15 @@ export type Search = {
          */
         status: 'queued' | 'running' | 'done' | 'skipped' | 'failed';
         /**
-         * Why a platform was skipped or failed: unsupported (no term search on it), credentials (not connected on this deployment), budget (its monthly vendor budget is spent), rate_limited, error, timeout. null otherwise.
+         * Why a platform was skipped or failed; null otherwise.
+         *
+         * - unsupported: no term search on it.
+         * - window: its search cannot reach that far back.
+         * - credentials: not connected on this deployment.
+         * - budget: its monthly vendor budget is spent.
+         * - rate_limited, error, timeout: the read failed.
          */
-        reason: 'unsupported' | 'credentials' | 'budget' | 'rate_limited' | 'error' | 'timeout';
+        reason: 'unsupported' | 'window' | 'credentials' | 'budget' | 'rate_limited' | 'error' | 'timeout';
         /**
          * Results stored for this platform, at most 25.
          */
@@ -3532,6 +4026,158 @@ export type ExportSchedule = {
     updatedAt: string;
 };
 
+export type KeywordEstimate = {
+    /**
+     * Estimate id (est_...).
+     */
+    id: string;
+    /**
+     * queued: accepted, nothing sampled yet. running: platforms being sampled. done: every platform reported. failed: no platform of any term has a number.
+     */
+    status: 'queued' | 'running' | 'done' | 'failed';
+    /**
+     * Whether paid platforms were sampled.
+     */
+    includePaid: boolean;
+    /**
+     * The platforms asked for.
+     */
+    platforms: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss'>;
+    /**
+     * One entry per term, in the order sent.
+     */
+    terms: Array<{
+        /**
+         * The candidate keyword, normalized as a keyword stores it.
+         */
+        term: string;
+        /**
+         * Sum over the platforms that have a number.
+         */
+        monthly: {
+            /**
+             * Low end of the expected matched mentions a month.
+             */
+            low: number;
+            /**
+             * High end of the expected matched mentions a month.
+             */
+            high: number;
+        };
+        /**
+         * true when every platform asked for has a number; false when some were skipped or failed (their volume is not in the sum).
+         */
+        complete: boolean;
+        /**
+         * What tracking this term would cost a month at today's prices, with no mention cap.
+         */
+        cost: {
+            /**
+             * The keyword fee for a month ($5).
+             */
+            keywordCents: number;
+            /**
+             * Matched mentions a month at $0.008, low end.
+             */
+            mentionsLowCents: number;
+            /**
+             * Matched mentions a month at $0.008, high end.
+             */
+            mentionsHighCents: number;
+            /**
+             * Keyword fee plus mentions, low end.
+             */
+            totalLowCents: number;
+            /**
+             * Keyword fee plus mentions, high end.
+             */
+            totalHighCents: number;
+        };
+        /**
+         * One entry per platform asked for.
+         */
+        platforms: Array<{
+            /**
+             * Platform, one of:
+             * - Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon
+             * - Developer: hackernews, github, stackoverflow, devto
+             * - Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)
+             * - Web: web (blogs), substack, producthunt
+             * - Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)
+             */
+            platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+            /**
+             * queued: not sampled yet. running: being sampled. done: it has a number. skipped: no number (see reason). failed: the sample failed (see reason).
+             */
+            status: 'queued' | 'running' | 'done' | 'skipped' | 'failed';
+            /**
+             * Why a platform has no number; null otherwise.
+             *
+             * - unsupported: no term search, and no index for the term.
+             * - paid: a paid platform, includePaid was false.
+             * - quota: youtube, its quota is kept for live tracking.
+             * - credentials, budget: not connected, or its monthly budget is spent.
+             * - rate_limited, error, timeout: the sample failed.
+             */
+            reason: 'unsupported' | 'paid' | 'quota' | 'credentials' | 'budget' | 'rate_limited' | 'error' | 'timeout';
+            /**
+             * index: counted from the posts Mentio already reads for this term (the closest to what a keyword gets). sample: one page of the platform's own search, extrapolated to a month. null without a number.
+             */
+            method: 'index' | 'sample';
+            /**
+             * Expected matched mentions a month on this platform; null without a number.
+             */
+            monthly: {
+                /**
+                 * Low end of the expected matched mentions a month.
+                 */
+                low: number;
+                /**
+                 * High end of the expected matched mentions a month.
+                 */
+                high: number;
+            } | null;
+            /**
+             * What the number rests on; null without a number.
+             */
+            sample: {
+                /**
+                 * Posts read (index: posts counted).
+                 */
+                read: number;
+                /**
+                 * Of them, holding the term and passing the rules.
+                 */
+                matched: number;
+                /**
+                 * The span of time they cover, in days.
+                 */
+                days: number;
+            } | null;
+            /**
+             * What sampling this platform cost: 0 for index numbers and free platforms.
+             */
+            costCents: number;
+        }>;
+    }>;
+    /**
+     * What the estimate has cost so far (paid samples read); charged to the wallet when it completes.
+     */
+    costCents: number;
+    /**
+     * The most it can cost: every paid sample it may read. The wallet had to cover it when it started.
+     */
+    maxCostCents: number;
+    /**
+     * When the estimate was started.
+     */
+    createdAt: string;
+    /**
+     * When it reached done or failed; null while it runs.
+     */
+    completedAt: string | null;
+};
+
 export type Automation = {
     /**
      * Automation id (atm_...).
@@ -4058,6 +4704,183 @@ export type FeedFailingEventData = {
     keywordsAffected: number;
 };
 
+export type UnansweredInfluencerEventData = {
+    /**
+     * The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away.
+     */
+    attentionId: string;
+    /**
+     * Where to look in the dashboard.
+     */
+    url: string;
+    /**
+     * Who posted.
+     */
+    author: {
+        /**
+         * The person (aut_...): GET /v1/people/{id}.
+         */
+        id: string;
+        /**
+         * Their name on the platform.
+         */
+        name: string | null;
+        /**
+         * Their profile.
+         */
+        url: string | null;
+        /**
+         * Where they posted.
+         */
+        platform: 'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon' | 'appstore' | 'googleplay' | 'trustpilot' | 'googlemaps' | 'rss';
+        /**
+         * Followers when they last posted.
+         */
+        followers: number;
+        /**
+         * 0 to 100, from followers (100 at 100,000 or more).
+         */
+        influence: number;
+    };
+    /**
+     * The keyword the item is about.
+     */
+    keyword: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+        /**
+         * The tracked term.
+         */
+        term: string;
+        /**
+         * brand, competitor or topic.
+         */
+        kind: 'brand' | 'competitor' | 'topic';
+        /**
+         * The keyword as Mentio names it: the term, or "term (Group)" outside the default group.
+         */
+        name: string;
+        /**
+         * Its group (grp_...).
+         */
+        groupId: string;
+    };
+    /**
+     * Their relevant mentions of the last 48 hours still open (not done or ignored) 3 hours or more after they matched.
+     */
+    mentions: number;
+    /**
+     * The newest open mention, the one to answer first.
+     */
+    mention: {
+        /**
+         * The newest of them (mm_...): GET /v1/mentions/{id}.
+         */
+        id: string;
+        /**
+         * The post.
+         */
+        url: string;
+        /**
+         * Its relevance score.
+         */
+        relevance: number;
+        /**
+         * When it was posted.
+         */
+        publishedAt: string;
+        /**
+         * When Mentio matched it.
+         */
+        matchedAt: string;
+    };
+};
+
+export type TopicClusterEventData = {
+    /**
+     * The attention item (att_...): GET /v1/attention lists it, POST /v1/attention/{id}/dismiss puts it away.
+     */
+    attentionId: string;
+    /**
+     * Where to look in the dashboard.
+     */
+    url: string;
+    /**
+     * The keyword the item is about.
+     */
+    keyword: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+        /**
+         * The tracked term.
+         */
+        term: string;
+        /**
+         * brand, competitor or topic.
+         */
+        kind: 'brand' | 'competitor' | 'topic';
+        /**
+         * The keyword as Mentio names it: the term, or "term (Group)" outside the default group.
+         */
+        name: string;
+        /**
+         * Its group (grp_...).
+         */
+        groupId: string;
+    };
+    /**
+     * The stretch of time the counts cover, by match time.
+     */
+    window: {
+        /**
+         * Start, inclusive.
+         */
+        from: string;
+        /**
+         * End, exclusive.
+         */
+        to: string;
+    };
+    /**
+     * What the posts share.
+     */
+    tag: {
+        /**
+         * intent: a tag the classifier gave (question, complaint, comparison...). hashtag: a hashtag the posts carry, lowercase, without the #.
+         */
+        type: 'intent' | 'hashtag';
+        /**
+         * The tag.
+         */
+        value: string;
+    };
+    /**
+     * Relevant posts of the window carrying it (posts at most 3 days old when matched).
+     */
+    count: number;
+    /**
+     * Different authors among them.
+     */
+    authors: number;
+    /**
+     * What the keyword usually gets.
+     */
+    baseline: {
+        /**
+         * Posts carrying it in the 7 days before the window.
+         */
+        count: number;
+        /**
+         * The usual daily count, smoothed so a tag the keyword never had still needs a crowd.
+         */
+        perDay: number;
+    };
+};
+
 export type AttentionItem = {
     /**
      * Attention item id (att_...).
@@ -4070,8 +4893,10 @@ export type AttentionItem = {
      * - channel.failing: the channel's last sends all failed.
      * - feed.failing: a workspace feed failed its last 3 hourly reads.
      * - feed.recovered: it read again after failing.
+     * - mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.
+     * - mention.topic_cluster: posts on one keyword share a tag in 24 hours.
      */
-    kind: 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered';
+    kind: 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster';
     /**
      * open: the condition holds. resolved: it no longer does. dismissed: a person put it away; it does not come back for the same episode.
      */
@@ -4081,11 +4906,11 @@ export type AttentionItem = {
      */
     subject: {
         /**
-         * keyword, channel or feed.
+         * keyword, channel, feed or mention.
          */
-        type: 'keyword' | 'channel' | 'feed';
+        type: 'keyword' | 'channel' | 'feed' | 'mention';
         /**
-         * The keyword (kw_...), the channel (dest_...) or the feed (fd_...).
+         * The keyword (kw_...), the channel (dest_...), the feed (fd_...) or the mention (mm_...).
          */
         id: string;
     };
@@ -4108,7 +4933,7 @@ export type AttentionItem = {
     /**
      * The facts as they stood when it opened: the same object the account event of the same name carries as `data`.
      */
-    data: MentionSpikeEventData | NegativeSpikeEventData | KeywordNoisyEventData | ChannelFailingEventData | FeedFailingEventData;
+    data: MentionSpikeEventData | NegativeSpikeEventData | KeywordNoisyEventData | ChannelFailingEventData | FeedFailingEventData | UnansweredInfluencerEventData | TopicClusterEventData;
 };
 
 /**
@@ -4465,11 +5290,11 @@ export type UsageBreakdown = {
          */
         commentCents: number;
         /**
-         * keywordCents, mentionCents and commentCents, plus searchCents when the report is not filtered: then the window's whole list price. The rows carry keyword spend only.
+         * keywordCents, mentionCents and commentCents, plus searchCents and estimateCents when the report is not filtered: then the window's whole list price. The rows carry keyword spend only.
          */
         totalCents: number;
         /**
-         * What the ledger has debited for the window's days, by the day each debit settled, for the whole workspace whatever the filters, on-demand searches included. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger).
+         * What the ledger has debited for the window's days, by the day each debit settled (estimates: when charged), for the whole workspace whatever the filters, searches included. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger).
          */
         ledgerDebitCents: number;
         /**
@@ -4480,6 +5305,14 @@ export type UsageBreakdown = {
          * searchResults at $0.008 each, in totals.totalCents when the report is not filtered (never in a row: rows are keyword spend).
          */
         searchCents: number;
+        /**
+         * Paid platform samples of keyword estimates charged in the window, for the whole workspace.
+         */
+        estimateSamples: number;
+        /**
+         * Paid samples of keyword estimates charged in the window, for the whole workspace; in totals.totalCents when the report is not filtered.
+         */
+        estimateCents: number;
         /**
          * Billed mentions whose match row is gone (deleted keyword), so no platform or keyword row claims them; charged all the same. Comments never are (by=group puts a deleted keyword's comments on the no-group row).
          */
@@ -4705,9 +5538,9 @@ export type LedgerList = {
          */
         id: string;
         /**
-         * signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results) or adjustment.
+         * signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results), debit_estimates (paid samples of keyword estimates) or adjustment.
          */
-        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'debit_searches' | 'adjustment';
+        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'debit_searches' | 'debit_estimates' | 'adjustment';
         /**
          * Integer USD cents; credits positive, debits negative.
          */
@@ -4717,7 +5550,7 @@ export type LedgerList = {
          */
         day: string | null;
         /**
-         * Debit rows: cumulative units (mentions or keyword-days) settled up to this row.
+         * Debit rows: cumulative units (mentions or keyword-days) settled up to this row; on debit_estimates, the paid samples of that one estimate.
          */
         units: number | null;
         /**
@@ -5857,7 +6690,7 @@ export type SlackChannel = {
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
     };
 };
 
@@ -5928,7 +6761,7 @@ export type EmailChannel = {
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
     };
 };
 
@@ -5996,7 +6829,7 @@ export type WebhookChannel = {
         /**
          * The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes and the attention events. Empty when it receives none; mention and digest deliveries come through rules as before.
          */
-        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'export.ready'>;
+        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
         /**
          * Only on creation and rotation. Signs every request: X-Mentions-Signature-V2 is v2= plus the hex HMAC-SHA256 of "<X-Mentions-Timestamp>.<raw body>" (reject a timestamp older than a few minutes); X-Mentions-Signature, the hex HMAC-SHA256 of the raw body alone, stays for older verifiers.
          */
@@ -6066,7 +6899,7 @@ export type TelegramChannel = {
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
     };
 };
 
@@ -6128,7 +6961,7 @@ export type DiscordChannel = {
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
     };
 };
 
@@ -6190,7 +7023,7 @@ export type TeamsChannel = {
         /**
          * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
     };
 };
 
@@ -6224,7 +7057,7 @@ export type CreateSlackChannel = {
     /**
      * Attention events to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
 };
 
 export type CreateEmailChannel = {
@@ -6239,7 +7072,7 @@ export type CreateEmailChannel = {
     /**
      * Attention events to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
 };
 
 export type CreateWebhookChannel = {
@@ -6264,7 +7097,7 @@ export type CreateWebhookChannel = {
     /**
      * Account events to receive at this endpoint (keyword and wallet state changes, attention events), on top of whatever rules send here. Omit for none.
      */
-    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'export.ready'>;
+    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
 };
 
 export type CreateDiscordChannel = {
@@ -6283,7 +7116,7 @@ export type CreateDiscordChannel = {
     /**
      * Attention events to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
 };
 
 export type CreateTeamsChannel = {
@@ -6302,7 +7135,7 @@ export type CreateTeamsChannel = {
     /**
      * Attention events to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
 };
 
 export type GetHealthData = {
@@ -6995,6 +7828,242 @@ export type CreateKeywordResponses = {
 };
 
 export type CreateKeywordResponse = CreateKeywordResponses[keyof CreateKeywordResponses];
+
+export type CreateKeywordsData = {
+    body: {
+        /**
+         * The keywords to create, 1 to 100 (10 before the first top-up), in order. Each is created or refused on its own.
+         */
+        keywords: Array<{
+            /**
+             * The word or phrase to track, case-insensitive. Required unless `query` is sent. A multi-word term matches as the phrase or as its words close together (see matching.exactPhrase); wrap it in double quotes for the exact phrase only.
+             */
+            term?: string;
+            /**
+             * The keyword as one boolean query instead of term and matching, like "acme cloud" AND (pricing OR price*) -jobs ([Keywords](/guides/keywords#write-it-as-a-query)):
+             *
+             * - Phrases, words, AND, OR, NOT or -word, parentheses, word-end *
+             * - Compiled into term and the term rules; never sent with them (400).
+             * - Each alternative starts with the term; else 400 query_needs_one_term.
+             */
+            query?: string;
+            /**
+             * brand: your own names. competitor: theirs. topic: the space. Drives share of voice and segments.
+             */
+            kind?: 'brand' | 'competitor' | 'topic';
+            /**
+             * Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds.
+             */
+            platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon'> | null;
+            /**
+             * A sentence the classifier reads for this keyword only, on top of the company profile or group description: what the term means here, what to ignore. "Arc is our browser; ignore the geometry word." Null clears it.
+             */
+            context?: string | null;
+            /**
+             * Omitted fields are untouched; an empty list clears one.
+             */
+            matching?: {
+                /**
+                 * The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement.
+                 */
+                requiredTerms?: Array<string>;
+                /**
+                 * any: at least one required term must appear. all: every one must.
+                 */
+                requiredMode?: 'any' | 'all';
+                /**
+                 * Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword).
+                 */
+                requiredGroups?: Array<Array<string>>;
+                /**
+                 * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
+                 */
+                excludedTerms?: Array<string>;
+                /**
+                 * Posts by these authors are dropped: profile or post links, @handles, u/names, Bluesky DIDs or display names, stored in canonical form like an alert's muted list.
+                 */
+                excludedAuthors?: Array<string>;
+                /**
+                 * true: the term must appear in the case it was typed (RAG, never rag). Default false.
+                 */
+                caseSensitive?: boolean;
+                /**
+                 * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
+                 */
+                exactPhrase?: boolean;
+                /**
+                 * GitHub only: each field is replaced when sent, kept when omitted; null clears a minimum.
+                 */
+                repositories?: {
+                    /**
+                     * The repository events this keyword takes (default traction, stars, growth; empty: none). See [GitHub](/platforms/github#repositories).
+                     *
+                     * - traction: under 30 days old, it reached 10 stars.
+                     * - stars: it passed a milestone (100, 250, 500, 1,000 ...).
+                     * - growth: it gained stars fast in a week.
+                     * - new: every repository created; opt in, mostly noise.
+                     */
+                    events?: Array<'new' | 'traction' | 'stars' | 'growth'>;
+                    /**
+                     * Only repositories with at least this many stars; null for no minimum.
+                     */
+                    minStars?: number | null;
+                    /**
+                     * Only repositories that gained at least this many stars in the last 7 days, for every event; an unknown week fails. null: growth needs 100 stars and 20% a week, other events nothing.
+                     */
+                    minWeeklyStars?: number | null;
+                };
+                /**
+                 * Reddit only, for this keyword alone: each list is replaced when sent, kept when omitted.
+                 */
+                subreddits?: {
+                    /**
+                     * Replaces the keyword's allowlist; [] clears it.
+                     */
+                    only?: Array<string>;
+                    /**
+                     * Replaces the keyword's deny list; [] clears it.
+                     */
+                    excluded?: Array<string>;
+                };
+            };
+            /**
+             * A mention cap per day, week or month (per, default month); omit or null for none.
+             */
+            cap?: {
+                /**
+                 * Charged items allowed per period (see per): matched mentions plus the thread comments delivered under them. Every match counts, relevant or not, the look-back a new keyword gets included, because every match bills.
+                 */
+                mentions: number;
+                /**
+                 * The period the cap counts in, in UTC: day, week (from Monday) or calendar month (the default). At the cap the keyword stops until the next period starts.
+                 */
+                per?: 'day' | 'week' | 'month';
+            } | null;
+            /**
+             * Comments under this keyword's mentions; omitted fields are untouched (on create: off, 20 per post).
+             */
+            comments?: {
+                /**
+                 * Read the comments under this keyword's relevant mentions. Each comment delivered costs $0.008; comments under three words are dropped, never billed. See [Comments](/guides/comments).
+                 */
+                enabled?: boolean;
+                /**
+                 * The newest comments of one thread you receive: the ceiling on what one mention's comments can cost. A comment naming the keyword is a mention only among these.
+                 */
+                maxPerPost?: number;
+            };
+            /**
+             * Which of this keyword's mentions you see, by language and country; each list is replaced when sent, kept when omitted. Hidden mentions are still billed.
+             */
+            display?: {
+                /**
+                 * By the language of the post (ISO 639-1); omitted: untouched.
+                 */
+                languages?: {
+                    /**
+                     * Replaces the list; [] clears it.
+                     */
+                    only?: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                    /**
+                     * Replaces the list; [] clears it.
+                     */
+                    excluded?: Array<'en' | 'es' | 'de' | 'fr' | 'pt' | 'it' | 'nl' | 'ca' | 'pl' | 'tr' | 'sv' | 'da' | 'ru' | 'uk' | 'ar' | 'hi' | 'id' | 'ja' | 'zh' | 'ko'>;
+                };
+                /**
+                 * By where the author is (ISO 3166-1 alpha-2); omitted: untouched.
+                 */
+                countries?: {
+                    /**
+                     * Replaces the list; [] clears it.
+                     */
+                    only?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                    /**
+                     * Replaces the list; [] clears it.
+                     */
+                    excluded?: Array<'us' | 'ca' | 'mx' | 'br' | 'ar' | 'co' | 'cl' | 'pe' | 'gb' | 'ie' | 'fr' | 'de' | 'es' | 'pt' | 'it' | 'nl' | 'be' | 'ch' | 'at' | 'se' | 'no' | 'dk' | 'fi' | 'pl' | 'cz' | 'ro' | 'gr' | 'hu' | 'ua' | 'ru' | 'lt' | 'lv' | 'ee' | 'tr' | 'il' | 'ae' | 'sa' | 'eg' | 'ng' | 'ke' | 'za' | 'ma' | 'in' | 'pk' | 'bd' | 'lk' | 'np' | 'cn' | 'hk' | 'tw' | 'jp' | 'kr' | 'sg' | 'my' | 'id' | 'ph' | 'vn' | 'th' | 'au' | 'nz'>;
+                };
+            };
+            /**
+             * The group to track it in (grp_...); omit for the workspace's default group. A term may be tracked once per group.
+             */
+            groupId?: string;
+            /**
+             * Whether the keyword also reads the workspace's feeds (GET /v1/feeds); default true. A new keyword reading them gets the look-back of the 8 most recently connected.
+             */
+            readsWorkspaceFeeds?: boolean;
+        }>;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/keywords/batch';
+};
+
+export type CreateKeywordsErrors = {
+    /**
+     * Invalid request: the body failed validation (validation_error), for instance more than 100 keywords
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Nothing was created and the wallet (insufficient_balance) or the 500-keyword ceiling (keyword_limit_reached) refused at least one keyword, or more than 10 keywords before the first top-up (funding_required)
+     */
+    402: ErrorResponse;
+};
+
+export type CreateKeywordsError = CreateKeywordsErrors[keyof CreateKeywordsErrors];
+
+export type CreateKeywordsResponses = {
+    /**
+     * One result per keyword sent: the created keyword, or why it was refused
+     */
+    200: KeywordBatchResult;
+};
+
+export type CreateKeywordsResponse = CreateKeywordsResponses[keyof CreateKeywordsResponses];
+
+export type GetKeywordDeletionPreviewData = {
+    body?: never;
+    path: {
+        /**
+         * Keyword id (kw_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/keywords/{id}/deletion-preview';
+};
+
+export type GetKeywordDeletionPreviewErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Keyword not found
+     */
+    404: ErrorResponse;
+};
+
+export type GetKeywordDeletionPreviewError = GetKeywordDeletionPreviewErrors[keyof GetKeywordDeletionPreviewErrors];
+
+export type GetKeywordDeletionPreviewResponses = {
+    /**
+     * What deleting the keyword would do
+     */
+    200: KeywordDeletionPreview;
+};
+
+export type GetKeywordDeletionPreviewResponse = GetKeywordDeletionPreviewResponses[keyof GetKeywordDeletionPreviewResponses];
 
 export type DeleteKeywordData = {
     body?: never;
@@ -11917,9 +12986,12 @@ export type ListSearchesResponses = {
              */
             term: string;
             /**
-             * How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range.
+             * How far back the search reads, ending now. See [Search](/guides/search#platforms).
+             *
+             * - 24h, 7d, 30d: every platform (instagram at most 7 days).
+             * - 90d, 365d: only platforms reaching that far; the others are skipped (window).
              */
-            range: '24h' | '7d' | '30d';
+            range: '24h' | '7d' | '30d' | '90d' | '365d';
             /**
              * brand, competitor or topic: what the classifier was told the term is.
              */
@@ -11954,9 +13026,15 @@ export type ListSearchesResponses = {
                  */
                 status: 'queued' | 'running' | 'done' | 'skipped' | 'failed';
                 /**
-                 * Why a platform was skipped or failed: unsupported (no term search on it), credentials (not connected on this deployment), budget (its monthly vendor budget is spent), rate_limited, error, timeout. null otherwise.
+                 * Why a platform was skipped or failed; null otherwise.
+                 *
+                 * - unsupported: no term search on it.
+                 * - window: its search cannot reach that far back.
+                 * - credentials: not connected on this deployment.
+                 * - budget: its monthly vendor budget is spent.
+                 * - rate_limited, error, timeout: the read failed.
                  */
-                reason: 'unsupported' | 'credentials' | 'budget' | 'rate_limited' | 'error' | 'timeout';
+                reason: 'unsupported' | 'window' | 'credentials' | 'budget' | 'rate_limited' | 'error' | 'timeout';
                 /**
                  * Results stored for this platform, at most 25.
                  */
@@ -12016,9 +13094,12 @@ export type CreateSearchData = {
          */
         term: string;
         /**
-         * How far back the search reads, ending now: 24h, 7d or 30d. Instagram reads at most its last 7 days whatever the range.
+         * How far back the search reads, ending now. See [Search](/guides/search#platforms).
+         *
+         * - 24h, 7d, 30d: every platform (instagram at most 7 days).
+         * - 90d, 365d: only platforms reaching that far; the others are skipped (window).
          */
-        range?: '24h' | '7d' | '30d';
+        range?: '24h' | '7d' | '30d' | '90d' | '365d';
         /**
          * Platforms to read; omit for all that search back in time (bluesky, hackernews, github, stackoverflow, reddit, x, youtube, linkedin, tiktok, instagram, facebook, podcasts, web, substack, threads, mastodon). devto, news and producthunt are skipped.
          */
@@ -13549,6 +14630,171 @@ export type TestExportScheduleResponses = {
 
 export type TestExportScheduleResponse = TestExportScheduleResponses[keyof TestExportScheduleResponses];
 
+export type ListKeywordEstimatesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Page size, 1 to 100.
+         */
+        limit?: number;
+        /**
+         * nextCursor from the previous page.
+         */
+        cursor?: string;
+    };
+    url: '/v1/keyword-estimates';
+};
+
+export type ListKeywordEstimatesErrors = {
+    /**
+     * Invalid query or pagination cursor
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListKeywordEstimatesError = ListKeywordEstimatesErrors[keyof ListKeywordEstimatesErrors];
+
+export type ListKeywordEstimatesResponses = {
+    /**
+     * Estimates
+     */
+    200: {
+        /**
+         * Estimates, newest first.
+         */
+        data: Array<KeywordEstimate>;
+        /**
+         * Pass as cursor for the next page; null on the last page.
+         */
+        nextCursor: string | null;
+    };
+};
+
+export type ListKeywordEstimatesResponse = ListKeywordEstimatesResponses[keyof ListKeywordEstimatesResponses];
+
+export type CreateKeywordEstimateData = {
+    body: {
+        /**
+         * Up to 10 candidate keywords, each estimated on its own.
+         */
+        terms: Array<string>;
+        /**
+         * The platforms the keyword would track; omit for every platform (what a new keyword tracks).
+         */
+        platforms?: Array<'bluesky' | 'hackernews' | 'github' | 'stackoverflow' | 'devto' | 'reddit' | 'x' | 'youtube' | 'news' | 'linkedin' | 'tiktok' | 'instagram' | 'facebook' | 'podcasts' | 'web' | 'substack' | 'producthunt' | 'threads' | 'mastodon'>;
+        /**
+         * The rules the keyword would carry, as on a keyword: a sampled post must pass them to count. Omitted fields take the keyword defaults.
+         */
+        matching?: {
+            /**
+             * The post must ALSO contain these terms, any one of them or all of them per requiredMode. A `*` at the start or the end of an entry is a wildcard (alert* matches alerts and alerting). Empty: no requirement.
+             */
+            requiredTerms?: Array<string>;
+            /**
+             * any: at least one required term must appear. all: every one must.
+             */
+            requiredMode?: 'any' | 'all';
+            /**
+             * Combinations: the post must ALSO contain every term of at least one group (an OR of ANDs), on top of requiredTerms, with the same phrase and wildcard rules. See [Keywords](/guides/keywords#several-searches-in-one-keyword).
+             */
+            requiredGroups?: Array<Array<string>>;
+            /**
+             * A post containing any of these is dropped. A `*` at the start or the end of an entry is a wildcard (beta.* matches beta.0.1; *bot matches nightlybot).
+             */
+            excludedTerms?: Array<string>;
+            /**
+             * true: only the exact phrase matches (a term sent in double quotes sets it). false: a multi-word keyword also matches its words close together, kept and billed only when scored relevant. See [Keywords](/guides/keywords#the-exact-phrase-only).
+             */
+            exactPhrase?: boolean;
+        };
+        /**
+         * Also sample the paid platforms. See [Keyword estimates](/guides/keyword-estimates#cost).
+         *
+         * - false (default): index numbers and free samples only; costs nothing.
+         * - true: also the paid platforms, 2 to 20 cents per term and platform read; funded only.
+         */
+        includePaid?: boolean;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/keyword-estimates';
+};
+
+export type CreateKeywordEstimateErrors = {
+    /**
+     * Invalid body (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * includePaid on a workspace that never topped up (funding_required), or a balance that does not cover maxCostCents (insufficient_balance)
+     */
+    402: ErrorResponse;
+    /**
+     * More than 30 estimates or 60 platform samples in the last hour (rate_limited); Retry-After says when
+     */
+    429: ErrorResponse;
+};
+
+export type CreateKeywordEstimateError = CreateKeywordEstimateErrors[keyof CreateKeywordEstimateErrors];
+
+export type CreateKeywordEstimateResponses = {
+    /**
+     * The estimate, queued (or done already when every number came from the index)
+     */
+    201: KeywordEstimate;
+};
+
+export type CreateKeywordEstimateResponse = CreateKeywordEstimateResponses[keyof CreateKeywordEstimateResponses];
+
+export type GetKeywordEstimateData = {
+    body?: never;
+    path: {
+        /**
+         * Estimate id (est_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/keyword-estimates/{id}';
+};
+
+export type GetKeywordEstimateErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such estimate in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type GetKeywordEstimateError = GetKeywordEstimateErrors[keyof GetKeywordEstimateErrors];
+
+export type GetKeywordEstimateResponses = {
+    /**
+     * The estimate
+     */
+    200: KeywordEstimate;
+};
+
+export type GetKeywordEstimateResponse = GetKeywordEstimateResponses[keyof GetKeywordEstimateResponses];
+
 export type ListAutomationsData = {
     body?: never;
     path?: never;
@@ -14462,7 +15708,7 @@ export type ListAttentionData = {
          */
         status?: 'open' | 'resolved' | 'dismissed' | 'all';
         /**
-         * Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing (feed.recovered never opens an item).
+         * Only these kinds, comma separated: mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, mention.unanswered_influencer, mention.topic_cluster (feed.recovered never opens an item).
          */
         kind?: string;
         /**
@@ -16986,7 +18232,7 @@ export type UpdateChannelData = {
         /**
          * Replaces the account events the channel receives; empty unsubscribes it from all. A webhook takes any; Slack, email, Telegram, Discord and Teams take the attention events only. See [Account events](/webhooks/account-events).
          */
-        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'export.ready'>;
+        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
     };
     path: {
         /**
