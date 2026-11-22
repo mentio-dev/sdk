@@ -494,7 +494,9 @@
                 "podcasts",
                 "web",
                 "substack",
-                "producthunt"
+                "producthunt",
+                "threads",
+                "mastodon"
               ]
             },
             "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
@@ -839,13 +841,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "lastPolledAt": {
                   "type": "string",
@@ -1071,7 +1075,9 @@
                     "podcasts",
                     "web",
                     "substack",
-                    "producthunt"
+                    "producthunt",
+                    "threads",
+                    "mastodon"
                   ]
                 },
                 "description": "Replaces the platform list; null means every platform, [] none (reviews only, when the keyword has reviewSources)."
@@ -1766,13 +1772,15 @@
                         "web",
                         "substack",
                         "producthunt",
+                        "threads",
+                        "mastodon",
                         "appstore",
                         "googleplay",
                         "trustpilot",
                         "googlemaps",
                         "rss"
                       ],
-                      "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                      "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                     },
                     "matches": {
                       "type": "integer",
@@ -2358,13 +2366,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "kind": {
                 "type": "string",
@@ -2948,13 +2958,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "url": {
                   "type": "string",
@@ -3188,6 +3200,8 @@
               "web",
               "substack",
               "producthunt",
+              "threads",
+              "mastodon",
               "appstore",
               "googleplay",
               "trustpilot",
@@ -3245,13 +3259,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "name": {
                   "type": "string",
@@ -3649,13 +3665,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "People with an account on any of these platforms."
@@ -3748,13 +3766,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Nobody with an account on these platforms."
@@ -3918,13 +3938,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "People with an account on any of these platforms."
@@ -4017,13 +4039,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Nobody with an account on these platforms."
@@ -4262,13 +4286,15 @@
                 "web",
                 "substack",
                 "producthunt",
+                "threads",
+                "mastodon",
                 "appstore",
                 "googleplay",
                 "trustpilot",
                 "googlemaps",
                 "rss"
               ],
-              "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+              "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
             },
             "maxItems": 20,
             "description": "Only posts from any of these platforms."
@@ -4295,13 +4321,15 @@
                 "web",
                 "substack",
                 "producthunt",
+                "threads",
+                "mastodon",
                 "appstore",
                 "googleplay",
                 "trustpilot",
                 "googlemaps",
                 "rss"
               ],
-              "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+              "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
             },
             "maxItems": 20,
             "description": "Never posts from these platforms."
@@ -4872,13 +4900,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -4905,13 +4935,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -5473,13 +5505,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "status": {
                   "type": "string",
@@ -5622,13 +5656,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "kind": {
                 "type": "string",
@@ -6015,6 +6051,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -6228,13 +6266,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -6261,13 +6301,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -6962,6 +7004,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -7175,13 +7219,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -7208,13 +7254,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -7900,13 +7948,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -7933,13 +7983,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -10106,13 +10158,15 @@
                     "web",
                     "substack",
                     "producthunt",
+                    "threads",
+                    "mastodon",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                 },
                 "description": "Only posts from these platforms."
               },
@@ -11330,13 +11384,15 @@
                         "web",
                         "substack",
                         "producthunt",
+                        "threads",
+                        "mastodon",
                         "appstore",
                         "googleplay",
                         "trustpilot",
                         "googlemaps",
                         "rss"
                       ],
-                      "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                      "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                     },
                     "url": {
                       "type": "string",
@@ -13075,7 +13131,9 @@
                         "podcasts",
                         "web",
                         "substack",
-                        "producthunt"
+                        "producthunt",
+                        "threads",
+                        "mastodon"
                       ]
                     },
                     "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds."
@@ -13750,13 +13808,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Never keywords tracked on any of these platforms (by the same reading as platforms). Repeatable, or comma-separated."
@@ -13811,13 +13871,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated."
@@ -13914,13 +13976,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Deprecated: use platforms, the same filter; both are read as one list.",
@@ -14364,7 +14428,9 @@
                                 "podcasts",
                                 "web",
                                 "substack",
-                                "producthunt"
+                                "producthunt",
+                                "threads",
+                                "mastodon"
                               ]
                             },
                             "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
@@ -14709,13 +14775,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "lastPolledAt": {
                                   "type": "string",
@@ -14942,7 +15010,9 @@
                         "podcasts",
                         "web",
                         "substack",
-                        "producthunt"
+                        "producthunt",
+                        "threads",
+                        "mastodon"
                       ]
                     },
                     "description": "Replaces the platform list; null means every platform, [] none (reviews only, when the keyword has reviewSources)."
@@ -17053,6 +17123,8 @@
                           "web",
                           "substack",
                           "producthunt",
+                          "threads",
+                          "mastodon",
                           "appstore",
                           "googleplay",
                           "trustpilot",
@@ -17266,13 +17338,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -17299,13 +17373,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -18124,6 +18200,8 @@
                 "web",
                 "substack",
                 "producthunt",
+                "threads",
+                "mastodon",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -18503,13 +18581,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -18542,13 +18622,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -19375,6 +19457,8 @@
                 "web",
                 "substack",
                 "producthunt",
+                "threads",
+                "mastodon",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -19754,13 +19838,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -19793,13 +19879,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -20691,6 +20779,8 @@
                 "web",
                 "substack",
                 "producthunt",
+                "threads",
+                "mastodon",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -21070,13 +21160,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -21109,13 +21201,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -21910,6 +22004,8 @@
                 "web",
                 "substack",
                 "producthunt",
+                "threads",
+                "mastodon",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -22067,13 +22163,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -22186,13 +22284,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -22528,6 +22628,8 @@
                 "web",
                 "substack",
                 "producthunt",
+                "threads",
+                "mastodon",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -22685,13 +22787,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -22804,13 +22908,15 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -23109,6 +23215,8 @@
                               "web",
                               "substack",
                               "producthunt",
+                              "threads",
+                              "mastodon",
                               "appstore",
                               "googleplay",
                               "trustpilot",
@@ -23166,13 +23274,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "name": {
                                   "type": "string",
@@ -24446,13 +24556,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -24545,13 +24657,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -24831,13 +24945,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -24930,13 +25046,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -25276,13 +25394,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -25375,13 +25495,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -25761,13 +25883,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts from any of these platforms."
@@ -25794,13 +25918,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "maxItems": 20,
                                 "description": "Never posts from these platforms."
@@ -26451,13 +26577,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -26484,13 +26612,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -27210,13 +27340,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -27243,13 +27375,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -27904,12 +28038,14 @@
                         "podcasts",
                         "web",
                         "substack",
-                        "producthunt"
+                        "producthunt",
+                        "threads",
+                        "mastodon"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 17,
-                    "description": "Platforms to read; omit for all that search back in time (bluesky, hackernews, github, stackoverflow, reddit, x, youtube, linkedin, tiktok, instagram, facebook, podcasts, web, substack). devto, news and producthunt are skipped."
+                    "maxItems": 19,
+                    "description": "Platforms to read; omit for all that search back in time (bluesky, hackernews, github, stackoverflow, reddit, x, youtube, linkedin, tiktok, instagram, facebook, podcasts, web, substack, threads, mastodon). devto, news and producthunt are skipped."
                   },
                   "kind": {
                     "type": "string",
@@ -28107,13 +28243,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "status": {
                                   "type": "string",
@@ -28528,6 +28666,8 @@
                           "web",
                           "substack",
                           "producthunt",
+                          "threads",
+                          "mastodon",
                           "appstore",
                           "googleplay",
                           "trustpilot",
@@ -28741,13 +28881,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -28774,13 +28916,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -29741,6 +29885,8 @@
                           "web",
                           "substack",
                           "producthunt",
+                          "threads",
+                          "mastodon",
                           "appstore",
                           "googleplay",
                           "trustpilot",
@@ -29954,13 +30100,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -29987,13 +30135,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -30748,6 +30898,8 @@
                           "web",
                           "substack",
                           "producthunt",
+                          "threads",
+                          "mastodon",
                           "appstore",
                           "googleplay",
                           "trustpilot",
@@ -30961,13 +31113,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -30994,13 +31148,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -31890,13 +32046,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts from any of these platforms."
@@ -31923,13 +32081,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "maxItems": 20,
                                 "description": "Never posts from these platforms."
@@ -32602,13 +32762,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -32635,13 +32797,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -33384,13 +33548,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -33417,13 +33583,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -35822,6 +35990,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -35894,6 +36064,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -36484,13 +36656,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -37085,13 +37259,15 @@
                                     "web",
                                     "substack",
                                     "producthunt",
+                                    "threads",
+                                    "mastodon",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                                 },
                                 "description": "Only posts from these platforms."
                               },
@@ -37683,13 +37859,15 @@
                             "web",
                             "substack",
                             "producthunt",
+                            "threads",
+                            "mastodon",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, threads, mastodon\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, youtube, podcasts (with transcripts), rss (keyword feeds)\n- Web: web (blogs), substack, producthunt\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews)"
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -38701,6 +38879,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -38756,6 +38936,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -38919,6 +39101,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -38974,6 +39158,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -39168,6 +39354,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -39223,6 +39411,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -39412,6 +39602,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -39467,6 +39659,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -39630,6 +39824,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -39685,6 +39881,8 @@
                   "web",
                   "substack",
                   "producthunt",
+                  "threads",
+                  "mastodon",
                   "appstore",
                   "googleplay",
                   "trustpilot",
