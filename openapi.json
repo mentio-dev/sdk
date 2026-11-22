@@ -490,7 +490,8 @@
                 "linkedin",
                 "tiktok",
                 "instagram",
-                "facebook"
+                "facebook",
+                "podcasts"
               ]
             },
             "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
@@ -831,13 +832,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "lastPolledAt": {
                   "type": "string",
@@ -1053,7 +1055,8 @@
                     "linkedin",
                     "tiktok",
                     "instagram",
-                    "facebook"
+                    "facebook",
+                    "podcasts"
                   ]
                 },
                 "description": "Replaces the platform list; null means every platform, [] none (reviews only, when the keyword has reviewSources)."
@@ -1744,13 +1747,14 @@
                         "tiktok",
                         "instagram",
                         "facebook",
+                        "podcasts",
                         "appstore",
                         "googleplay",
                         "trustpilot",
                         "googlemaps",
                         "rss"
                       ],
-                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                      "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                     },
                     "matches": {
                       "type": "integer",
@@ -2332,13 +2336,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "kind": {
                 "type": "string",
@@ -2918,13 +2923,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "url": {
                   "type": "string",
@@ -3154,6 +3160,7 @@
               "tiktok",
               "instagram",
               "facebook",
+              "podcasts",
               "appstore",
               "googleplay",
               "trustpilot",
@@ -3207,13 +3214,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "name": {
                   "type": "string",
@@ -3607,13 +3615,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "maxItems": 20,
                 "description": "People with an account on any of these platforms."
@@ -3702,13 +3711,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "maxItems": 20,
                 "description": "Nobody with an account on these platforms."
@@ -3868,13 +3878,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "maxItems": 20,
                 "description": "People with an account on any of these platforms."
@@ -3963,13 +3974,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "maxItems": 20,
                 "description": "Nobody with an account on these platforms."
@@ -4204,13 +4216,14 @@
                 "tiktok",
                 "instagram",
                 "facebook",
+                "podcasts",
                 "appstore",
                 "googleplay",
                 "trustpilot",
                 "googlemaps",
                 "rss"
               ],
-              "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+              "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
             },
             "maxItems": 20,
             "description": "Only posts from any of these platforms."
@@ -4233,13 +4246,14 @@
                 "tiktok",
                 "instagram",
                 "facebook",
+                "podcasts",
                 "appstore",
                 "googleplay",
                 "trustpilot",
                 "googlemaps",
                 "rss"
               ],
-              "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+              "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
             },
             "maxItems": 20,
             "description": "Never posts from these platforms."
@@ -4806,13 +4820,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -4835,13 +4850,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -5399,13 +5415,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "status": {
                   "type": "string",
@@ -5544,13 +5561,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "kind": {
                 "type": "string",
@@ -5980,13 +5998,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "maxItems": 20,
                 "description": "Only posts from any of these platforms."
@@ -6009,13 +6028,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "maxItems": 20,
                 "description": "Never posts from these platforms."
@@ -6868,9 +6888,11 @@
                   "slack",
                   "email",
                   "webhook",
-                  "telegram"
+                  "telegram",
+                  "discord",
+                  "teams"
                 ],
-                "description": "slack, email, webhook or telegram."
+                "description": "slack, email, webhook, telegram, discord or teams."
               },
               "label": {
                 "type": "string",
@@ -8176,13 +8198,14 @@
                     "tiktok",
                     "instagram",
                     "facebook",
+                    "podcasts",
                     "appstore",
                     "googleplay",
                     "trustpilot",
                     "googlemaps",
                     "rss"
                   ],
-                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                 },
                 "description": "Only posts from these platforms."
               },
@@ -8594,7 +8617,9 @@
                     "slack",
                     "email",
                     "webhook",
-                    "telegram"
+                    "telegram",
+                    "discord",
+                    "teams"
                   ],
                   "description": "Channel kind."
                 },
@@ -9394,13 +9419,14 @@
                         "tiktok",
                         "instagram",
                         "facebook",
+                        "podcasts",
                         "appstore",
                         "googleplay",
                         "trustpilot",
                         "googlemaps",
                         "rss"
                       ],
-                      "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                      "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                     },
                     "url": {
                       "type": "string",
@@ -10540,6 +10566,224 @@
           "config"
         ]
       },
+      "DiscordChannel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Channel id (dest_...)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Your name for the channel."
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "alerts": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Alerts sending to this channel."
+              },
+              "activeAlerts": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Of those, enabled ones; 0 means the channel receives nothing right now."
+              },
+              "lastDeliveryAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "Newest delivery attempt, successful or not."
+              },
+              "last7d": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Sends attempted."
+                  },
+                  "failed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Sends that failed."
+                  }
+                },
+                "required": [
+                  "total",
+                  "failed"
+                ],
+                "description": "Deliveries in the last 7 days."
+              }
+            },
+            "required": [
+              "alerts",
+              "activeAlerts",
+              "lastDeliveryAt",
+              "last7d"
+            ],
+            "description": "Computed over this workspace's deliveries."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO 8601 timestamp, UTC."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "discord"
+            ],
+            "description": "Channel kind."
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "urlHint": {
+                "type": "string",
+                "description": "The Discord webhook URL with its token hidden; the full URL is write-only."
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "mention.spike",
+                    "sentiment.negative_spike",
+                    "keyword.noisy",
+                    "channel.failing",
+                    "feed.failing",
+                    "feed.recovered"
+                  ],
+                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+                },
+                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
+              }
+            },
+            "required": [
+              "urlHint",
+              "events"
+            ],
+            "description": "The channel's settings for its kind; secrets are never returned."
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "stats",
+          "createdAt",
+          "kind",
+          "config"
+        ]
+      },
+      "TeamsChannel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Channel id (dest_...)."
+          },
+          "label": {
+            "type": "string",
+            "description": "Your name for the channel."
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "alerts": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Alerts sending to this channel."
+              },
+              "activeAlerts": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Of those, enabled ones; 0 means the channel receives nothing right now."
+              },
+              "lastDeliveryAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "Newest delivery attempt, successful or not."
+              },
+              "last7d": {
+                "type": "object",
+                "properties": {
+                  "total": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Sends attempted."
+                  },
+                  "failed": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Sends that failed."
+                  }
+                },
+                "required": [
+                  "total",
+                  "failed"
+                ],
+                "description": "Deliveries in the last 7 days."
+              }
+            },
+            "required": [
+              "alerts",
+              "activeAlerts",
+              "lastDeliveryAt",
+              "last7d"
+            ],
+            "description": "Computed over this workspace's deliveries."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "ISO 8601 timestamp, UTC."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "teams"
+            ],
+            "description": "Channel kind."
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "urlHint": {
+                "type": "string",
+                "description": "The Teams Workflows URL with its signature hidden; the full URL is write-only."
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "mention.spike",
+                    "sentiment.negative_spike",
+                    "keyword.noisy",
+                    "channel.failing",
+                    "feed.failing",
+                    "feed.recovered"
+                  ],
+                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+                },
+                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
+              }
+            },
+            "required": [
+              "urlHint",
+              "events"
+            ],
+            "description": "The channel's settings for its kind; secrets are never returned."
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "stats",
+          "createdAt",
+          "kind",
+          "config"
+        ]
+      },
       "Channel": {
         "oneOf": [
           {
@@ -10553,6 +10797,12 @@
           },
           {
             "$ref": "#/components/schemas/TelegramChannel"
+          },
+          {
+            "$ref": "#/components/schemas/DiscordChannel"
+          },
+          {
+            "$ref": "#/components/schemas/TeamsChannel"
           }
         ],
         "discriminator": {
@@ -10561,7 +10811,9 @@
             "slack": "#/components/schemas/SlackChannel",
             "email": "#/components/schemas/EmailChannel",
             "webhook": "#/components/schemas/WebhookChannel",
-            "telegram": "#/components/schemas/TelegramChannel"
+            "telegram": "#/components/schemas/TelegramChannel",
+            "discord": "#/components/schemas/DiscordChannel",
+            "teams": "#/components/schemas/TeamsChannel"
           }
         }
       },
@@ -10710,6 +10962,92 @@
           "kind",
           "url"
         ]
+      },
+      "CreateDiscordChannel": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "discord"
+            ],
+            "description": "Channel kind."
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "The Discord incoming webhook URL, https://discord.com/api/webhooks/<id>/<token> (in Discord: Channel settings, Integrations, Webhooks, Copy Webhook URL). A ?thread_id= posts into a thread. Write-only: reads show urlHint."
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "A name for the channel (\"#alerts on our server\"); \"Discord\" when omitted."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "mention.spike",
+                "sentiment.negative_spike",
+                "keyword.noisy",
+                "channel.failing",
+                "feed.failing",
+                "feed.recovered"
+              ],
+              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+            },
+            "maxItems": 6,
+            "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
+          }
+        },
+        "required": [
+          "kind",
+          "url"
+        ]
+      },
+      "CreateTeamsChannel": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "teams"
+            ],
+            "description": "Channel kind."
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "The Teams Workflows webhook URL (in Teams: the channel's menu, Workflows, \"Send webhook alerts to a channel\", then copy the URL it gives). Office 365 connector URLs (webhook.office.com), retired by Microsoft in 2026, are refused. Write-only: reads show urlHint."
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "A name for the channel (\"Marketing > Mentions\"); \"Teams\" when omitted."
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "mention.spike",
+                "sentiment.negative_spike",
+                "keyword.noisy",
+                "channel.failing",
+                "feed.failing",
+                "feed.recovered"
+              ],
+              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing."
+            },
+            "maxItems": 6,
+            "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
+          }
+        },
+        "required": [
+          "kind",
+          "url"
+        ]
       }
     },
     "parameters": {}
@@ -10821,7 +11159,8 @@
                         "linkedin",
                         "tiktok",
                         "instagram",
-                        "facebook"
+                        "facebook",
+                        "podcasts"
                       ]
                     },
                     "description": "Platforms to search the term on; omit or null for every platform. [] searches it nowhere: a keyword that only collects reviews or reads feeds, which then needs reviewSources or feeds."
@@ -11492,13 +11831,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Never keywords tracked on any of these platforms (by the same reading as platforms). Repeatable, or comma-separated."
@@ -11549,13 +11889,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Only keywords tracked on any of these platforms: its term searched there (every platform when its platforms are null), or for appstore and googleplay, an app of that store among its reviewSources. Repeatable, or comma-separated."
@@ -11648,13 +11989,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Deprecated: use platforms, the same filter; both are read as one list.",
@@ -12094,7 +12436,8 @@
                                 "linkedin",
                                 "tiktok",
                                 "instagram",
-                                "facebook"
+                                "facebook",
+                                "podcasts"
                               ]
                             },
                             "description": "Platforms the term is searched on; null means every platform, [] none (the keyword only collects reviews)."
@@ -12435,13 +12778,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "lastPolledAt": {
                                   "type": "string",
@@ -12664,7 +13008,8 @@
                         "linkedin",
                         "tiktok",
                         "instagram",
-                        "facebook"
+                        "facebook",
+                        "podcasts"
                       ]
                     },
                     "description": "Replaces the platform list; null means every platform, [] none (reviews only, when the keyword has reviewSources)."
@@ -14771,6 +15116,7 @@
                           "tiktok",
                           "instagram",
                           "facebook",
+                          "podcasts",
                           "appstore",
                           "googleplay",
                           "trustpilot",
@@ -14980,13 +15326,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -15009,13 +15356,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -15830,6 +16178,7 @@
                 "tiktok",
                 "instagram",
                 "facebook",
+                "podcasts",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -16205,13 +16554,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -16240,13 +16590,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -17069,6 +17420,7 @@
                 "tiktok",
                 "instagram",
                 "facebook",
+                "podcasts",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -17444,13 +17796,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -17479,13 +17832,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -18373,6 +18727,7 @@
                 "tiktok",
                 "instagram",
                 "facebook",
+                "podcasts",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -18748,13 +19103,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Only posts from any of these platforms."
@@ -18783,13 +19139,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Never posts from these platforms."
@@ -19580,6 +19937,7 @@
                 "tiktok",
                 "instagram",
                 "facebook",
+                "podcasts",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -19733,13 +20091,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -19848,13 +20207,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -20186,6 +20546,7 @@
                 "tiktok",
                 "instagram",
                 "facebook",
+                "podcasts",
                 "appstore",
                 "googleplay",
                 "trustpilot",
@@ -20339,13 +20700,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "People with an account on any of these platforms. Repeatable, or comma-separated."
@@ -20454,13 +20816,14 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
                   "googlemaps",
                   "rss"
                 ],
-                "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
               },
               "maxItems": 20,
               "description": "Nobody with an account on these platforms. Repeatable, or comma-separated."
@@ -20755,6 +21118,7 @@
                               "tiktok",
                               "instagram",
                               "facebook",
+                              "podcasts",
                               "appstore",
                               "googleplay",
                               "trustpilot",
@@ -20808,13 +21172,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "name": {
                                   "type": "string",
@@ -22084,13 +22449,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "maxItems": 20,
                                 "description": "People with an account on any of these platforms."
@@ -22179,13 +22545,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "maxItems": 20,
                                 "description": "Nobody with an account on these platforms."
@@ -22461,13 +22828,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -22556,13 +22924,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -22898,13 +23267,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "People with an account on any of these platforms."
@@ -22993,13 +23363,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Nobody with an account on these platforms."
@@ -23375,13 +23746,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts from any of these platforms."
@@ -23404,13 +23776,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "maxItems": 20,
                                 "description": "Never posts from these platforms."
@@ -24057,13 +24430,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -24086,13 +24460,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -24808,13 +25183,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -24837,13 +25213,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -25494,12 +25871,13 @@
                         "linkedin",
                         "tiktok",
                         "instagram",
-                        "facebook"
+                        "facebook",
+                        "podcasts"
                       ]
                     },
                     "minItems": 1,
-                    "maxItems": 13,
-                    "description": "The platforms to read; omit for every platform that can search a term back in time (bluesky, hackernews, github, stackoverflow, reddit, x, youtube, linkedin, tiktok, instagram, facebook). devto and news have no search and are reported as skipped."
+                    "maxItems": 14,
+                    "description": "The platforms to read; omit for every platform that can search a term back in time (bluesky, hackernews, github, stackoverflow, reddit, x, youtube, linkedin, tiktok, instagram, facebook, podcasts). devto and news have no search and are reported as skipped."
                   },
                   "kind": {
                     "type": "string",
@@ -25693,13 +26071,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "status": {
                                   "type": "string",
@@ -26160,13 +26539,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "maxItems": 20,
                                 "description": "Only posts from any of these platforms."
@@ -26189,13 +26569,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "maxItems": 20,
                                 "description": "Never posts from these platforms."
@@ -26864,13 +27245,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -26893,13 +27275,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -27638,13 +28021,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Only posts from any of these platforms."
@@ -27667,13 +28051,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "maxItems": 20,
                         "description": "Never posts from these platforms."
@@ -30068,6 +30453,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -30136,6 +30522,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -30722,13 +31109,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -31319,13 +31707,14 @@
                                     "tiktok",
                                     "instagram",
                                     "facebook",
+                                    "podcasts",
                                     "appstore",
                                     "googleplay",
                                     "trustpilot",
                                     "googlemaps",
                                     "rss"
                                   ],
-                                  "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                                  "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                                 },
                                 "description": "Only posts from these platforms."
                               },
@@ -31737,7 +32126,9 @@
                                     "slack",
                                     "email",
                                     "webhook",
-                                    "telegram"
+                                    "telegram",
+                                    "discord",
+                                    "teams"
                                   ],
                                   "description": "Channel kind."
                                 },
@@ -31911,13 +32302,14 @@
                             "tiktok",
                             "instagram",
                             "facebook",
+                            "podcasts",
                             "appstore",
                             "googleplay",
                             "trustpilot",
                             "googlemaps",
                             "rss"
                           ],
-                          "description": "Platform: bluesky, hackernews, github, stackoverflow, devto, reddit, x, youtube, news, linkedin, tiktok, instagram, facebook, appstore (App Store reviews), googleplay (Google Play reviews), trustpilot (Trustpilot reviews), googlemaps (Google reviews of a place), rss (RSS and Atom feeds a keyword reads)."
+                          "description": "Platform, one of:\n- Social: bluesky, x, reddit, linkedin, facebook, instagram, tiktok, youtube\n- Developer: hackernews, github, stackoverflow, devto\n- Media: news, podcasts (titles, show notes, transcripts), rss (feeds a keyword reads)\n- Reviews: appstore, googleplay, trustpilot, googlemaps (Google reviews of a place)"
                         },
                         "description": "Only posts from these platforms."
                       },
@@ -32925,6 +33317,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -32976,6 +33369,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -33135,6 +33529,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -33186,6 +33581,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -33376,6 +33772,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -33427,6 +33824,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -33612,6 +34010,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -33663,6 +34062,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -33822,6 +34222,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -33873,6 +34274,7 @@
                   "tiktok",
                   "instagram",
                   "facebook",
+                  "podcasts",
                   "appstore",
                   "googleplay",
                   "trustpilot",
@@ -34057,8 +34459,9 @@
                   },
                   "url": {
                     "type": "string",
+                    "maxLength": 2048,
                     "format": "uri",
-                    "description": "Webhooks only."
+                    "description": "Webhook, Discord and Teams channels: a new URL (for Discord and Teams, a new incoming webhook URL, checked like on create)."
                   },
                   "headers": {
                     "type": "object",
@@ -34089,7 +34492,7 @@
                       "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing."
                     },
                     "maxItems": 12,
-                    "description": "Replaces the account events the channel receives; empty unsubscribes it from all. A webhook takes any; Slack, email and Telegram take the attention events only. See [Account events](/webhooks/account-events)."
+                    "description": "Replaces the account events the channel receives; empty unsubscribes it from all. A webhook takes any; Slack, email, Telegram, Discord and Teams take the attention events only. See [Account events](/webhooks/account-events)."
                   }
                 },
                 "description": "Omitted fields are untouched."
@@ -34109,7 +34512,7 @@
             }
           },
           "400": {
-            "description": "An event this kind of channel cannot receive: Slack, email and Telegram take the attention events only",
+            "description": "An event this kind of channel cannot receive (every kind but a webhook takes the attention events only), or a Discord or Teams URL that is not an incoming webhook of theirs",
             "content": {
               "application/json": {
                 "schema": {
@@ -34614,6 +35017,12 @@
                           },
                           {
                             "$ref": "#/components/schemas/TelegramChannel"
+                          },
+                          {
+                            "$ref": "#/components/schemas/DiscordChannel"
+                          },
+                          {
+                            "$ref": "#/components/schemas/TeamsChannel"
                           }
                         ],
                         "discriminator": {
@@ -34622,7 +35031,9 @@
                             "slack": "#/components/schemas/SlackChannel",
                             "email": "#/components/schemas/EmailChannel",
                             "webhook": "#/components/schemas/WebhookChannel",
-                            "telegram": "#/components/schemas/TelegramChannel"
+                            "telegram": "#/components/schemas/TelegramChannel",
+                            "discord": "#/components/schemas/DiscordChannel",
+                            "teams": "#/components/schemas/TeamsChannel"
                           }
                         }
                       },
@@ -34689,6 +35100,12 @@
                   },
                   {
                     "$ref": "#/components/schemas/CreateWebhookChannel"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CreateDiscordChannel"
+                  },
+                  {
+                    "$ref": "#/components/schemas/CreateTeamsChannel"
                   }
                 ],
                 "discriminator": {
@@ -34696,7 +35113,9 @@
                   "mapping": {
                     "slack": "#/components/schemas/CreateSlackChannel",
                     "email": "#/components/schemas/CreateEmailChannel",
-                    "webhook": "#/components/schemas/CreateWebhookChannel"
+                    "webhook": "#/components/schemas/CreateWebhookChannel",
+                    "discord": "#/components/schemas/CreateDiscordChannel",
+                    "teams": "#/components/schemas/CreateTeamsChannel"
                   }
                 }
               }
@@ -34715,7 +35134,7 @@
             }
           },
           "400": {
-            "description": "An event this kind of channel cannot receive: Slack, email and Telegram take the attention events only",
+            "description": "An event this kind of channel cannot receive (every kind but a webhook takes the attention events only), or a Discord or Teams URL that is not an incoming webhook of theirs",
             "content": {
               "application/json": {
                 "schema": {
@@ -34906,7 +35325,7 @@
       "status": 400,
       "source": "user",
       "retryable": false,
-      "description": "An hourly rule was given an email channel (up to 24 emails a day per rule). Use Slack, Telegram or a webhook, or a daily digest by email."
+      "description": "An hourly rule was given an email channel (up to 24 emails a day per rule). Use Slack, Telegram, Discord, Teams or a webhook, or a daily digest by email."
     },
     {
       "code": "slack_not_connected",
