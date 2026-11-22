@@ -1018,6 +1018,8 @@
                   "duplicate_group",
                   "default_group",
                   "default_group_context",
+                  "duplicate_account",
+                  "account_limit_reached",
                   "group_changed",
                   "duplicate_workspace",
                   "workspace_limit_reached",
@@ -10875,11 +10877,17 @@
                     "type": "integer",
                     "minimum": 0,
                     "description": "Keywords in the group that are tracking (not muted)."
+                  },
+                  "accounts": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Tracked accounts in the group; a delete takes them too."
                   }
                 },
                 "required": [
                   "keywords",
-                  "active"
+                  "active",
+                  "accounts"
                 ],
                 "description": "Computed over the group's keywords."
               },
@@ -10901,6 +10909,287 @@
           }
         ],
         "description": "The group the keyword belongs to."
+      },
+      "TrackedAccount": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Tracked account id (acc_...)."
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "x",
+              "instagram",
+              "bluesky",
+              "github"
+            ],
+            "description": "x, instagram, bluesky or github."
+          },
+          "handle": {
+            "type": "string",
+            "description": "The account's handle on the platform, without the @."
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name, as the last poll read it."
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Profile picture, as the last poll read it."
+          },
+          "url": {
+            "type": "string",
+            "description": "The account's profile."
+          },
+          "group": {
+            "$ref": "#/components/schemas/GroupRef"
+          },
+          "muted": {
+            "type": "boolean",
+            "description": "Not read and not charged: paused by a person or by the wallet."
+          },
+          "pausedForBalance": {
+            "type": "boolean",
+            "description": "The wallet paused it; a top-up resumes it."
+          },
+          "pausedForCap": {
+            "type": "boolean",
+            "description": "It reached its monthly follower cap; it resumes on the 1st (UTC) or when the cap is raised."
+          },
+          "cap": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "followers": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000000,
+                "description": "New followers billed in a UTC calendar month at most; past it the account stops being read until the 1st."
+              }
+            },
+            "required": [
+              "followers"
+            ],
+            "description": "A monthly cap on billed new followers."
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "followers": {
+                "type": "integer",
+                "nullable": true,
+                "description": "Its follower count on the platform, as the last poll read it."
+              },
+              "tracked": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Followers Mentio has seen, the baseline included."
+              },
+              "thisMonth": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "New followers billed this UTC month."
+              }
+            },
+            "required": [
+              "followers",
+              "tracked",
+              "thisMonth"
+            ],
+            "description": "Counts about the account."
+          },
+          "polling": {
+            "type": "object",
+            "properties": {
+              "baselineAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "When the first read ran; until then nothing is new or billed."
+              },
+              "lastPolledAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "When the last read ran."
+              },
+              "nextPollAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "When the next read is due; null while paused."
+              },
+              "lastError": {
+                "type": "string",
+                "nullable": true,
+                "description": "Why the last read failed or waited, or null."
+              }
+            },
+            "required": [
+              "baselineAt",
+              "lastPolledAt",
+              "nextPollAt",
+              "lastError"
+            ],
+            "description": "The poller's state."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When tracking started."
+          }
+        },
+        "required": [
+          "id",
+          "platform",
+          "handle",
+          "name",
+          "avatarUrl",
+          "url",
+          "group",
+          "muted",
+          "pausedForBalance",
+          "pausedForCap",
+          "cap",
+          "stats",
+          "polling",
+          "createdAt"
+        ]
+      },
+      "CreateAccountBody": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "enum": [
+              "x",
+              "instagram",
+              "bluesky",
+              "github"
+            ],
+            "description": "x, bluesky or github. instagram is refused for now (a 400): its follower list is not readable newest first."
+          },
+          "handle": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The handle on the platform, with or without the @; a profile link works too (https://x.com/acme, https://bsky.app/profile/acme.bsky.social)."
+          },
+          "groupId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The keyword group it belongs to (grp_...); omit for the default group."
+          },
+          "cap": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "followers": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000000,
+                "description": "New followers billed in a UTC calendar month at most; past it the account stops being read until the 1st."
+              }
+            },
+            "required": [
+              "followers"
+            ],
+            "description": "A monthly cap on billed new followers; omit or null for none."
+          }
+        },
+        "required": [
+          "platform",
+          "handle"
+        ]
+      },
+      "UpdateAccountBody": {
+        "type": "object",
+        "properties": {
+          "muted": {
+            "type": "boolean",
+            "description": "Pause (true) or resume (false) reading and charging it."
+          },
+          "groupId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Move it to this keyword group (grp_...)."
+          },
+          "cap": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "followers": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000000,
+                "description": "New followers billed in a UTC calendar month at most; past it the account stops being read until the 1st."
+              }
+            },
+            "required": [
+              "followers"
+            ],
+            "description": "Set the monthly follower cap; null removes it."
+          }
+        }
+      },
+      "Follower": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The follower's id on the platform."
+          },
+          "handle": {
+            "type": "string",
+            "nullable": true,
+            "description": "Their handle, without the @."
+          },
+          "name": {
+            "type": "string",
+            "nullable": true,
+            "description": "Display name."
+          },
+          "url": {
+            "type": "string",
+            "nullable": true,
+            "description": "Their profile."
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "description": "Their profile picture, or null."
+          },
+          "bio": {
+            "type": "string",
+            "nullable": true,
+            "description": "Their bio, when the platform gave it."
+          },
+          "followers": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Their own follower count, when the platform gave it."
+          },
+          "verified": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Verified on the platform, when it said; null when unknown."
+          },
+          "followedAt": {
+            "type": "string",
+            "description": "When Mentio first saw them follow (the poll time, not the platform's)."
+          }
+        },
+        "required": [
+          "key",
+          "handle",
+          "name",
+          "url",
+          "avatarUrl",
+          "bio",
+          "followers",
+          "verified",
+          "followedAt"
+        ]
       },
       "Company": {
         "type": "object",
@@ -11372,7 +11661,7 @@
               },
               "pendingCents": {
                 "type": "integer",
-                "description": "Mentions and comments billed since the last daily settlement, priced but not yet debited."
+                "description": "Mentions, comments, search results and new followers billed since the last daily settlement, priced but not yet debited."
               },
               "effectiveCents": {
                 "type": "integer",
@@ -11451,6 +11740,37 @@
             ],
             "description": "Keywords against the wallet."
           },
+          "accounts": {
+            "type": "object",
+            "properties": {
+              "active": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Tracked accounts running, the ones charged daily."
+              },
+              "paused": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Tracked accounts the wallet paused for lack of balance; a top-up resumes them."
+              },
+              "capped": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Running accounts at their monthly follower cap: still charged daily, no follower billed until the month turns or the cap is raised."
+              },
+              "dayCents": {
+                "type": "integer",
+                "description": "What the next day costs for the accounts that pay it: being read, or capped (one not read yet, or failing, pays nothing). keywords.dayCents plus this is a day."
+              }
+            },
+            "required": [
+              "active",
+              "paused",
+              "capped",
+              "dayCents"
+            ],
+            "description": "Tracked accounts (followers) against the wallet."
+          },
           "mentions": {
             "type": "object",
             "properties": {
@@ -11471,6 +11791,26 @@
             ],
             "description": "Matched mentions, the other thing that bills."
           },
+          "followers": {
+            "type": "object",
+            "properties": {
+              "today": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "New followers billed today (UTC), every tracked account."
+              },
+              "last30d": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "New followers billed in the last 30 days."
+              }
+            },
+            "required": [
+              "today",
+              "last30d"
+            ],
+            "description": "New followers of tracked accounts, billed like mentions."
+          },
           "stopped": {
             "type": "boolean",
             "description": "The wallet paused tracking; a top-up that covers a day of every keyword resumes it."
@@ -11489,7 +11829,9 @@
           "balance",
           "burn",
           "keywords",
+          "accounts",
           "mentions",
+          "followers",
           "stopped",
           "lowBalance",
           "lastTopUpAt"
@@ -11592,7 +11934,25 @@
               },
               "totalCents": {
                 "type": "integer",
-                "description": "keywordCents, mentionCents and commentCents, plus searchCents and estimateCents when the report is not filtered: then the window's whole list price. The rows carry keyword spend only."
+                "description": "keywordCents, mentionCents, commentCents, accountCents and followerCents, plus searchCents and estimateCents when the report is not filtered: then the window's whole list price. The rows carry keyword and tracked-account spend only."
+              },
+              "accountDays": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Tracked-account days metered: the days the daily tick charged an account for. 0 on by=keyword rows (an account is not a keyword)."
+              },
+              "accountCents": {
+                "type": "integer",
+                "description": "The account-days at the account rate ($2 a month, 200/30 cents a day), rounded once on the total."
+              },
+              "billableFollowers": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "New followers of tracked accounts billed in the window, under the platform and group the account had when they were billed (a moved or deleted account keeps them there)."
+              },
+              "followerCents": {
+                "type": "integer",
+                "description": "The new followers at $0.008 each, rounded once on the total."
               },
               "ledgerDebitCents": {
                 "type": "integer",
@@ -11632,6 +11992,10 @@
               "billableComments",
               "commentCents",
               "totalCents",
+              "accountDays",
+              "accountCents",
+              "billableFollowers",
+              "followerCents",
               "ledgerDebitCents",
               "searchResults",
               "searchCents",
@@ -11768,6 +12132,24 @@
                 "totalCents": {
                   "type": "integer",
                   "description": "keywordCents plus mentionCents plus commentCents."
+                },
+                "accountDays": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Tracked-account days metered: the days the daily tick charged an account for. 0 on by=keyword rows (an account is not a keyword)."
+                },
+                "accountCents": {
+                  "type": "integer",
+                  "description": "The account-days at the account rate ($2 a month, 200/30 cents a day), rounded once on the total."
+                },
+                "billableFollowers": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "New followers of tracked accounts billed in the window, under the platform and group the account had when they were billed (a moved or deleted account keeps them there)."
+                },
+                "followerCents": {
+                  "type": "integer",
+                  "description": "The new followers at $0.008 each, rounded once on the total."
                 }
               },
               "required": [
@@ -11784,7 +12166,11 @@
                 "mentionCents",
                 "billableComments",
                 "commentCents",
-                "totalCents"
+                "totalCents",
+                "accountDays",
+                "accountCents",
+                "billableFollowers",
+                "followerCents"
               ]
             },
             "description": "by=day: chronological. by=platform and by=keyword: most expensive first, then most matched, deleted keywords included."
@@ -11848,13 +12234,23 @@
             "minimum": 0,
             "description": "Keywords the wallet paused; a top-up resumes them."
           },
+          "activeAccounts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Tracked accounts running (followers, $2 a month each)."
+          },
+          "autoMutedAccounts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Tracked accounts the wallet paused; a top-up resumes them."
+          },
           "nextDayCents": {
             "type": "integer",
-            "description": "What one more day of the running keywords costs; tracking stops when the effective balance drops under it."
+            "description": "What one more day of the running keywords and tracked accounts costs; tracking stops when the effective balance drops under it."
           },
           "resumeCostCents": {
             "type": "integer",
-            "description": "What one day of every keyword (running and paused) costs; a stopped workspace resumes once the effective balance covers it."
+            "description": "What one day of every keyword and tracked account (running and paused) costs; a stopped workspace resumes once the effective balance covers it."
           },
           "signupCredit": {
             "type": "object",
@@ -11965,6 +12361,8 @@
           "lowBalance",
           "activeKeywords",
           "autoMutedKeywords",
+          "activeAccounts",
+          "autoMutedAccounts",
           "nextDayCents",
           "resumeCostCents",
           "signupCredit",
@@ -12000,11 +12398,13 @@
                     "debit_comments",
                     "debit_searches",
                     "debit_estimates",
+                    "debit_account_days",
+                    "debit_followers",
                     "adjustment",
                     "transfer_in",
                     "transfer_out"
                   ],
-                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results), debit_estimates (paid samples of keyword estimates), adjustment, transfer_in (money moved in from the parent or a child workspace) or transfer_out (money moved out to one)."
+                  "description": "The row kind:\n\n- Credits: signup_credit, topup, adjustment, transfer_in (from the parent or a child workspace).\n- Out: refund, transfer_out.\n- Debits: debit_keyword_days, debit_mentions, debit_comments, debit_searches, debit_estimates, debit_account_days (tracked accounts), debit_followers (new followers)."
                 },
                 "amountCents": {
                   "type": "integer",
@@ -12018,7 +12418,7 @@
                 "units": {
                   "type": "integer",
                   "nullable": true,
-                  "description": "Debit rows: cumulative units (mentions or keyword-days) settled up to this row; on debit_estimates, the paid samples of that one estimate."
+                  "description": "Debit rows: cumulative units (mentions, keyword-days, account-days or followers) settled up to this row; on debit_estimates, the paid samples of that one estimate."
                 },
                 "note": {
                   "type": "string",
@@ -14176,11 +14576,12 @@
                     "feed.failing",
                     "feed.recovered",
                     "mention.unanswered_influencer",
-                    "mention.topic_cluster"
+                    "mention.topic_cluster",
+                    "followers.new"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+                  "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
                 },
-                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
+                "description": "The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none."
               }
             },
             "required": [
@@ -14306,11 +14707,12 @@
                     "feed.failing",
                     "feed.recovered",
                     "mention.unanswered_influencer",
-                    "mention.topic_cluster"
+                    "mention.topic_cluster",
+                    "followers.new"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+                  "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
                 },
-                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
+                "description": "The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none."
               }
             },
             "required": [
@@ -14423,6 +14825,10 @@
                     "wallet.low",
                     "wallet.paused",
                     "wallet.resumed",
+                    "followers.new",
+                    "account.paused",
+                    "account.capped",
+                    "account.resumed",
                     "mention.spike",
                     "sentiment.negative_spike",
                     "keyword.noisy",
@@ -14433,7 +14839,7 @@
                     "mention.topic_cluster",
                     "export.ready"
                   ],
-                  "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
+                  "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword and tracked account.\n- wallet.resumed: a credit brought them back.\n- followers.new: a tracked account gained followers, one event per poll.\n- account.paused: a tracked account could not be read.\n- account.capped: a tracked account hit its follower cap.\n- account.resumed: its cap pause ended.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
                 },
                 "description": "The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes and the attention events. Empty when it receives none; mention and digest deliveries come through rules as before."
               },
@@ -14557,11 +14963,12 @@
                     "feed.failing",
                     "feed.recovered",
                     "mention.unanswered_influencer",
-                    "mention.topic_cluster"
+                    "mention.topic_cluster",
+                    "followers.new"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+                  "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
                 },
-                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
+                "description": "The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none."
               }
             },
             "required": [
@@ -14669,11 +15076,12 @@
                     "feed.failing",
                     "feed.recovered",
                     "mention.unanswered_influencer",
-                    "mention.topic_cluster"
+                    "mention.topic_cluster",
+                    "followers.new"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+                  "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
                 },
-                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
+                "description": "The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none."
               }
             },
             "required": [
@@ -14780,11 +15188,12 @@
                     "feed.failing",
                     "feed.recovered",
                     "mention.unanswered_influencer",
-                    "mention.topic_cluster"
+                    "mention.topic_cluster",
+                    "followers.new"
                   ],
-                  "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+                  "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
                 },
-                "description": "The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none."
+                "description": "The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none."
               }
             },
             "required": [
@@ -14870,12 +15279,13 @@
                 "feed.failing",
                 "feed.recovered",
                 "mention.unanswered_influencer",
-                "mention.topic_cluster"
+                "mention.topic_cluster",
+                "followers.new"
               ],
-              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+              "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
             },
-            "maxItems": 8,
-            "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
+            "maxItems": 9,
+            "description": "Attention events and followers.new to receive here, on top of whatever rules send. Omit for none."
           }
         },
         "required": [
@@ -14916,12 +15326,13 @@
                 "feed.failing",
                 "feed.recovered",
                 "mention.unanswered_influencer",
-                "mention.topic_cluster"
+                "mention.topic_cluster",
+                "followers.new"
               ],
-              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+              "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
             },
-            "maxItems": 8,
-            "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
+            "maxItems": 9,
+            "description": "Attention events and followers.new to receive here, on top of whatever rules send. Omit for none."
           }
         },
         "required": [
@@ -14968,6 +15379,10 @@
                 "wallet.low",
                 "wallet.paused",
                 "wallet.resumed",
+                "followers.new",
+                "account.paused",
+                "account.capped",
+                "account.resumed",
                 "mention.spike",
                 "sentiment.negative_spike",
                 "keyword.noisy",
@@ -14978,9 +15393,9 @@
                 "mention.topic_cluster",
                 "export.ready"
               ],
-              "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
+              "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword and tracked account.\n- wallet.resumed: a credit brought them back.\n- followers.new: a tracked account gained followers, one event per poll.\n- account.paused: a tracked account could not be read.\n- account.capped: a tracked account hit its follower cap.\n- account.resumed: its cap pause ended.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
             },
-            "maxItems": 15,
+            "maxItems": 19,
             "description": "Account events to receive at this endpoint (keyword and wallet state changes, attention events), on top of whatever rules send here. Omit for none."
           }
         },
@@ -15021,12 +15436,13 @@
                 "feed.failing",
                 "feed.recovered",
                 "mention.unanswered_influencer",
-                "mention.topic_cluster"
+                "mention.topic_cluster",
+                "followers.new"
               ],
-              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+              "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
             },
-            "maxItems": 8,
-            "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
+            "maxItems": 9,
+            "description": "Attention events and followers.new to receive here, on top of whatever rules send. Omit for none."
           }
         },
         "required": [
@@ -15066,12 +15482,13 @@
                 "feed.failing",
                 "feed.recovered",
                 "mention.unanswered_influencer",
-                "mention.topic_cluster"
+                "mention.topic_cluster",
+                "followers.new"
               ],
-              "description": "- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of the last 24 hours jumped.\n- keyword.noisy: most scored matches are noise.\n- channel.failing: the channel's last sends all failed.\n- feed.failing: a workspace feed failed its last 3 hourly reads.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours."
+              "description": "- mention.spike, sentiment.negative_spike, keyword.noisy, channel.failing, feed.failing, feed.recovered: the attention events.\n- followers.new: a tracked account gained followers since its last read."
             },
-            "maxItems": 8,
-            "description": "Attention events to receive here, on top of whatever rules send. Omit for none."
+            "maxItems": 9,
+            "description": "Attention events and followers.new to receive here, on top of whatever rules send. Omit for none."
           }
         },
         "required": [
@@ -37726,11 +38143,17 @@
                                     "type": "integer",
                                     "minimum": 0,
                                     "description": "Keywords in the group that are tracking (not muted)."
+                                  },
+                                  "accounts": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "description": "Tracked accounts in the group; a delete takes them too."
                                   }
                                 },
                                 "required": [
                                   "keywords",
-                                  "active"
+                                  "active",
+                                  "accounts"
                                 ],
                                 "description": "Computed over the group's keywords."
                               },
@@ -38064,7 +38487,7 @@
       "delete": {
         "operationId": "deleteGroup",
         "summary": "Delete a group and its keywords",
-        "description": "Delete a group and EVERY keyword in it, with their mentions.\n\nAlert rules naming them are adjusted; charges stay on the usage record. The default group cannot be deleted. The group's `stats.keywords` says how many go.",
+        "description": "Delete a group, EVERY keyword in it (with their mentions) and every tracked account in it (with its followers).\n\nAlert rules naming them are adjusted; charges stay on the usage record. The default group cannot be deleted. The group's `stats.keywords` says how many go.",
         "tags": [
           "Groups"
         ],
@@ -38113,6 +38536,550 @@
           },
           "409": {
             "description": "The default group cannot be deleted (default_group)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts": {
+      "get": {
+        "operationId": "listAccounts",
+        "summary": "List tracked accounts",
+        "description": "The accounts the workspace tracks for new followers, newest first.\n\nEach carries its follower count, the new followers billed this month and the poll state. An account costs $2 a month, a new follower $0.008. See [Followers](/guides/followers).",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tracked accounts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TrackedAccount"
+                      },
+                      "description": "The workspace's tracked accounts, newest first."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAccount",
+        "summary": "Track an account",
+        "description": "Start tracking an account's followers.\n\nThe first read is the baseline, never billed. Then each new follower bills $0.008 and each poll that finds some sends one `followers.new` event. `cap.followers` bounds a month. See [Followers](/guides/followers).",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccountBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The tracked account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackedAccount"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "funding_required: the workspace has only its welcome credit (top up first); insufficient_balance: the wallet cannot cover one more account-day; account_limit_reached: the tracked account limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such group in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "That account is already tracked (duplicate_account)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts/{id}": {
+      "get": {
+        "operationId": "getAccount",
+        "summary": "Get a tracked account",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Tracked account id (acc_...).",
+              "example": "acc_abc123"
+            },
+            "required": true,
+            "description": "Tracked account id (acc_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The tracked account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackedAccount"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such tracked account in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateAccount",
+        "summary": "Update a tracked account",
+        "description": "Pause, resume, move or cap a tracked account.\n\n- `muted`: a paused account is neither read nor charged.\n- `groupId`: move it to another keyword group.\n- `cap`: the monthly follower cap; null removes it, a raise resumes it.",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Tracked account id (acc_...).",
+              "example": "acc_abc123"
+            },
+            "required": true,
+            "description": "Tracked account id (acc_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAccountBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrackedAccount"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Resuming needs a balance that covers one more account-day (insufficient_balance)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such tracked account or group in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteAccount",
+        "summary": "Stop tracking an account",
+        "description": "The account and the followers seen go; what was already billed stays on the usage record.",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Tracked account id (acc_...).",
+              "example": "acc_abc123"
+            },
+            "required": true,
+            "description": "Tracked account id (acc_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such tracked account in this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/accounts/{id}/followers": {
+      "get": {
+        "operationId": "listAccountFollowers",
+        "summary": "List an account's followers",
+        "description": "A tracked account's new followers, newest first, cursor paged.\n\n`includeBaseline=true` adds the ones the first read found. Filter by when they were first seen (`range`, `from`, `to`), their reach (`minFollowers`) or text (`q`).",
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Tracked account id (acc_...).",
+              "example": "acc_abc123"
+            },
+            "required": true,
+            "description": "Tracked account id (acc_...).",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "365d"
+              ],
+              "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window."
+            },
+            "required": false,
+            "description": "A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.",
+            "name": "range",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms)."
+            },
+            "required": false,
+            "description": "End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 64,
+              "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC."
+            },
+            "required": false,
+            "description": "IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.",
+            "name": "timezone",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean",
+              "description": "true: also the followers the first read found. Default false: only new ones."
+            },
+            "required": false,
+            "description": "true: also the followers the first read found. Default false: only new ones.",
+            "name": "includeBaseline",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "minimum": 0,
+              "description": "Only followers with at least this many followers of their own."
+            },
+            "required": false,
+            "description": "Only followers with at least this many followers of their own.",
+            "name": "minFollowers",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "description": "Text in the handle, the name or the bio."
+            },
+            "required": false,
+            "description": "Text in the handle, the name or the bio.",
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Page size, 1 to 100. Default 50."
+            },
+            "required": false,
+            "description": "Page size, 1 to 100. Default 50.",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "From the previous page's nextCursor."
+            },
+            "required": false,
+            "description": "From the previous page's nextCursor.",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of followers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Follower"
+                      },
+                      "description": "Newest first."
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Pass it back as `cursor` for the next page; null on the last."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A malformed cursor or since",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such tracked account in this workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -44586,6 +45553,10 @@
                         "wallet.low",
                         "wallet.paused",
                         "wallet.resumed",
+                        "followers.new",
+                        "account.paused",
+                        "account.capped",
+                        "account.resumed",
                         "mention.spike",
                         "sentiment.negative_spike",
                         "keyword.noisy",
@@ -44596,9 +45567,9 @@
                         "mention.topic_cluster",
                         "export.ready"
                       ],
-                      "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword.\n- wallet.resumed: a credit brought them back.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
+                      "description": "The account events; attention ones (mention.spike onward) go once per opened item. See [Account events](/webhooks/account-events).\n\n- keyword.capped: a keyword hit its mention cap and stopped.\n- keyword.paused_for_balance: the wallet ran out and paused it.\n- keyword.resumed: it listens again (reason says why).\n- wallet.low: the balance fell to 20% of the last credit.\n- wallet.paused: the wallet paused every keyword and tracked account.\n- wallet.resumed: a credit brought them back.\n- followers.new: a tracked account gained followers, one event per poll.\n- account.paused: a tracked account could not be read.\n- account.capped: a tracked account hit its follower cap.\n- account.resumed: its cap pause ended.\n- mention.spike: far more mentions in the last hour than usual.\n- sentiment.negative_spike: the negative share of 24 hours jumped.\n- keyword.noisy: most of its scored matches are noise.\n- channel.failing: a channel's last sends all failed.\n- feed.failing: a workspace feed failed 3 hourly reads in a row.\n- feed.recovered: it read again after failing.\n- mention.unanswered_influencer: a top influencer's relevant mention is still open after 3 hours.\n- mention.topic_cluster: posts on one keyword share a tag in 24 hours.\n- export.ready: a scheduled export finished; data carries a signed download link."
                     },
-                    "maxItems": 15,
+                    "maxItems": 19,
                     "description": "Replaces the account events the channel receives; empty unsubscribes it from all. A webhook takes any; Slack, email, Telegram, Discord and Teams take the attention events only. See [Account events](/webhooks/account-events)."
                   }
                 },
@@ -45389,8 +46360,8 @@
       "status": 402,
       "source": "user",
       "retryable": false,
-      "description": "The workspace has only its welcome credit; on-demand searches need a top-up first.",
-      "fix": "Add funds from Billing, then start the search again."
+      "description": "The workspace has only its welcome credit; on-demand searches and tracked accounts need a top-up first.",
+      "fix": "Add funds from Billing, then try again."
     },
     {
       "code": "keyword_limit_reached",
@@ -45644,6 +46615,20 @@
       "source": "user",
       "retryable": false,
       "description": "The default group is the workspace itself: its company is the profile (PATCH /v1/company). A company description goes on any other group."
+    },
+    {
+      "code": "duplicate_account",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "A workspace tracks one account per platform and handle."
+    },
+    {
+      "code": "account_limit_reached",
+      "status": 402,
+      "source": "user",
+      "retryable": false,
+      "description": "The self-serve cap on tracked accounts."
     },
     {
       "code": "group_changed",

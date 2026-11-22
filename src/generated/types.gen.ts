@@ -434,7 +434,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'invalid_query' | 'query_needs_one_term' | 'query_not_supported' | 'insufficient_balance' | 'funding_required' | 'keyword_limit_reached' | 'transfer_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'export_not_ready' | 'export_expired' | 'exports_not_configured' | 'duplicate_export_schedule' | 'export_schedule_changed' | 'export_schedule_limit_reached' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'duplicate_workspace' | 'workspace_limit_reached' | 'workspace_has_children' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'invalid_query' | 'query_needs_one_term' | 'query_not_supported' | 'insufficient_balance' | 'funding_required' | 'keyword_limit_reached' | 'transfer_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'export_not_ready' | 'export_expired' | 'exports_not_configured' | 'duplicate_export_schedule' | 'export_schedule_changed' | 'export_schedule_limit_reached' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'duplicate_account' | 'account_limit_reached' | 'group_changed' | 'duplicate_workspace' | 'workspace_limit_reached' | 'workspace_has_children' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -5024,6 +5024,10 @@ export type Group = GroupRef & {
          * Keywords in the group that are tracking (not muted).
          */
         active: number;
+        /**
+         * Tracked accounts in the group; a delete takes them too.
+         */
+        accounts: number;
     };
     /**
      * ISO 8601 timestamp, UTC.
@@ -5033,6 +5037,180 @@ export type Group = GroupRef & {
      * ISO 8601 timestamp, UTC.
      */
     updatedAt: string;
+};
+
+export type TrackedAccount = {
+    /**
+     * Tracked account id (acc_...).
+     */
+    id: string;
+    /**
+     * x, instagram, bluesky or github.
+     */
+    platform: 'x' | 'instagram' | 'bluesky' | 'github';
+    /**
+     * The account's handle on the platform, without the @.
+     */
+    handle: string;
+    /**
+     * Display name, as the last poll read it.
+     */
+    name: string | null;
+    /**
+     * Profile picture, as the last poll read it.
+     */
+    avatarUrl: string | null;
+    /**
+     * The account's profile.
+     */
+    url: string;
+    group: GroupRef;
+    /**
+     * Not read and not charged: paused by a person or by the wallet.
+     */
+    muted: boolean;
+    /**
+     * The wallet paused it; a top-up resumes it.
+     */
+    pausedForBalance: boolean;
+    /**
+     * It reached its monthly follower cap; it resumes on the 1st (UTC) or when the cap is raised.
+     */
+    pausedForCap: boolean;
+    /**
+     * A monthly cap on billed new followers.
+     */
+    cap: {
+        /**
+         * New followers billed in a UTC calendar month at most; past it the account stops being read until the 1st.
+         */
+        followers: number;
+    } | null;
+    /**
+     * Counts about the account.
+     */
+    stats: {
+        /**
+         * Its follower count on the platform, as the last poll read it.
+         */
+        followers: number | null;
+        /**
+         * Followers Mentio has seen, the baseline included.
+         */
+        tracked: number;
+        /**
+         * New followers billed this UTC month.
+         */
+        thisMonth: number;
+    };
+    /**
+     * The poller's state.
+     */
+    polling: {
+        /**
+         * When the first read ran; until then nothing is new or billed.
+         */
+        baselineAt: string | null;
+        /**
+         * When the last read ran.
+         */
+        lastPolledAt: string | null;
+        /**
+         * When the next read is due; null while paused.
+         */
+        nextPollAt: string | null;
+        /**
+         * Why the last read failed or waited, or null.
+         */
+        lastError: string | null;
+    };
+    /**
+     * When tracking started.
+     */
+    createdAt: string;
+};
+
+export type CreateAccountBody = {
+    /**
+     * x, bluesky or github. instagram is refused for now (a 400): its follower list is not readable newest first.
+     */
+    platform: 'x' | 'instagram' | 'bluesky' | 'github';
+    /**
+     * The handle on the platform, with or without the @; a profile link works too (https://x.com/acme, https://bsky.app/profile/acme.bsky.social).
+     */
+    handle: string;
+    /**
+     * The keyword group it belongs to (grp_...); omit for the default group.
+     */
+    groupId?: string;
+    /**
+     * A monthly cap on billed new followers; omit or null for none.
+     */
+    cap?: {
+        /**
+         * New followers billed in a UTC calendar month at most; past it the account stops being read until the 1st.
+         */
+        followers: number;
+    } | null;
+};
+
+export type UpdateAccountBody = {
+    /**
+     * Pause (true) or resume (false) reading and charging it.
+     */
+    muted?: boolean;
+    /**
+     * Move it to this keyword group (grp_...).
+     */
+    groupId?: string;
+    /**
+     * Set the monthly follower cap; null removes it.
+     */
+    cap?: {
+        /**
+         * New followers billed in a UTC calendar month at most; past it the account stops being read until the 1st.
+         */
+        followers: number;
+    } | null;
+};
+
+export type Follower = {
+    /**
+     * The follower's id on the platform.
+     */
+    key: string;
+    /**
+     * Their handle, without the @.
+     */
+    handle: string | null;
+    /**
+     * Display name.
+     */
+    name: string | null;
+    /**
+     * Their profile.
+     */
+    url: string | null;
+    /**
+     * Their profile picture, or null.
+     */
+    avatarUrl: string | null;
+    /**
+     * Their bio, when the platform gave it.
+     */
+    bio: string | null;
+    /**
+     * Their own follower count, when the platform gave it.
+     */
+    followers: number | null;
+    /**
+     * Verified on the platform, when it said; null when unknown.
+     */
+    verified: boolean | null;
+    /**
+     * When Mentio first saw them follow (the poll time, not the platform's).
+     */
+    followedAt: string;
 };
 
 export type Company = {
@@ -5332,7 +5510,7 @@ export type UsageSummary = {
          */
         cents: number;
         /**
-         * Mentions and comments billed since the last daily settlement, priced but not yet debited.
+         * Mentions, comments, search results and new followers billed since the last daily settlement, priced but not yet debited.
          */
         pendingCents: number;
         /**
@@ -5383,6 +5561,27 @@ export type UsageSummary = {
         dayCents: number;
     };
     /**
+     * Tracked accounts (followers) against the wallet.
+     */
+    accounts: {
+        /**
+         * Tracked accounts running, the ones charged daily.
+         */
+        active: number;
+        /**
+         * Tracked accounts the wallet paused for lack of balance; a top-up resumes them.
+         */
+        paused: number;
+        /**
+         * Running accounts at their monthly follower cap: still charged daily, no follower billed until the month turns or the cap is raised.
+         */
+        capped: number;
+        /**
+         * What the next day costs for the accounts that pay it: being read, or capped (one not read yet, or failing, pays nothing). keywords.dayCents plus this is a day.
+         */
+        dayCents: number;
+    };
+    /**
      * Matched mentions, the other thing that bills.
      */
     mentions: {
@@ -5392,6 +5591,19 @@ export type UsageSummary = {
         today: number;
         /**
          * Matches recorded in the last 30 days.
+         */
+        last30d: number;
+    };
+    /**
+     * New followers of tracked accounts, billed like mentions.
+     */
+    followers: {
+        /**
+         * New followers billed today (UTC), every tracked account.
+         */
+        today: number;
+        /**
+         * New followers billed in the last 30 days.
          */
         last30d: number;
     };
@@ -5480,9 +5692,25 @@ export type UsageBreakdown = {
          */
         commentCents: number;
         /**
-         * keywordCents, mentionCents and commentCents, plus searchCents and estimateCents when the report is not filtered: then the window's whole list price. The rows carry keyword spend only.
+         * keywordCents, mentionCents, commentCents, accountCents and followerCents, plus searchCents and estimateCents when the report is not filtered: then the window's whole list price. The rows carry keyword and tracked-account spend only.
          */
         totalCents: number;
+        /**
+         * Tracked-account days metered: the days the daily tick charged an account for. 0 on by=keyword rows (an account is not a keyword).
+         */
+        accountDays: number;
+        /**
+         * The account-days at the account rate ($2 a month, 200/30 cents a day), rounded once on the total.
+         */
+        accountCents: number;
+        /**
+         * New followers of tracked accounts billed in the window, under the platform and group the account had when they were billed (a moved or deleted account keeps them there).
+         */
+        billableFollowers: number;
+        /**
+         * The new followers at $0.008 each, rounded once on the total.
+         */
+        followerCents: number;
         /**
          * What the ledger has debited for the window's days, by the day each debit settled (estimates: when charged), for the whole workspace whatever the filters, searches included. Lags totalCents by unsettled mentions; see [The ledger](/billing#the-ledger).
          */
@@ -5607,6 +5835,22 @@ export type UsageBreakdown = {
          * keywordCents plus mentionCents plus commentCents.
          */
         totalCents: number;
+        /**
+         * Tracked-account days metered: the days the daily tick charged an account for. 0 on by=keyword rows (an account is not a keyword).
+         */
+        accountDays: number;
+        /**
+         * The account-days at the account rate ($2 a month, 200/30 cents a day), rounded once on the total.
+         */
+        accountCents: number;
+        /**
+         * New followers of tracked accounts billed in the window, under the platform and group the account had when they were billed (a moved or deleted account keeps them there).
+         */
+        billableFollowers: number;
+        /**
+         * The new followers at $0.008 each, rounded once on the total.
+         */
+        followerCents: number;
     }>;
     /**
      * Rows in the dimension before `limit` and `offset`.
@@ -5652,11 +5896,19 @@ export type Wallet = {
      */
     autoMutedKeywords: number;
     /**
-     * What one more day of the running keywords costs; tracking stops when the effective balance drops under it.
+     * Tracked accounts running (followers, $2 a month each).
+     */
+    activeAccounts: number;
+    /**
+     * Tracked accounts the wallet paused; a top-up resumes them.
+     */
+    autoMutedAccounts: number;
+    /**
+     * What one more day of the running keywords and tracked accounts costs; tracking stops when the effective balance drops under it.
      */
     nextDayCents: number;
     /**
-     * What one day of every keyword (running and paused) costs; a stopped workspace resumes once the effective balance covers it.
+     * What one day of every keyword and tracked account (running and paused) costs; a stopped workspace resumes once the effective balance covers it.
      */
     resumeCostCents: number;
     /**
@@ -5745,9 +5997,13 @@ export type LedgerList = {
          */
         id: string;
         /**
-         * signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results), debit_estimates (paid samples of keyword estimates), adjustment, transfer_in (money moved in from the parent or a child workspace) or transfer_out (money moved out to one).
+         * The row kind:
+         *
+         * - Credits: signup_credit, topup, adjustment, transfer_in (from the parent or a child workspace).
+         * - Out: refund, transfer_out.
+         * - Debits: debit_keyword_days, debit_mentions, debit_comments, debit_searches, debit_estimates, debit_account_days (tracked accounts), debit_followers (new followers).
          */
-        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'debit_searches' | 'debit_estimates' | 'adjustment' | 'transfer_in' | 'transfer_out';
+        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'debit_searches' | 'debit_estimates' | 'debit_account_days' | 'debit_followers' | 'adjustment' | 'transfer_in' | 'transfer_out';
         /**
          * Integer USD cents; credits positive, debits negative.
          */
@@ -5757,7 +6013,7 @@ export type LedgerList = {
          */
         day: string | null;
         /**
-         * Debit rows: cumulative units (mentions or keyword-days) settled up to this row; on debit_estimates, the paid samples of that one estimate.
+         * Debit rows: cumulative units (mentions, keyword-days, account-days or followers) settled up to this row; on debit_estimates, the paid samples of that one estimate.
          */
         units: number | null;
         /**
@@ -6908,9 +7164,9 @@ export type SlackChannel = {
          */
         channelName: string;
         /**
-         * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
+         * The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
     };
 };
 
@@ -6979,9 +7235,9 @@ export type EmailChannel = {
             confirmedAt: string | null;
         }>;
         /**
-         * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
+         * The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
     };
 };
 
@@ -7049,7 +7305,7 @@ export type WebhookChannel = {
         /**
          * The account events this endpoint receives on its own, no rule involved: keyword and wallet state changes and the attention events. Empty when it receives none; mention and digest deliveries come through rules as before.
          */
-        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
+        events: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'followers.new' | 'account.paused' | 'account.capped' | 'account.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
         /**
          * Only on creation and rotation. Signs every request: X-Mentions-Signature-V2 is v2= plus the hex HMAC-SHA256 of "<X-Mentions-Timestamp>.<raw body>" (reject a timestamp older than a few minutes); X-Mentions-Signature, the hex HMAC-SHA256 of the raw body alone, stays for older verifiers.
          */
@@ -7117,9 +7373,9 @@ export type TelegramChannel = {
          */
         chatType: 'private' | 'group' | 'supergroup' | 'channel';
         /**
-         * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
+         * The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
     };
 };
 
@@ -7179,9 +7435,9 @@ export type DiscordChannel = {
          */
         urlHint: string;
         /**
-         * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
+         * The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
     };
 };
 
@@ -7241,9 +7497,9 @@ export type TeamsChannel = {
          */
         urlHint: string;
         /**
-         * The attention events this channel receives on its own, no rule involved: one short message when an item opens (GET /v1/attention). Empty when it receives none.
+         * The account events this channel receives on its own, no rule involved: the attention events (GET /v1/attention) and followers.new (new followers of a tracked account). Empty when it receives none.
          */
-        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+        events: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
     };
 };
 
@@ -7275,9 +7531,9 @@ export type CreateSlackChannel = {
      */
     channelName: string;
     /**
-     * Attention events to receive here, on top of whatever rules send. Omit for none.
+     * Attention events and followers.new to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
 };
 
 export type CreateEmailChannel = {
@@ -7290,9 +7546,9 @@ export type CreateEmailChannel = {
      */
     emails: Array<string>;
     /**
-     * Attention events to receive here, on top of whatever rules send. Omit for none.
+     * Attention events and followers.new to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
 };
 
 export type CreateWebhookChannel = {
@@ -7317,7 +7573,7 @@ export type CreateWebhookChannel = {
     /**
      * Account events to receive at this endpoint (keyword and wallet state changes, attention events), on top of whatever rules send here. Omit for none.
      */
-    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
+    events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'followers.new' | 'account.paused' | 'account.capped' | 'account.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
 };
 
 export type CreateDiscordChannel = {
@@ -7334,9 +7590,9 @@ export type CreateDiscordChannel = {
      */
     label?: string;
     /**
-     * Attention events to receive here, on top of whatever rules send. Omit for none.
+     * Attention events and followers.new to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
 };
 
 export type CreateTeamsChannel = {
@@ -7353,9 +7609,9 @@ export type CreateTeamsChannel = {
      */
     label?: string;
     /**
-     * Attention events to receive here, on top of whatever rules send. Omit for none.
+     * Attention events and followers.new to receive here, on top of whatever rules send. Omit for none.
      */
-    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster'>;
+    events?: Array<'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'followers.new'>;
 };
 
 export type GetHealthData = {
@@ -16139,6 +16395,10 @@ export type ListGroupsResponses = {
                  * Keywords in the group that are tracking (not muted).
                  */
                 active: number;
+                /**
+                 * Tracked accounts in the group; a delete takes them too.
+                 */
+                accounts: number;
             };
             /**
              * ISO 8601 timestamp, UTC.
@@ -16335,6 +16595,277 @@ export type UpdateGroupResponses = {
 };
 
 export type UpdateGroupResponse = UpdateGroupResponses[keyof UpdateGroupResponses];
+
+export type ListAccountsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/accounts';
+};
+
+export type ListAccountsErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListAccountsError = ListAccountsErrors[keyof ListAccountsErrors];
+
+export type ListAccountsResponses = {
+    /**
+     * Tracked accounts
+     */
+    200: {
+        /**
+         * The workspace's tracked accounts, newest first.
+         */
+        data: Array<TrackedAccount>;
+    };
+};
+
+export type ListAccountsResponse = ListAccountsResponses[keyof ListAccountsResponses];
+
+export type CreateAccountData = {
+    body: CreateAccountBody;
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/accounts';
+};
+
+export type CreateAccountErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * funding_required: the workspace has only its welcome credit (top up first); insufficient_balance: the wallet cannot cover one more account-day; account_limit_reached: the tracked account limit
+     */
+    402: ErrorResponse;
+    /**
+     * No such group in this workspace
+     */
+    404: ErrorResponse;
+    /**
+     * That account is already tracked (duplicate_account)
+     */
+    409: ErrorResponse;
+};
+
+export type CreateAccountError = CreateAccountErrors[keyof CreateAccountErrors];
+
+export type CreateAccountResponses = {
+    /**
+     * The tracked account
+     */
+    201: TrackedAccount;
+};
+
+export type CreateAccountResponse = CreateAccountResponses[keyof CreateAccountResponses];
+
+export type DeleteAccountData = {
+    body?: never;
+    path: {
+        /**
+         * Tracked account id (acc_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/accounts/{id}';
+};
+
+export type DeleteAccountErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such tracked account in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteAccountError = DeleteAccountErrors[keyof DeleteAccountErrors];
+
+export type DeleteAccountResponses = {
+    /**
+     * Deleted
+     */
+    204: void;
+};
+
+export type DeleteAccountResponse = DeleteAccountResponses[keyof DeleteAccountResponses];
+
+export type GetAccountData = {
+    body?: never;
+    path: {
+        /**
+         * Tracked account id (acc_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/accounts/{id}';
+};
+
+export type GetAccountErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such tracked account in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type GetAccountError = GetAccountErrors[keyof GetAccountErrors];
+
+export type GetAccountResponses = {
+    /**
+     * The tracked account
+     */
+    200: TrackedAccount;
+};
+
+export type GetAccountResponse = GetAccountResponses[keyof GetAccountResponses];
+
+export type UpdateAccountData = {
+    body: UpdateAccountBody;
+    path: {
+        /**
+         * Tracked account id (acc_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/accounts/{id}';
+};
+
+export type UpdateAccountErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Resuming needs a balance that covers one more account-day (insufficient_balance)
+     */
+    402: ErrorResponse;
+    /**
+     * No such tracked account or group in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type UpdateAccountError = UpdateAccountErrors[keyof UpdateAccountErrors];
+
+export type UpdateAccountResponses = {
+    /**
+     * The updated account
+     */
+    200: TrackedAccount;
+};
+
+export type UpdateAccountResponse = UpdateAccountResponses[keyof UpdateAccountResponses];
+
+export type ListAccountFollowersData = {
+    body?: never;
+    path: {
+        /**
+         * Tracked account id (acc_...).
+         */
+        id: string;
+    };
+    query?: {
+        /**
+         * A preset window ending now: 7d is today and the six days before, in `timezone`, as in the analytics reports. Ignored when from or to is given. Omit range, from and to for no window.
+         */
+        range?: '7d' | '30d' | '90d' | '365d';
+        /**
+         * Start, inclusive: a day (YYYY-MM-DD, from its first moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        from?: string;
+        /**
+         * End, inclusive: a day (YYYY-MM-DD, to its last moment in `timezone`) or an instant (ISO 8601 with its offset, or epoch ms).
+         */
+        to?: string;
+        /**
+         * IANA zone that days in range, from and to are cut in (Europe/Madrid). Default UTC.
+         */
+        timezone?: string;
+        /**
+         * true: also the followers the first read found. Default false: only new ones.
+         */
+        includeBaseline?: boolean;
+        /**
+         * Only followers with at least this many followers of their own.
+         */
+        minFollowers?: number | null;
+        /**
+         * Text in the handle, the name or the bio.
+         */
+        q?: string;
+        /**
+         * Page size, 1 to 100. Default 50.
+         */
+        limit?: number;
+        /**
+         * From the previous page's nextCursor.
+         */
+        cursor?: string;
+    };
+    url: '/v1/accounts/{id}/followers';
+};
+
+export type ListAccountFollowersErrors = {
+    /**
+     * A malformed cursor or since
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such tracked account in this workspace
+     */
+    404: ErrorResponse;
+};
+
+export type ListAccountFollowersError = ListAccountFollowersErrors[keyof ListAccountFollowersErrors];
+
+export type ListAccountFollowersResponses = {
+    /**
+     * A page of followers
+     */
+    200: {
+        /**
+         * Newest first.
+         */
+        data: Array<Follower>;
+        /**
+         * Pass it back as `cursor` for the next page; null on the last.
+         */
+        nextCursor: string | null;
+    };
+};
+
+export type ListAccountFollowersResponse = ListAccountFollowersResponses[keyof ListAccountFollowersResponses];
 
 export type GetCompanyData = {
     body?: never;
@@ -19242,7 +19773,7 @@ export type UpdateChannelData = {
         /**
          * Replaces the account events the channel receives; empty unsubscribes it from all. A webhook takes any; Slack, email, Telegram, Discord and Teams take the attention events only. See [Account events](/webhooks/account-events).
          */
-        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
+        events?: Array<'keyword.capped' | 'keyword.paused_for_balance' | 'keyword.resumed' | 'wallet.low' | 'wallet.paused' | 'wallet.resumed' | 'followers.new' | 'account.paused' | 'account.capped' | 'account.resumed' | 'mention.spike' | 'sentiment.negative_spike' | 'keyword.noisy' | 'channel.failing' | 'feed.failing' | 'feed.recovered' | 'mention.unanswered_influencer' | 'mention.topic_cluster' | 'export.ready'>;
     };
     path: {
         /**
