@@ -15,7 +15,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "API key minted via POST /v1/api-keys (format mk_live_...)"
+        "description": "API key minted via POST /v1/api-keys (format mk_live_...), or an OAuth access token. A parent workspace's credential acts on one of its child workspaces by adding the header Mentio-Workspace: org_... (see /v1/workspaces)."
       }
     },
     "schemas": {
@@ -950,6 +950,7 @@
                   "insufficient_balance",
                   "funding_required",
                   "keyword_limit_reached",
+                  "transfer_limit_reached",
                   "billing_not_configured",
                   "order_not_credited",
                   "schedule_required",
@@ -986,6 +987,9 @@
                   "default_group",
                   "default_group_context",
                   "group_changed",
+                  "duplicate_workspace",
+                  "workspace_limit_reached",
+                  "workspace_has_children",
                   "invalid_signature",
                   "webhook_not_configured",
                   "invalid_token",
@@ -10928,13 +10932,19 @@
               "name": {
                 "type": "string",
                 "description": "The workspace name, as the dashboard shows it."
+              },
+              "parentId": {
+                "type": "string",
+                "nullable": true,
+                "description": "The parent workspace (org_...) when this one is a child workspace; null otherwise."
               }
             },
             "required": [
               "id",
-              "name"
+              "name",
+              "parentId"
             ],
-            "description": "The workspace this credential acts on."
+            "description": "The workspace this credential acts on: the child named by the Mentio-Workspace header, when one is sent."
           },
           "auth": {
             "type": "object",
@@ -11113,6 +11123,189 @@
           "createdAt"
         ]
       },
+      "Workspace": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Workspace id (org_...); send it as the Mentio-Workspace header to act on this workspace with the parent's credential."
+          },
+          "name": {
+            "type": "string",
+            "description": "The workspace name."
+          },
+          "externalId": {
+            "type": "string",
+            "nullable": true,
+            "description": "Your own id for this workspace (a customer id), unique among your workspaces; null when unset."
+          },
+          "parentId": {
+            "type": "string",
+            "description": "The parent workspace (org_...) that created and funds it."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the workspace was created."
+          },
+          "wallet": {
+            "type": "object",
+            "properties": {
+              "balanceCents": {
+                "type": "integer",
+                "description": "The workspace's own balance: every credit and transfer in, minus every debit and transfer out."
+              },
+              "effectiveCents": {
+                "type": "integer",
+                "description": "The balance minus usage not settled yet: what a transfer back to the parent may take, and what the stop rules read."
+              },
+              "activeKeywords": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Keywords running (each costs a keyword-day a day)."
+              },
+              "pausedKeywords": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Keywords the wallet paused for lack of balance; they resume once a day of every keyword is covered."
+              }
+            },
+            "required": [
+              "balanceCents",
+              "effectiveCents",
+              "activeKeywords",
+              "pausedKeywords"
+            ],
+            "description": "The child's own wallet. A child spends only what it holds; nothing is pooled with the parent."
+          },
+          "funding": {
+            "type": "object",
+            "properties": {
+              "monthlyLimitCents": {
+                "type": "integer",
+                "nullable": true,
+                "description": "The most the parent moves into this workspace in a UTC calendar month, manual and automatic transfers alike; null = no limit."
+              },
+              "transferredThisMonthCents": {
+                "type": "integer",
+                "description": "Moved in from the parent this UTC month, what the monthly limit counts."
+              },
+              "autoRefill": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                  "thresholdCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 500000,
+                    "description": "Refill when the child's effective balance (balance minus usage not settled yet) drops under this, in USD cents."
+                  },
+                  "amountCents": {
+                    "type": "integer",
+                    "minimum": 100,
+                    "maximum": 500000,
+                    "description": "How much each refill moves from the parent, in USD cents (100 to 500000)."
+                  }
+                },
+                "required": [
+                  "thresholdCents",
+                  "amountCents"
+                ],
+                "description": "The automatic refill; null when off."
+              },
+              "lastRefillAt": {
+                "type": "string",
+                "nullable": true,
+                "description": "When the last automatic refill moved money; null when none ever did."
+              },
+              "lastRefillError": {
+                "type": "string",
+                "nullable": true,
+                "description": "Why the last automatic refill attempt moved nothing (the parent could not cover it, the monthly limit), cleared by the next one that works; null when fine."
+              }
+            },
+            "required": [
+              "monthlyLimitCents",
+              "transferredThisMonthCents",
+              "autoRefill",
+              "lastRefillAt",
+              "lastRefillError"
+            ],
+            "description": "How the parent funds this workspace."
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "keywords": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Keywords in the workspace, running or not."
+              },
+              "members": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "People who are members of this workspace itself (the parent's team reaches it through the parent)."
+              }
+            },
+            "required": [
+              "keywords",
+              "members"
+            ],
+            "description": "Counts."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "externalId",
+          "parentId",
+          "createdAt",
+          "wallet",
+          "funding",
+          "stats"
+        ]
+      },
+      "Transfer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Transfer id (trf_...)."
+          },
+          "workspaceId": {
+            "type": "string",
+            "description": "The child workspace (org_...)."
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "to_workspace",
+              "to_parent"
+            ],
+            "description": "to_workspace: from the parent into the child workspace. to_parent: from the child back to the parent."
+          },
+          "amountCents": {
+            "type": "integer",
+            "description": "How much moved, in USD cents, always positive; `direction` says which way."
+          },
+          "note": {
+            "type": "string",
+            "nullable": true,
+            "description": "Free text written with it; automatic refills read \"Automatic refill\"."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the money moved."
+          }
+        },
+        "required": [
+          "id",
+          "workspaceId",
+          "direction",
+          "amountCents",
+          "note",
+          "createdAt"
+        ]
+      },
       "UsageSummary": {
         "type": "object",
         "properties": {
@@ -11287,7 +11480,8 @@
               "day",
               "platform",
               "keyword",
-              "group"
+              "group",
+              "workspace"
             ],
             "description": "The dimension the rows are grouped by."
           },
@@ -11400,7 +11594,7 @@
               "properties": {
                 "key": {
                   "type": "string",
-                  "description": "The row's key: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword, the group id for by=group."
+                  "description": "The row's key: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword, the group id for by=group, the workspace id for by=workspace."
                 },
                 "label": {
                   "type": "string",
@@ -11454,6 +11648,31 @@
                   ],
                   "description": "by=group only; null otherwise."
                 },
+                "workspace": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Workspace id (org_...): the caller's own, or one of its child workspaces."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "The workspace name as it reads now."
+                    },
+                    "parentId": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "The parent (org_...) for a child workspace; null for the caller's own row."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "parentId"
+                  ],
+                  "description": "by=workspace only; null otherwise."
+                },
                 "keywordDays": {
                   "type": "integer",
                   "nullable": true,
@@ -11502,6 +11721,7 @@
                 "label",
                 "keyword",
                 "group",
+                "workspace",
                 "keywordDays",
                 "keywordCents",
                 "matchedMentions",
@@ -11726,9 +11946,11 @@
                     "debit_comments",
                     "debit_searches",
                     "debit_estimates",
-                    "adjustment"
+                    "adjustment",
+                    "transfer_in",
+                    "transfer_out"
                   ],
-                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results), debit_estimates (paid samples of keyword estimates) or adjustment."
+                  "description": "signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results), debit_estimates (paid samples of keyword estimates), adjustment, transfer_in (money moved in from the parent or a child workspace) or transfer_out (money moved out to one)."
                 },
                 "amountCents": {
                   "type": "integer",
@@ -11754,6 +11976,25 @@
                   "nullable": true,
                   "description": "Top-ups and refunds: the Polar order."
                 },
+                "transfer": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Transfer id (trf_...); the other workspace's row carries the same id."
+                    },
+                    "workspaceId": {
+                      "type": "string",
+                      "description": "The other workspace of the transfer (org_...): the child it funded, or the parent it came from."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "workspaceId"
+                  ],
+                  "description": "transfer_in and transfer_out rows: the transfer and the other workspace; null on every other row."
+                },
                 "createdAt": {
                   "type": "string",
                   "description": "ISO 8601 timestamp, UTC."
@@ -11767,6 +12008,7 @@
                 "units",
                 "note",
                 "polarOrderId",
+                "transfer",
                 "createdAt"
               ]
             },
@@ -38646,6 +38888,1331 @@
         }
       }
     },
+    "/v1/workspaces": {
+      "get": {
+        "operationId": "listWorkspaces",
+        "summary": "List child workspaces",
+        "description": "The child workspaces your workspace created, oldest first, each with its own wallet, its funding settings and counts. Act inside one by sending its id as the `Mentio-Workspace` header on any other call. See [Agency workspaces](/guides/agency-workspaces).",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Child workspaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Workspace id (org_...); send it as the Mentio-Workspace header to act on this workspace with the parent's credential."
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "The workspace name."
+                          },
+                          "externalId": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Your own id for this workspace (a customer id), unique among your workspaces; null when unset."
+                          },
+                          "parentId": {
+                            "type": "string",
+                            "description": "The parent workspace (org_...) that created and funds it."
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "When the workspace was created."
+                          },
+                          "wallet": {
+                            "type": "object",
+                            "properties": {
+                              "balanceCents": {
+                                "type": "integer",
+                                "description": "The workspace's own balance: every credit and transfer in, minus every debit and transfer out."
+                              },
+                              "effectiveCents": {
+                                "type": "integer",
+                                "description": "The balance minus usage not settled yet: what a transfer back to the parent may take, and what the stop rules read."
+                              },
+                              "activeKeywords": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Keywords running (each costs a keyword-day a day)."
+                              },
+                              "pausedKeywords": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Keywords the wallet paused for lack of balance; they resume once a day of every keyword is covered."
+                              }
+                            },
+                            "required": [
+                              "balanceCents",
+                              "effectiveCents",
+                              "activeKeywords",
+                              "pausedKeywords"
+                            ],
+                            "description": "The child's own wallet. A child spends only what it holds; nothing is pooled with the parent."
+                          },
+                          "funding": {
+                            "type": "object",
+                            "properties": {
+                              "monthlyLimitCents": {
+                                "type": "integer",
+                                "nullable": true,
+                                "description": "The most the parent moves into this workspace in a UTC calendar month, manual and automatic transfers alike; null = no limit."
+                              },
+                              "transferredThisMonthCents": {
+                                "type": "integer",
+                                "description": "Moved in from the parent this UTC month, what the monthly limit counts."
+                              },
+                              "autoRefill": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "thresholdCents": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 500000,
+                                    "description": "Refill when the child's effective balance (balance minus usage not settled yet) drops under this, in USD cents."
+                                  },
+                                  "amountCents": {
+                                    "type": "integer",
+                                    "minimum": 100,
+                                    "maximum": 500000,
+                                    "description": "How much each refill moves from the parent, in USD cents (100 to 500000)."
+                                  }
+                                },
+                                "required": [
+                                  "thresholdCents",
+                                  "amountCents"
+                                ],
+                                "description": "The automatic refill; null when off."
+                              },
+                              "lastRefillAt": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "When the last automatic refill moved money; null when none ever did."
+                              },
+                              "lastRefillError": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Why the last automatic refill attempt moved nothing (the parent could not cover it, the monthly limit), cleared by the next one that works; null when fine."
+                              }
+                            },
+                            "required": [
+                              "monthlyLimitCents",
+                              "transferredThisMonthCents",
+                              "autoRefill",
+                              "lastRefillAt",
+                              "lastRefillError"
+                            ],
+                            "description": "How the parent funds this workspace."
+                          },
+                          "stats": {
+                            "type": "object",
+                            "properties": {
+                              "keywords": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "Keywords in the workspace, running or not."
+                              },
+                              "members": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "description": "People who are members of this workspace itself (the parent's team reaches it through the parent)."
+                              }
+                            },
+                            "required": [
+                              "keywords",
+                              "members"
+                            ],
+                            "description": "Counts."
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "externalId",
+                          "parentId",
+                          "createdAt",
+                          "wallet",
+                          "funding",
+                          "stats"
+                        ]
+                      },
+                      "description": "The child workspaces, oldest first."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createWorkspace",
+        "summary": "Create a child workspace",
+        "description": "A workspace of its own for a client, apart from yours and your other clients'. It starts with no balance and no welcome credit: fund it with a transfer or `autoRefill`. See [Agency workspaces](/guides/agency-workspaces).",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "The workspace name, 1 to 100 characters."
+                  },
+                  "externalId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Your own id for it (a customer id), unique among your workspaces; a second create with the same one is a 409."
+                  },
+                  "monthlyLimitCents": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "maximum": 50000000,
+                    "description": "The most you move into it in a UTC calendar month, in USD cents; omit or null for no limit."
+                  },
+                  "autoRefill": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "thresholdCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 500000,
+                        "description": "Refill when the child's effective balance (balance minus usage not settled yet) drops under this, in USD cents."
+                      },
+                      "amountCents": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 500000,
+                        "description": "How much each refill moves from the parent, in USD cents (100 to 500000)."
+                      }
+                    },
+                    "required": [
+                      "thresholdCents",
+                      "amountCents"
+                    ],
+                    "description": "Refill it from your balance when it runs low; omit or null for off."
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Your workspace never topped up (funding_required)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an owner or admin, nor a key one minted; or the credential belongs to a child workspace (forbidden)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The externalId is taken (duplicate_workspace), or the workspace holds as many children as it may (workspace_limit_reached)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workspaces/{id}": {
+      "get": {
+        "operationId": "getWorkspace",
+        "summary": "Get a child workspace",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Child workspace id (org_...).",
+              "example": "org_abc123"
+            },
+            "required": true,
+            "description": "Child workspace id (org_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such child workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "operationId": "updateWorkspace",
+        "summary": "Update a child workspace",
+        "description": "Rename it, change its externalId, its monthly limit on transfers in or its automatic refill. Omitted fields stay; null clears.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Child workspace id (org_...).",
+              "example": "org_abc123"
+            },
+            "required": true,
+            "description": "Child workspace id (org_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "New name, 1 to 100 characters."
+                  },
+                  "externalId": {
+                    "type": "string",
+                    "nullable": true,
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "description": "Your own id for it; null clears it."
+                  },
+                  "monthlyLimitCents": {
+                    "type": "integer",
+                    "nullable": true,
+                    "minimum": 0,
+                    "maximum": 50000000,
+                    "description": "The monthly ceiling on transfers in, in USD cents; null removes it."
+                  },
+                  "autoRefill": {
+                    "type": "object",
+                    "nullable": true,
+                    "properties": {
+                      "thresholdCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 500000,
+                        "description": "Refill when the child's effective balance (balance minus usage not settled yet) drops under this, in USD cents."
+                      },
+                      "amountCents": {
+                        "type": "integer",
+                        "minimum": 100,
+                        "maximum": 500000,
+                        "description": "How much each refill moves from the parent, in USD cents (100 to 500000)."
+                      }
+                    },
+                    "required": [
+                      "thresholdCents",
+                      "amountCents"
+                    ],
+                    "description": "The automatic refill; null turns it off."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Workspace"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an owner or admin, nor an API key one of them minted (forbidden)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such child workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The externalId is taken (duplicate_workspace)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteWorkspace",
+        "summary": "Delete a child workspace",
+        "description": "Deletes the workspace with everything in it: keywords, mentions, alerts, channels, API keys, members. Its effective balance comes back to your workspace first, and usage it owes is settled from yours. Cannot be undone.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Child workspace id (org_...).",
+              "example": "org_abc123"
+            },
+            "required": true,
+            "description": "Child workspace id (org_...).",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an owner or admin, nor an API key one of them minted (forbidden)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such child workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workspaces/{id}/transfers": {
+      "post": {
+        "operationId": "createTransfer",
+        "summary": "Move money to or from a child workspace",
+        "description": "Moves USD cents between your balance and the child's, one ledger row on each side. The payer's effective balance must cover it; a transfer in counts against the child's monthly limit. Nothing charges a card or pays out. See [Agency workspaces](/guides/agency-workspaces#fund-a-child).",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Child workspace id (org_...).",
+              "example": "org_abc123"
+            },
+            "required": true,
+            "description": "Child workspace id (org_...).",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amountCents": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 500000,
+                    "description": "How much to move, in USD cents (1 to 500000)."
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": [
+                      "to_workspace",
+                      "to_parent"
+                    ],
+                    "default": "to_workspace",
+                    "description": "to_workspace: from the parent into the child workspace. to_parent: from the child back to the parent."
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "description": "Free text kept on both ledger rows, up to 200 characters."
+                  }
+                },
+                "required": [
+                  "amountCents"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The transfer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transfer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "The payer cannot cover it (insufficient_balance), your workspace never topped up (funding_required), or it passes the monthly limit (transfer_limit_reached)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an owner or admin, nor an API key one of them minted (forbidden)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such child workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listTransfers",
+        "summary": "List a child workspace's transfers",
+        "description": "Every transfer between your workspace and this child, newest first, automatic refills included.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Child workspace id (org_...).",
+              "example": "org_abc123"
+            },
+            "required": true,
+            "description": "Child workspace id (org_...).",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "The nextCursor of the previous page."
+            },
+            "required": false,
+            "description": "The nextCursor of the previous page.",
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "description": "Transfers per page, 1 to 100 (default 50)."
+            },
+            "required": false,
+            "description": "Transfers per page, 1 to 100 (default 50).",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transfers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "Transfer id (trf_...)."
+                          },
+                          "workspaceId": {
+                            "type": "string",
+                            "description": "The child workspace (org_...)."
+                          },
+                          "direction": {
+                            "type": "string",
+                            "enum": [
+                              "to_workspace",
+                              "to_parent"
+                            ],
+                            "description": "to_workspace: from the parent into the child workspace. to_parent: from the child back to the parent."
+                          },
+                          "amountCents": {
+                            "type": "integer",
+                            "description": "How much moved, in USD cents, always positive; `direction` says which way."
+                          },
+                          "note": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Free text written with it; automatic refills read \"Automatic refill\"."
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "description": "When the money moved."
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "workspaceId",
+                          "direction",
+                          "amountCents",
+                          "note",
+                          "createdAt"
+                        ]
+                      },
+                      "description": "Transfers, newest first."
+                    },
+                    "nextCursor": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Pass it back as `cursor` for the next page; null on the last."
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "nextCursor"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid cursor (invalid_cursor)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such child workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workspace-members": {
+      "get": {
+        "operationId": "listWorkspaceMembers",
+        "summary": "List members across your workspaces",
+        "description": "Everyone in your workspace or its children, one row per person. Each row lists the workspaces they belong to and their role in each.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "People",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "userId": {
+                            "type": "string",
+                            "description": "The person's user id."
+                          },
+                          "email": {
+                            "type": "string",
+                            "description": "The account's email address."
+                          },
+                          "name": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "The name on the account; null when they never set one."
+                          },
+                          "workspaces": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string",
+                                  "description": "Workspace id (org_...): the parent or one of its children."
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "description": "The workspace name."
+                                },
+                                "memberId": {
+                                  "type": "string",
+                                  "description": "The membership id (mem_...) in that workspace."
+                                },
+                                "role": {
+                                  "type": "string",
+                                  "enum": [
+                                    "owner",
+                                    "admin",
+                                    "member"
+                                  ],
+                                  "description": "owner: everything, billing included. admin: manages the team. member: works the feed."
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "name",
+                                "memberId",
+                                "role"
+                              ]
+                            },
+                            "description": "Every workspace of the agency (the parent and its children) the person is a member of."
+                          }
+                        },
+                        "required": [
+                          "userId",
+                          "email",
+                          "name",
+                          "workspaces"
+                        ]
+                      },
+                      "description": "People in the parent or any child, by email."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workspace-invitations": {
+      "post": {
+        "operationId": "createWorkspaceInvitations",
+        "summary": "Invite someone to several child workspaces",
+        "description": "Invites one address to several child workspaces, one email each. A member or an open invitation is reported, never sent twice. Needs a signed-in owner or admin, not an API key.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255,
+              "pattern": "^[\\x21-\\x7e]{1,255}$",
+              "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+              "example": "7b1e4c2a-9f3d-4e8a-b6c5-1d2e3f4a5b6c"
+            },
+            "required": false,
+            "description": "A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "maxLength": 200,
+                    "format": "email",
+                    "description": "The address to invite; it receives one email per workspace with a link to join."
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "admin",
+                      "member"
+                    ],
+                    "default": "member",
+                    "description": "The role they join each workspace with."
+                  },
+                  "workspaceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "minItems": 1,
+                    "maxItems": 100,
+                    "description": "The child workspaces (org_...) to invite them to."
+                  }
+                },
+                "required": [
+                  "email",
+                  "workspaceIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "One row per workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "workspaceId": {
+                            "type": "string",
+                            "description": "The child workspace (org_...)."
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "invited",
+                              "already_invited",
+                              "already_member"
+                            ],
+                            "description": "invited: a new invitation went out. already_invited: the address held one already, returned as it is. already_member: nothing to do."
+                          },
+                          "invitation": {
+                            "type": "object",
+                            "nullable": true,
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "description": "Invitation id (inv_...)."
+                              },
+                              "email": {
+                                "type": "string",
+                                "description": "The invited address, lowercased."
+                              },
+                              "role": {
+                                "type": "string",
+                                "enum": [
+                                  "owner",
+                                  "admin",
+                                  "member"
+                                ],
+                                "description": "The role they join with."
+                              },
+                              "invitedBy": {
+                                "type": "object",
+                                "nullable": true,
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "description": "User id."
+                                  },
+                                  "email": {
+                                    "type": "string",
+                                    "description": "Their email."
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Their name."
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "email",
+                                  "name"
+                                ],
+                                "description": "Who sent it; an API key invites on behalf of the oldest owner."
+                              },
+                              "expiresAt": {
+                                "type": "string",
+                                "description": "Invitations last 48 hours; an expired one is no longer listed."
+                              },
+                              "createdAt": {
+                                "type": "string",
+                                "description": "When the invitation was sent."
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "email",
+                              "role",
+                              "invitedBy",
+                              "expiresAt",
+                              "createdAt"
+                            ],
+                            "description": "The open invitation; null when the person is already a member."
+                          }
+                        },
+                        "required": [
+                          "workspaceId",
+                          "status",
+                          "invitation"
+                        ]
+                      },
+                      "description": "One row per workspace asked for, in the order given."
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request: a parameter or the body failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "An API key, or a member who is not an owner or admin (forbidden)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "A workspace id that is not one of your child workspaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workspace-members/{id}": {
+      "delete": {
+        "operationId": "removeWorkspaceMember",
+        "summary": "Remove someone from your child workspaces",
+        "description": "Removes the person from every child workspace, or from the ones `workspaceIds` names, or from all but `notWorkspaceIds`. Never from your own workspace (that is DELETE /v1/members/{id}). Needs a signed-in owner or admin, not an API key.",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The person's user id, from GET /v1/workspace-members.",
+              "example": "usr_abc123"
+            },
+            "required": true,
+            "description": "The person's user id, from GET /v1/workspace-members.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 100,
+              "description": "Only from these child workspaces (org_...); default every child. Never the parent: its own team is managed on /v1/members. Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "Only from these child workspaces (org_...); default every child. Never the parent: its own team is managed on /v1/members. Repeatable, or comma-separated.",
+            "name": "workspaceIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "nullable": true,
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "maxItems": 100,
+              "description": "From every child workspace except these (org_...). Repeatable, or comma-separated."
+            },
+            "required": false,
+            "description": "From every child workspace except these (org_...). Repeatable, or comma-separated.",
+            "name": "notWorkspaceIds",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Removed"
+          },
+          "400": {
+            "description": "Invalid request: a parameter failed validation (validation_error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "An API key, or a member who is not an owner or admin (forbidden)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The person is in none of those workspaces, or an id is not one of your child workspaces",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/usage": {
       "get": {
         "operationId": "getUsage",
@@ -38704,13 +40271,14 @@
                 "day",
                 "platform",
                 "keyword",
-                "group"
+                "group",
+                "workspace"
               ],
               "default": "keyword",
-              "description": "The dimension to group by: day (one row per UTC day of the window), platform, keyword (default: the row a margin is computed from), or group (what a customer or a campaign cost)."
+              "description": "The dimension to group by:\n\n- day: one row per UTC day.\n- platform.\n- keyword (default): where a margin is read.\n- group: what a customer or campaign cost.\n- workspace: your workspace and each child (no filters)."
             },
             "required": false,
-            "description": "The dimension to group by: day (one row per UTC day of the window), platform, keyword (default: the row a margin is computed from), or group (what a customer or a campaign cost).",
+            "description": "The dimension to group by:\n\n- day: one row per UTC day.\n- platform.\n- keyword (default): where a margin is read.\n- group: what a customer or campaign cost.\n- workspace: your workspace and each child (no filters).",
             "name": "by",
             "in": "query"
           },
@@ -43733,6 +45301,14 @@
       "description": "The self-serve keyword cap; beyond it is an enterprise conversation."
     },
     {
+      "code": "transfer_limit_reached",
+      "status": 402,
+      "source": "user",
+      "retryable": false,
+      "description": "A transfer into a child workspace would pass the monthly limit its parent set on it.",
+      "fix": "Raise or remove monthlyLimitCents on PATCH /v1/workspaces/{id}, or wait for the month to turn."
+    },
+    {
       "code": "billing_not_configured",
       "status": 503,
       "source": "system",
@@ -43976,6 +45552,27 @@
       "source": "user",
       "retryable": false,
       "description": "A keyword was created in or moved into the group while its keywords were being deleted. Its other keywords are gone; retry the delete."
+    },
+    {
+      "code": "duplicate_workspace",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "A child workspace's externalId is unique among its parent's workspaces."
+    },
+    {
+      "code": "workspace_limit_reached",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "A parent holds a bounded number of child workspaces; past it is a support conversation."
+    },
+    {
+      "code": "workspace_has_children",
+      "status": 409,
+      "source": "user",
+      "retryable": false,
+      "description": "A parent workspace cannot be deleted while it holds child workspaces."
     },
     {
       "code": "invalid_signature",

@@ -415,7 +415,7 @@ export type ErrorResponse = {
         /**
          * Stable machine-readable code; branch on this, never on the message. Codes are additive: a client should treat one it does not know as a generic failure of the same status.
          */
-        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'invalid_query' | 'query_needs_one_term' | 'query_not_supported' | 'insufficient_balance' | 'funding_required' | 'keyword_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'export_not_ready' | 'export_expired' | 'exports_not_configured' | 'duplicate_export_schedule' | 'export_schedule_changed' | 'export_schedule_limit_reached' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
+        code: 'unauthorized' | 'forbidden' | 'read_only_key' | 'validation_error' | 'not_found' | 'invalid_cursor' | 'payload_too_large' | 'idempotency_key_in_use' | 'idempotency_key_reused' | 'rate_limited' | 'duplicate_keyword' | 'invalid_query' | 'query_needs_one_term' | 'query_not_supported' | 'insufficient_balance' | 'funding_required' | 'keyword_limit_reached' | 'transfer_limit_reached' | 'billing_not_configured' | 'order_not_credited' | 'schedule_required' | 'unknown_channel' | 'not_a_digest' | 'hourly_email_unsupported' | 'slack_not_connected' | 'slack_not_configured' | 'telegram_not_configured' | 'feed_unreadable' | 'feed_login_required' | 'feed_login_expired' | 'feed_limit_reached' | 'feed_auth_not_configured' | 'email_not_configured' | 'invalid_assignee' | 'classification_pending' | 'invalid_member' | 'already_member' | 'last_owner' | 'duplicate_segment' | 'filter_too_complex' | 'duplicate_view' | 'duplicate_automation' | 'export_not_ready' | 'export_expired' | 'exports_not_configured' | 'duplicate_export_schedule' | 'export_schedule_changed' | 'export_schedule_limit_reached' | 'automation_filter_unreadable' | 'automation_limit_reached' | 'duplicate_group' | 'default_group' | 'default_group_context' | 'group_changed' | 'duplicate_workspace' | 'workspace_limit_reached' | 'workspace_has_children' | 'invalid_signature' | 'webhook_not_configured' | 'invalid_token' | 'protected_user' | 'upstream_unavailable' | 'internal_error';
         /**
          * Human-readable detail; may change between releases.
          */
@@ -5052,7 +5052,7 @@ export type Company = {
 
 export type Whoami = {
     /**
-     * The workspace this credential acts on.
+     * The workspace this credential acts on: the child named by the Mentio-Workspace header, when one is sent.
      */
     workspace: {
         /**
@@ -5063,6 +5063,10 @@ export type Whoami = {
          * The workspace name, as the dashboard shows it.
          */
         name: string;
+        /**
+         * The parent workspace (org_...) when this one is a child workspace; null otherwise.
+         */
+        parentId: string | null;
     };
     /**
      * The credential.
@@ -5167,6 +5171,124 @@ export type Invitation = {
     expiresAt: string;
     /**
      * When the invitation was sent.
+     */
+    createdAt: string;
+};
+
+export type Workspace = {
+    /**
+     * Workspace id (org_...); send it as the Mentio-Workspace header to act on this workspace with the parent's credential.
+     */
+    id: string;
+    /**
+     * The workspace name.
+     */
+    name: string;
+    /**
+     * Your own id for this workspace (a customer id), unique among your workspaces; null when unset.
+     */
+    externalId: string | null;
+    /**
+     * The parent workspace (org_...) that created and funds it.
+     */
+    parentId: string;
+    /**
+     * When the workspace was created.
+     */
+    createdAt: string;
+    /**
+     * The child's own wallet. A child spends only what it holds; nothing is pooled with the parent.
+     */
+    wallet: {
+        /**
+         * The workspace's own balance: every credit and transfer in, minus every debit and transfer out.
+         */
+        balanceCents: number;
+        /**
+         * The balance minus usage not settled yet: what a transfer back to the parent may take, and what the stop rules read.
+         */
+        effectiveCents: number;
+        /**
+         * Keywords running (each costs a keyword-day a day).
+         */
+        activeKeywords: number;
+        /**
+         * Keywords the wallet paused for lack of balance; they resume once a day of every keyword is covered.
+         */
+        pausedKeywords: number;
+    };
+    /**
+     * How the parent funds this workspace.
+     */
+    funding: {
+        /**
+         * The most the parent moves into this workspace in a UTC calendar month, manual and automatic transfers alike; null = no limit.
+         */
+        monthlyLimitCents: number | null;
+        /**
+         * Moved in from the parent this UTC month, what the monthly limit counts.
+         */
+        transferredThisMonthCents: number;
+        /**
+         * The automatic refill; null when off.
+         */
+        autoRefill: {
+            /**
+             * Refill when the child's effective balance (balance minus usage not settled yet) drops under this, in USD cents.
+             */
+            thresholdCents: number;
+            /**
+             * How much each refill moves from the parent, in USD cents (100 to 500000).
+             */
+            amountCents: number;
+        } | null;
+        /**
+         * When the last automatic refill moved money; null when none ever did.
+         */
+        lastRefillAt: string | null;
+        /**
+         * Why the last automatic refill attempt moved nothing (the parent could not cover it, the monthly limit), cleared by the next one that works; null when fine.
+         */
+        lastRefillError: string | null;
+    };
+    /**
+     * Counts.
+     */
+    stats: {
+        /**
+         * Keywords in the workspace, running or not.
+         */
+        keywords: number;
+        /**
+         * People who are members of this workspace itself (the parent's team reaches it through the parent).
+         */
+        members: number;
+    };
+};
+
+export type Transfer = {
+    /**
+     * Transfer id (trf_...).
+     */
+    id: string;
+    /**
+     * The child workspace (org_...).
+     */
+    workspaceId: string;
+    /**
+     * to_workspace: from the parent into the child workspace. to_parent: from the child back to the parent.
+     */
+    direction: 'to_workspace' | 'to_parent';
+    /**
+     * How much moved, in USD cents, always positive; `direction` says which way.
+     */
+    amountCents: number;
+    /**
+     * Free text written with it; automatic refills read "Automatic refill".
+     */
+    note: string | null;
+    /**
+     * When the money moved.
      */
     createdAt: string;
 };
@@ -5283,7 +5405,7 @@ export type UsageBreakdown = {
     /**
      * The dimension the rows are grouped by.
      */
-    by: 'day' | 'platform' | 'keyword' | 'group';
+    by: 'day' | 'platform' | 'keyword' | 'group' | 'workspace';
     /**
      * true when keywordIds, groupIds or platforms narrowed the report: totals and rows count only what passes them, except totals.ledgerDebitCents, which is the whole workspace's.
      */
@@ -5362,7 +5484,7 @@ export type UsageBreakdown = {
      */
     data: Array<{
         /**
-         * The row's key: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword, the group id for by=group.
+         * The row's key: the UTC day (YYYY-MM-DD) for by=day, the platform for by=platform, the keyword id for by=keyword, the group id for by=group, the workspace id for by=workspace.
          */
         key: string;
         /**
@@ -5402,6 +5524,23 @@ export type UsageBreakdown = {
              * The group has since been deleted.
              */
             removed: boolean;
+        } | null;
+        /**
+         * by=workspace only; null otherwise.
+         */
+        workspace: {
+            /**
+             * Workspace id (org_...): the caller's own, or one of its child workspaces.
+             */
+            id: string;
+            /**
+             * The workspace name as it reads now.
+             */
+            name: string;
+            /**
+             * The parent (org_...) for a child workspace; null for the caller's own row.
+             */
+            parentId: string | null;
         } | null;
         /**
          * Keyword-days the daily tick charged in this row. Null for by=platform and for days before the first recorded tick (unknown, not zero); before window.keywordDaysFrom a keyword row is a floor.
@@ -5577,9 +5716,9 @@ export type LedgerList = {
          */
         id: string;
         /**
-         * signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results), debit_estimates (paid samples of keyword estimates) or adjustment.
+         * signup_credit, topup, refund, debit_keyword_days, debit_mentions, debit_comments, debit_searches (on-demand search results), debit_estimates (paid samples of keyword estimates), adjustment, transfer_in (money moved in from the parent or a child workspace) or transfer_out (money moved out to one).
          */
-        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'debit_searches' | 'debit_estimates' | 'adjustment';
+        kind: 'signup_credit' | 'topup' | 'refund' | 'debit_keyword_days' | 'debit_mentions' | 'debit_comments' | 'debit_searches' | 'debit_estimates' | 'adjustment' | 'transfer_in' | 'transfer_out';
         /**
          * Integer USD cents; credits positive, debits negative.
          */
@@ -5600,6 +5739,19 @@ export type LedgerList = {
          * Top-ups and refunds: the Polar order.
          */
         polarOrderId: string | null;
+        /**
+         * transfer_in and transfer_out rows: the transfer and the other workspace; null on every other row.
+         */
+        transfer: {
+            /**
+             * Transfer id (trf_...); the other workspace's row carries the same id.
+             */
+            id: string;
+            /**
+             * The other workspace of the transfer (org_...): the child it funded, or the parent it came from.
+             */
+            workspaceId: string;
+        } | null;
         /**
          * ISO 8601 timestamp, UTC.
          */
@@ -16625,6 +16777,715 @@ export type RemoveMemberResponses = {
 
 export type RemoveMemberResponse = RemoveMemberResponses[keyof RemoveMemberResponses];
 
+export type ListWorkspacesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/workspaces';
+};
+
+export type ListWorkspacesErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListWorkspacesError = ListWorkspacesErrors[keyof ListWorkspacesErrors];
+
+export type ListWorkspacesResponses = {
+    /**
+     * Child workspaces
+     */
+    200: {
+        /**
+         * The child workspaces, oldest first.
+         */
+        data: Array<{
+            /**
+             * Workspace id (org_...); send it as the Mentio-Workspace header to act on this workspace with the parent's credential.
+             */
+            id: string;
+            /**
+             * The workspace name.
+             */
+            name: string;
+            /**
+             * Your own id for this workspace (a customer id), unique among your workspaces; null when unset.
+             */
+            externalId: string | null;
+            /**
+             * The parent workspace (org_...) that created and funds it.
+             */
+            parentId: string;
+            /**
+             * When the workspace was created.
+             */
+            createdAt: string;
+            /**
+             * The child's own wallet. A child spends only what it holds; nothing is pooled with the parent.
+             */
+            wallet: {
+                /**
+                 * The workspace's own balance: every credit and transfer in, minus every debit and transfer out.
+                 */
+                balanceCents: number;
+                /**
+                 * The balance minus usage not settled yet: what a transfer back to the parent may take, and what the stop rules read.
+                 */
+                effectiveCents: number;
+                /**
+                 * Keywords running (each costs a keyword-day a day).
+                 */
+                activeKeywords: number;
+                /**
+                 * Keywords the wallet paused for lack of balance; they resume once a day of every keyword is covered.
+                 */
+                pausedKeywords: number;
+            };
+            /**
+             * How the parent funds this workspace.
+             */
+            funding: {
+                /**
+                 * The most the parent moves into this workspace in a UTC calendar month, manual and automatic transfers alike; null = no limit.
+                 */
+                monthlyLimitCents: number | null;
+                /**
+                 * Moved in from the parent this UTC month, what the monthly limit counts.
+                 */
+                transferredThisMonthCents: number;
+                /**
+                 * The automatic refill; null when off.
+                 */
+                autoRefill: {
+                    /**
+                     * Refill when the child's effective balance (balance minus usage not settled yet) drops under this, in USD cents.
+                     */
+                    thresholdCents: number;
+                    /**
+                     * How much each refill moves from the parent, in USD cents (100 to 500000).
+                     */
+                    amountCents: number;
+                } | null;
+                /**
+                 * When the last automatic refill moved money; null when none ever did.
+                 */
+                lastRefillAt: string | null;
+                /**
+                 * Why the last automatic refill attempt moved nothing (the parent could not cover it, the monthly limit), cleared by the next one that works; null when fine.
+                 */
+                lastRefillError: string | null;
+            };
+            /**
+             * Counts.
+             */
+            stats: {
+                /**
+                 * Keywords in the workspace, running or not.
+                 */
+                keywords: number;
+                /**
+                 * People who are members of this workspace itself (the parent's team reaches it through the parent).
+                 */
+                members: number;
+            };
+        }>;
+    };
+};
+
+export type ListWorkspacesResponse = ListWorkspacesResponses[keyof ListWorkspacesResponses];
+
+export type CreateWorkspaceData = {
+    body: {
+        /**
+         * The workspace name, 1 to 100 characters.
+         */
+        name: string;
+        /**
+         * Your own id for it (a customer id), unique among your workspaces; a second create with the same one is a 409.
+         */
+        externalId?: string;
+        /**
+         * The most you move into it in a UTC calendar month, in USD cents; omit or null for no limit.
+         */
+        monthlyLimitCents?: number | null;
+        /**
+         * Refill it from your balance when it runs low; omit or null for off.
+         */
+        autoRefill?: {
+            /**
+             * Refill when the child's effective balance (balance minus usage not settled yet) drops under this, in USD cents.
+             */
+            thresholdCents: number;
+            /**
+             * How much each refill moves from the parent, in USD cents (100 to 500000).
+             */
+            amountCents: number;
+        } | null;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/workspaces';
+};
+
+export type CreateWorkspaceErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Your workspace never topped up (funding_required)
+     */
+    402: ErrorResponse;
+    /**
+     * Not an owner or admin, nor a key one minted; or the credential belongs to a child workspace (forbidden)
+     */
+    403: ErrorResponse;
+    /**
+     * The externalId is taken (duplicate_workspace), or the workspace holds as many children as it may (workspace_limit_reached)
+     */
+    409: ErrorResponse;
+};
+
+export type CreateWorkspaceError = CreateWorkspaceErrors[keyof CreateWorkspaceErrors];
+
+export type CreateWorkspaceResponses = {
+    /**
+     * The new workspace
+     */
+    201: Workspace;
+};
+
+export type CreateWorkspaceResponse = CreateWorkspaceResponses[keyof CreateWorkspaceResponses];
+
+export type DeleteWorkspaceData = {
+    body?: never;
+    path: {
+        /**
+         * Child workspace id (org_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/workspaces/{id}';
+};
+
+export type DeleteWorkspaceErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Not an owner or admin, nor an API key one of them minted (forbidden)
+     */
+    403: ErrorResponse;
+    /**
+     * No such child workspace
+     */
+    404: ErrorResponse;
+};
+
+export type DeleteWorkspaceError = DeleteWorkspaceErrors[keyof DeleteWorkspaceErrors];
+
+export type DeleteWorkspaceResponses = {
+    /**
+     * Deleted
+     */
+    204: void;
+};
+
+export type DeleteWorkspaceResponse = DeleteWorkspaceResponses[keyof DeleteWorkspaceResponses];
+
+export type GetWorkspaceData = {
+    body?: never;
+    path: {
+        /**
+         * Child workspace id (org_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/workspaces/{id}';
+};
+
+export type GetWorkspaceErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such child workspace
+     */
+    404: ErrorResponse;
+};
+
+export type GetWorkspaceError = GetWorkspaceErrors[keyof GetWorkspaceErrors];
+
+export type GetWorkspaceResponses = {
+    /**
+     * The workspace
+     */
+    200: Workspace;
+};
+
+export type GetWorkspaceResponse = GetWorkspaceResponses[keyof GetWorkspaceResponses];
+
+export type UpdateWorkspaceData = {
+    body: {
+        /**
+         * New name, 1 to 100 characters.
+         */
+        name?: string;
+        /**
+         * Your own id for it; null clears it.
+         */
+        externalId?: string | null;
+        /**
+         * The monthly ceiling on transfers in, in USD cents; null removes it.
+         */
+        monthlyLimitCents?: number | null;
+        /**
+         * The automatic refill; null turns it off.
+         */
+        autoRefill?: {
+            /**
+             * Refill when the child's effective balance (balance minus usage not settled yet) drops under this, in USD cents.
+             */
+            thresholdCents: number;
+            /**
+             * How much each refill moves from the parent, in USD cents (100 to 500000).
+             */
+            amountCents: number;
+        } | null;
+    };
+    path: {
+        /**
+         * Child workspace id (org_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/workspaces/{id}';
+};
+
+export type UpdateWorkspaceErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * Not an owner or admin, nor an API key one of them minted (forbidden)
+     */
+    403: ErrorResponse;
+    /**
+     * No such child workspace
+     */
+    404: ErrorResponse;
+    /**
+     * The externalId is taken (duplicate_workspace)
+     */
+    409: ErrorResponse;
+};
+
+export type UpdateWorkspaceError = UpdateWorkspaceErrors[keyof UpdateWorkspaceErrors];
+
+export type UpdateWorkspaceResponses = {
+    /**
+     * The updated workspace
+     */
+    200: Workspace;
+};
+
+export type UpdateWorkspaceResponse = UpdateWorkspaceResponses[keyof UpdateWorkspaceResponses];
+
+export type ListTransfersData = {
+    body?: never;
+    path: {
+        /**
+         * Child workspace id (org_...).
+         */
+        id: string;
+    };
+    query?: {
+        /**
+         * The nextCursor of the previous page.
+         */
+        cursor?: string;
+        /**
+         * Transfers per page, 1 to 100 (default 50).
+         */
+        limit?: number;
+    };
+    url: '/v1/workspaces/{id}/transfers';
+};
+
+export type ListTransfersErrors = {
+    /**
+     * Invalid cursor (invalid_cursor)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * No such child workspace
+     */
+    404: ErrorResponse;
+};
+
+export type ListTransfersError = ListTransfersErrors[keyof ListTransfersErrors];
+
+export type ListTransfersResponses = {
+    /**
+     * Transfers
+     */
+    200: {
+        /**
+         * Transfers, newest first.
+         */
+        data: Array<{
+            /**
+             * Transfer id (trf_...).
+             */
+            id: string;
+            /**
+             * The child workspace (org_...).
+             */
+            workspaceId: string;
+            /**
+             * to_workspace: from the parent into the child workspace. to_parent: from the child back to the parent.
+             */
+            direction: 'to_workspace' | 'to_parent';
+            /**
+             * How much moved, in USD cents, always positive; `direction` says which way.
+             */
+            amountCents: number;
+            /**
+             * Free text written with it; automatic refills read "Automatic refill".
+             */
+            note: string | null;
+            /**
+             * When the money moved.
+             */
+            createdAt: string;
+        }>;
+        /**
+         * Pass it back as `cursor` for the next page; null on the last.
+         */
+        nextCursor: string | null;
+    };
+};
+
+export type ListTransfersResponse = ListTransfersResponses[keyof ListTransfersResponses];
+
+export type CreateTransferData = {
+    body: {
+        /**
+         * How much to move, in USD cents (1 to 500000).
+         */
+        amountCents: number;
+        /**
+         * to_workspace: from the parent into the child workspace. to_parent: from the child back to the parent.
+         */
+        direction?: 'to_workspace' | 'to_parent';
+        /**
+         * Free text kept on both ledger rows, up to 200 characters.
+         */
+        note?: string;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path: {
+        /**
+         * Child workspace id (org_...).
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/v1/workspaces/{id}/transfers';
+};
+
+export type CreateTransferErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * The payer cannot cover it (insufficient_balance), your workspace never topped up (funding_required), or it passes the monthly limit (transfer_limit_reached)
+     */
+    402: ErrorResponse;
+    /**
+     * Not an owner or admin, nor an API key one of them minted (forbidden)
+     */
+    403: ErrorResponse;
+    /**
+     * No such child workspace
+     */
+    404: ErrorResponse;
+};
+
+export type CreateTransferError = CreateTransferErrors[keyof CreateTransferErrors];
+
+export type CreateTransferResponses = {
+    /**
+     * The transfer
+     */
+    201: Transfer;
+};
+
+export type CreateTransferResponse = CreateTransferResponses[keyof CreateTransferResponses];
+
+export type ListWorkspaceMembersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v1/workspace-members';
+};
+
+export type ListWorkspaceMembersErrors = {
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+};
+
+export type ListWorkspaceMembersError = ListWorkspaceMembersErrors[keyof ListWorkspaceMembersErrors];
+
+export type ListWorkspaceMembersResponses = {
+    /**
+     * People
+     */
+    200: {
+        /**
+         * People in the parent or any child, by email.
+         */
+        data: Array<{
+            /**
+             * The person's user id.
+             */
+            userId: string;
+            /**
+             * The account's email address.
+             */
+            email: string;
+            /**
+             * The name on the account; null when they never set one.
+             */
+            name: string | null;
+            /**
+             * Every workspace of the agency (the parent and its children) the person is a member of.
+             */
+            workspaces: Array<{
+                /**
+                 * Workspace id (org_...): the parent or one of its children.
+                 */
+                id: string;
+                /**
+                 * The workspace name.
+                 */
+                name: string;
+                /**
+                 * The membership id (mem_...) in that workspace.
+                 */
+                memberId: string;
+                /**
+                 * owner: everything, billing included. admin: manages the team. member: works the feed.
+                 */
+                role: 'owner' | 'admin' | 'member';
+            }>;
+        }>;
+    };
+};
+
+export type ListWorkspaceMembersResponse = ListWorkspaceMembersResponses[keyof ListWorkspaceMembersResponses];
+
+export type CreateWorkspaceInvitationsData = {
+    body: {
+        /**
+         * The address to invite; it receives one email per workspace with a link to join.
+         */
+        email: string;
+        /**
+         * The role they join each workspace with.
+         */
+        role?: 'admin' | 'member';
+        /**
+         * The child workspaces (org_...) to invite them to.
+         */
+        workspaceIds: Array<string>;
+    };
+    headers?: {
+        /**
+         * A unique value (a UUID) for this request. Retrying with the same key within 24 hours returns the first response instead of creating twice.
+         */
+        'idempotency-key'?: string;
+    };
+    path?: never;
+    query?: never;
+    url: '/v1/workspace-invitations';
+};
+
+export type CreateWorkspaceInvitationsErrors = {
+    /**
+     * Invalid request: a parameter or the body failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * An API key, or a member who is not an owner or admin (forbidden)
+     */
+    403: ErrorResponse;
+    /**
+     * A workspace id that is not one of your child workspaces
+     */
+    404: ErrorResponse;
+};
+
+export type CreateWorkspaceInvitationsError = CreateWorkspaceInvitationsErrors[keyof CreateWorkspaceInvitationsErrors];
+
+export type CreateWorkspaceInvitationsResponses = {
+    /**
+     * One row per workspace
+     */
+    201: {
+        /**
+         * One row per workspace asked for, in the order given.
+         */
+        data: Array<{
+            /**
+             * The child workspace (org_...).
+             */
+            workspaceId: string;
+            /**
+             * invited: a new invitation went out. already_invited: the address held one already, returned as it is. already_member: nothing to do.
+             */
+            status: 'invited' | 'already_invited' | 'already_member';
+            /**
+             * The open invitation; null when the person is already a member.
+             */
+            invitation: {
+                /**
+                 * Invitation id (inv_...).
+                 */
+                id: string;
+                /**
+                 * The invited address, lowercased.
+                 */
+                email: string;
+                /**
+                 * The role they join with.
+                 */
+                role: 'owner' | 'admin' | 'member';
+                /**
+                 * Who sent it; an API key invites on behalf of the oldest owner.
+                 */
+                invitedBy: {
+                    /**
+                     * User id.
+                     */
+                    id: string;
+                    /**
+                     * Their email.
+                     */
+                    email: string;
+                    /**
+                     * Their name.
+                     */
+                    name: string | null;
+                } | null;
+                /**
+                 * Invitations last 48 hours; an expired one is no longer listed.
+                 */
+                expiresAt: string;
+                /**
+                 * When the invitation was sent.
+                 */
+                createdAt: string;
+            } | null;
+        }>;
+    };
+};
+
+export type CreateWorkspaceInvitationsResponse = CreateWorkspaceInvitationsResponses[keyof CreateWorkspaceInvitationsResponses];
+
+export type RemoveWorkspaceMemberData = {
+    body?: never;
+    path: {
+        /**
+         * The person's user id, from GET /v1/workspace-members.
+         */
+        id: string;
+    };
+    query?: {
+        /**
+         * Only from these child workspaces (org_...); default every child. Never the parent: its own team is managed on /v1/members. Repeatable, or comma-separated.
+         */
+        workspaceIds?: Array<string> | null;
+        /**
+         * From every child workspace except these (org_...). Repeatable, or comma-separated.
+         */
+        notWorkspaceIds?: Array<string> | null;
+    };
+    url: '/v1/workspace-members/{id}';
+};
+
+export type RemoveWorkspaceMemberErrors = {
+    /**
+     * Invalid request: a parameter failed validation (validation_error)
+     */
+    400: ErrorResponse;
+    /**
+     * Missing or invalid API key
+     */
+    401: ErrorResponse;
+    /**
+     * An API key, or a member who is not an owner or admin (forbidden)
+     */
+    403: ErrorResponse;
+    /**
+     * The person is in none of those workspaces, or an id is not one of your child workspaces
+     */
+    404: ErrorResponse;
+};
+
+export type RemoveWorkspaceMemberError = RemoveWorkspaceMemberErrors[keyof RemoveWorkspaceMemberErrors];
+
+export type RemoveWorkspaceMemberResponses = {
+    /**
+     * Removed
+     */
+    204: void;
+};
+
+export type RemoveWorkspaceMemberResponse = RemoveWorkspaceMemberResponses[keyof RemoveWorkspaceMemberResponses];
+
 export type GetUsageData = {
     body?: never;
     path?: never;
@@ -16655,9 +17516,15 @@ export type GetUsageBreakdownData = {
     path?: never;
     query?: {
         /**
-         * The dimension to group by: day (one row per UTC day of the window), platform, keyword (default: the row a margin is computed from), or group (what a customer or a campaign cost).
+         * The dimension to group by:
+         *
+         * - day: one row per UTC day.
+         * - platform.
+         * - keyword (default): where a margin is read.
+         * - group: what a customer or campaign cost.
+         * - workspace: your workspace and each child (no filters).
          */
-        by?: 'day' | 'platform' | 'keyword' | 'group';
+        by?: 'day' | 'platform' | 'keyword' | 'group' | 'workspace';
         /**
          * Trailing window of UTC days ending today: 7d, 30d, 90d (default 30d). Ignored when `month` is given.
          */

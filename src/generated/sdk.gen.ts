@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateAutomationData, CreateAutomationErrors, CreateAutomationResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateExportData, CreateExportErrors, CreateExportResponses, CreateExportScheduleData, CreateExportScheduleErrors, CreateExportScheduleResponses, CreateFeedData, CreateFeedErrors, CreateFeedResponses, CreateGroupData, CreateGroupErrors, CreateGroupResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordEstimateData, CreateKeywordEstimateErrors, CreateKeywordEstimateResponses, CreateKeywordResponses, CreateKeywordsData, CreateKeywordsErrors, CreateKeywordsResponses, CreateSearchData, CreateSearchErrors, CreateSearchResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateTopUpData, CreateTopUpErrors, CreateTopUpResponses, CreateViewData, CreateViewErrors, CreateViewResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteAutomationData, DeleteAutomationErrors, DeleteAutomationResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteExportData, DeleteExportErrors, DeleteExportResponses, DeleteExportScheduleData, DeleteExportScheduleErrors, DeleteExportScheduleResponses, DeleteFeedData, DeleteFeedErrors, DeleteFeedResponses, DeleteGroupData, DeleteGroupErrors, DeleteGroupResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, DismissAttentionData, DismissAttentionErrors, DismissAttentionResponses, DuplicateKeywordData, DuplicateKeywordErrors, DuplicateKeywordResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportMentionsJsonData, ExportMentionsJsonErrors, ExportMentionsJsonResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetAutomationData, GetAutomationErrors, GetAutomationResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetExportData, GetExportErrors, GetExportFileData, GetExportFileErrors, GetExportFileResponses, GetExportResponses, GetExportScheduleData, GetExportScheduleErrors, GetExportScheduleResponses, GetFeedData, GetFeedErrors, GetFeedResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetGroupData, GetGroupErrors, GetGroupResponses, GetHealthData, GetHealthResponses, GetInvoiceUrlData, GetInvoiceUrlErrors, GetInvoiceUrlResponses, GetKeywordData, GetKeywordDeletionPreviewData, GetKeywordDeletionPreviewErrors, GetKeywordDeletionPreviewResponses, GetKeywordErrors, GetKeywordEstimateData, GetKeywordEstimateErrors, GetKeywordEstimateResponses, GetKeywordHealthData, GetKeywordHealthErrors, GetKeywordHealthResponses, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetReviewsReportData, GetReviewsReportErrors, GetReviewsReportResponses, GetSearchData, GetSearchErrors, GetSearchResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageBreakdownData, GetUsageBreakdownErrors, GetUsageBreakdownResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, GetWalletData, GetWalletErrors, GetWalletResponses, ImportFeedsData, ImportFeedsErrors, ImportFeedsResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListAttentionData, ListAttentionErrors, ListAttentionResponses, ListAutomationsData, ListAutomationsErrors, ListAutomationsResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListExportSchedulesData, ListExportSchedulesErrors, ListExportSchedulesResponses, ListExportsData, ListExportsErrors, ListExportsResponses, ListFeedsData, ListFeedsErrors, ListFeedsResponses, ListGroupsData, ListGroupsErrors, ListGroupsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListInvoicesData, ListInvoicesErrors, ListInvoicesResponses, ListKeywordEstimatesData, ListKeywordEstimatesErrors, ListKeywordEstimatesResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListLedgerData, ListLedgerErrors, ListLedgerResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListMentionCommentsData, ListMentionCommentsErrors, ListMentionCommentsResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSearchesData, ListSearchesErrors, ListSearchesResponses, ListSearchResultsData, ListSearchResultsErrors, ListSearchResultsResponses, ListSegmentPresetsData, ListSegmentPresetsErrors, ListSegmentPresetsResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListViewsData, ListViewsErrors, ListViewsResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, TestExportScheduleData, TestExportScheduleErrors, TestExportScheduleResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateAutomationData, UpdateAutomationErrors, UpdateAutomationResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateExportScheduleData, UpdateExportScheduleErrors, UpdateExportScheduleResponses, UpdateFeedData, UpdateFeedErrors, UpdateFeedResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateGroupData, UpdateGroupErrors, UpdateGroupResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdateMentionsData, UpdateMentionsErrors, UpdateMentionsResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
+import type { CreateAlertData, CreateAlertErrors, CreateAlertResponses, CreateApiKeyData, CreateApiKeyErrors, CreateApiKeyResponses, CreateAutomationData, CreateAutomationErrors, CreateAutomationResponses, CreateChannelData, CreateChannelErrors, CreateChannelResponses, CreateExportData, CreateExportErrors, CreateExportResponses, CreateExportScheduleData, CreateExportScheduleErrors, CreateExportScheduleResponses, CreateFeedData, CreateFeedErrors, CreateFeedResponses, CreateGroupData, CreateGroupErrors, CreateGroupResponses, CreateInvitationData, CreateInvitationErrors, CreateInvitationResponses, CreateKeywordData, CreateKeywordErrors, CreateKeywordEstimateData, CreateKeywordEstimateErrors, CreateKeywordEstimateResponses, CreateKeywordResponses, CreateKeywordsData, CreateKeywordsErrors, CreateKeywordsResponses, CreateSearchData, CreateSearchErrors, CreateSearchResponses, CreateSegmentData, CreateSegmentErrors, CreateSegmentResponses, CreateTopUpData, CreateTopUpErrors, CreateTopUpResponses, CreateTransferData, CreateTransferErrors, CreateTransferResponses, CreateViewData, CreateViewErrors, CreateViewResponses, CreateWorkspaceData, CreateWorkspaceErrors, CreateWorkspaceInvitationsData, CreateWorkspaceInvitationsErrors, CreateWorkspaceInvitationsResponses, CreateWorkspaceResponses, DeleteAlertData, DeleteAlertErrors, DeleteAlertResponses, DeleteAutomationData, DeleteAutomationErrors, DeleteAutomationResponses, DeleteChannelData, DeleteChannelErrors, DeleteChannelResponses, DeleteExportData, DeleteExportErrors, DeleteExportResponses, DeleteExportScheduleData, DeleteExportScheduleErrors, DeleteExportScheduleResponses, DeleteFeedData, DeleteFeedErrors, DeleteFeedResponses, DeleteGroupData, DeleteGroupErrors, DeleteGroupResponses, DeleteKeywordData, DeleteKeywordErrors, DeleteKeywordResponses, DeletePersonActivityData, DeletePersonActivityErrors, DeletePersonActivityResponses, DeleteSegmentData, DeleteSegmentErrors, DeleteSegmentResponses, DeleteViewData, DeleteViewErrors, DeleteViewResponses, DeleteWorkspaceData, DeleteWorkspaceErrors, DeleteWorkspaceResponses, DismissAttentionData, DismissAttentionErrors, DismissAttentionResponses, DuplicateKeywordData, DuplicateKeywordErrors, DuplicateKeywordResponses, ExportMentionsCsvData, ExportMentionsCsvErrors, ExportMentionsCsvResponses, ExportMentionsJsonData, ExportMentionsJsonErrors, ExportMentionsJsonResponses, ExportPeopleCsvData, ExportPeopleCsvErrors, ExportPeopleCsvResponses, GetAlertData, GetAlertErrors, GetAlertResponses, GetAnalyticsBreakdownData, GetAnalyticsBreakdownErrors, GetAnalyticsBreakdownResponses, GetAnalyticsSeriesData, GetAnalyticsSeriesErrors, GetAnalyticsSeriesResponses, GetAnalyticsSummaryData, GetAnalyticsSummaryErrors, GetAnalyticsSummaryResponses, GetAutomationData, GetAutomationErrors, GetAutomationResponses, GetChannelData, GetChannelErrors, GetChannelResponses, GetCompanyData, GetCompanyErrors, GetCompanyResponses, GetExportData, GetExportErrors, GetExportFileData, GetExportFileErrors, GetExportFileResponses, GetExportResponses, GetExportScheduleData, GetExportScheduleErrors, GetExportScheduleResponses, GetFeedData, GetFeedErrors, GetFeedResponses, GetFiltersData, GetFiltersErrors, GetFiltersResponses, GetGroupData, GetGroupErrors, GetGroupResponses, GetHealthData, GetHealthResponses, GetInvoiceUrlData, GetInvoiceUrlErrors, GetInvoiceUrlResponses, GetKeywordData, GetKeywordDeletionPreviewData, GetKeywordDeletionPreviewErrors, GetKeywordDeletionPreviewResponses, GetKeywordErrors, GetKeywordEstimateData, GetKeywordEstimateErrors, GetKeywordEstimateResponses, GetKeywordHealthData, GetKeywordHealthErrors, GetKeywordHealthResponses, GetKeywordResponses, GetMentionData, GetMentionErrors, GetMentionResponses, GetPersonData, GetPersonErrors, GetPersonResponses, GetReviewsReportData, GetReviewsReportErrors, GetReviewsReportResponses, GetSearchData, GetSearchErrors, GetSearchResponses, GetSegmentData, GetSegmentErrors, GetSegmentResponses, GetShareOfVoiceData, GetShareOfVoiceErrors, GetShareOfVoiceResponses, GetUsageBreakdownData, GetUsageBreakdownErrors, GetUsageBreakdownResponses, GetUsageData, GetUsageErrors, GetUsageResponses, GetViewData, GetViewErrors, GetViewResponses, GetWalletData, GetWalletErrors, GetWalletResponses, GetWorkspaceData, GetWorkspaceErrors, GetWorkspaceResponses, ImportFeedsData, ImportFeedsErrors, ImportFeedsResponses, ListAlertsData, ListAlertsErrors, ListAlertsResponses, ListApiKeysData, ListApiKeysErrors, ListApiKeysResponses, ListAttentionData, ListAttentionErrors, ListAttentionResponses, ListAutomationsData, ListAutomationsErrors, ListAutomationsResponses, ListChannelDeliveriesData, ListChannelDeliveriesErrors, ListChannelDeliveriesResponses, ListChannelsData, ListChannelsErrors, ListChannelsResponses, ListExportSchedulesData, ListExportSchedulesErrors, ListExportSchedulesResponses, ListExportsData, ListExportsErrors, ListExportsResponses, ListFeedsData, ListFeedsErrors, ListFeedsResponses, ListGroupsData, ListGroupsErrors, ListGroupsResponses, ListInvitationsData, ListInvitationsErrors, ListInvitationsResponses, ListInvoicesData, ListInvoicesErrors, ListInvoicesResponses, ListKeywordEstimatesData, ListKeywordEstimatesErrors, ListKeywordEstimatesResponses, ListKeywordsData, ListKeywordsErrors, ListKeywordsResponses, ListLabelsData, ListLabelsErrors, ListLabelsResponses, ListLedgerData, ListLedgerErrors, ListLedgerResponses, ListMembersData, ListMembersErrors, ListMembersResponses, ListMentionCommentsData, ListMentionCommentsErrors, ListMentionCommentsResponses, ListPeopleData, ListPeopleErrors, ListPeopleResponses, ListPersonActivitiesData, ListPersonActivitiesErrors, ListPersonActivitiesResponses, ListSearchesData, ListSearchesErrors, ListSearchesResponses, ListSearchResultsData, ListSearchResultsErrors, ListSearchResultsResponses, ListSegmentPresetsData, ListSegmentPresetsErrors, ListSegmentPresetsResponses, ListSegmentsData, ListSegmentsErrors, ListSegmentsResponses, ListTransfersData, ListTransfersErrors, ListTransfersResponses, ListViewsData, ListViewsErrors, ListViewsResponses, ListWorkspaceMembersData, ListWorkspaceMembersErrors, ListWorkspaceMembersResponses, ListWorkspacesData, ListWorkspacesErrors, ListWorkspacesResponses, LogPersonActivityData, LogPersonActivityErrors, LogPersonActivityResponses, MergePeopleData, MergePeopleErrors, MergePeopleResponses, MuteAlertAuthorsData, MuteAlertAuthorsErrors, MuteAlertAuthorsResponses, RemoveMemberData, RemoveMemberErrors, RemoveMemberResponses, RemoveWorkspaceMemberData, RemoveWorkspaceMemberErrors, RemoveWorkspaceMemberResponses, RevokeApiKeyData, RevokeApiKeyErrors, RevokeApiKeyResponses, RevokeInvitationData, RevokeInvitationErrors, RevokeInvitationResponses, RotateWebhookSecretData, RotateWebhookSecretErrors, RotateWebhookSecretResponses, RunAlertDigestData, RunAlertDigestErrors, RunAlertDigestResponses, SearchMentionsData, SearchMentionsErrors, SearchMentionsResponses, SplitPersonData, SplitPersonErrors, SplitPersonResponses, TestAlertData, TestAlertErrors, TestAlertResponses, TestChannelData, TestChannelErrors, TestChannelResponses, TestExportScheduleData, TestExportScheduleErrors, TestExportScheduleResponses, UnmuteAlertAuthorsData, UnmuteAlertAuthorsErrors, UnmuteAlertAuthorsResponses, UpdateAlertData, UpdateAlertErrors, UpdateAlertResponses, UpdateAutomationData, UpdateAutomationErrors, UpdateAutomationResponses, UpdateChannelData, UpdateChannelErrors, UpdateChannelResponses, UpdateCompanyData, UpdateCompanyErrors, UpdateCompanyResponses, UpdateExportScheduleData, UpdateExportScheduleErrors, UpdateExportScheduleResponses, UpdateFeedData, UpdateFeedErrors, UpdateFeedResponses, UpdateFiltersData, UpdateFiltersErrors, UpdateFiltersResponses, UpdateGroupData, UpdateGroupErrors, UpdateGroupResponses, UpdateKeywordData, UpdateKeywordErrors, UpdateKeywordResponses, UpdateMentionData, UpdateMentionErrors, UpdateMentionResponses, UpdateMentionsData, UpdateMentionsErrors, UpdateMentionsResponses, UpdatePersonData, UpdatePersonErrors, UpdatePersonResponses, UpdateSegmentData, UpdateSegmentErrors, UpdateSegmentResponses, UpdateViewData, UpdateViewErrors, UpdateViewResponses, UpdateWorkspaceData, UpdateWorkspaceErrors, UpdateWorkspaceResponses, WhoamiData, WhoamiErrors, WhoamiResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -1217,6 +1217,130 @@ export const revokeInvitation = <ThrowOnError extends boolean = false>(options: 
 export const removeMember = <ThrowOnError extends boolean = false>(options: Options<RemoveMemberData, ThrowOnError>): RequestResult<RemoveMemberResponses, RemoveMemberErrors, ThrowOnError> => (options.client ?? client).delete<RemoveMemberResponses, RemoveMemberErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/v1/members/{id}',
+    ...options
+});
+
+/**
+ * List child workspaces
+ *
+ * The child workspaces your workspace created, oldest first, each with its own wallet, its funding settings and counts. Act inside one by sending its id as the `Mentio-Workspace` header on any other call. See [Agency workspaces](/guides/agency-workspaces).
+ */
+export const listWorkspaces = <ThrowOnError extends boolean = false>(options?: Options<ListWorkspacesData, ThrowOnError>): RequestResult<ListWorkspacesResponses, ListWorkspacesErrors, ThrowOnError> => (options?.client ?? client).get<ListWorkspacesResponses, ListWorkspacesErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspaces',
+    ...options
+});
+
+/**
+ * Create a child workspace
+ *
+ * A workspace of its own for a client, apart from yours and your other clients'. It starts with no balance and no welcome credit: fund it with a transfer or `autoRefill`. See [Agency workspaces](/guides/agency-workspaces).
+ */
+export const createWorkspace = <ThrowOnError extends boolean = false>(options: Options<CreateWorkspaceData, ThrowOnError>): RequestResult<CreateWorkspaceResponses, CreateWorkspaceErrors, ThrowOnError> => (options.client ?? client).post<CreateWorkspaceResponses, CreateWorkspaceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspaces',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete a child workspace
+ *
+ * Deletes the workspace with everything in it: keywords, mentions, alerts, channels, API keys, members. Its effective balance comes back to your workspace first, and usage it owes is settled from yours. Cannot be undone.
+ */
+export const deleteWorkspace = <ThrowOnError extends boolean = false>(options: Options<DeleteWorkspaceData, ThrowOnError>): RequestResult<DeleteWorkspaceResponses, DeleteWorkspaceErrors, ThrowOnError> => (options.client ?? client).delete<DeleteWorkspaceResponses, DeleteWorkspaceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspaces/{id}',
+    ...options
+});
+
+/**
+ * Get a child workspace
+ */
+export const getWorkspace = <ThrowOnError extends boolean = false>(options: Options<GetWorkspaceData, ThrowOnError>): RequestResult<GetWorkspaceResponses, GetWorkspaceErrors, ThrowOnError> => (options.client ?? client).get<GetWorkspaceResponses, GetWorkspaceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspaces/{id}',
+    ...options
+});
+
+/**
+ * Update a child workspace
+ *
+ * Rename it, change its externalId, its monthly limit on transfers in or its automatic refill. Omitted fields stay; null clears.
+ */
+export const updateWorkspace = <ThrowOnError extends boolean = false>(options: Options<UpdateWorkspaceData, ThrowOnError>): RequestResult<UpdateWorkspaceResponses, UpdateWorkspaceErrors, ThrowOnError> => (options.client ?? client).patch<UpdateWorkspaceResponses, UpdateWorkspaceErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspaces/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List a child workspace's transfers
+ *
+ * Every transfer between your workspace and this child, newest first, automatic refills included.
+ */
+export const listTransfers = <ThrowOnError extends boolean = false>(options: Options<ListTransfersData, ThrowOnError>): RequestResult<ListTransfersResponses, ListTransfersErrors, ThrowOnError> => (options.client ?? client).get<ListTransfersResponses, ListTransfersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspaces/{id}/transfers',
+    ...options
+});
+
+/**
+ * Move money to or from a child workspace
+ *
+ * Moves USD cents between your balance and the child's, one ledger row on each side. The payer's effective balance must cover it; a transfer in counts against the child's monthly limit. Nothing charges a card or pays out. See [Agency workspaces](/guides/agency-workspaces#fund-a-child).
+ */
+export const createTransfer = <ThrowOnError extends boolean = false>(options: Options<CreateTransferData, ThrowOnError>): RequestResult<CreateTransferResponses, CreateTransferErrors, ThrowOnError> => (options.client ?? client).post<CreateTransferResponses, CreateTransferErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspaces/{id}/transfers',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List members across your workspaces
+ *
+ * Everyone in your workspace or its children, one row per person. Each row lists the workspaces they belong to and their role in each.
+ */
+export const listWorkspaceMembers = <ThrowOnError extends boolean = false>(options?: Options<ListWorkspaceMembersData, ThrowOnError>): RequestResult<ListWorkspaceMembersResponses, ListWorkspaceMembersErrors, ThrowOnError> => (options?.client ?? client).get<ListWorkspaceMembersResponses, ListWorkspaceMembersErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspace-members',
+    ...options
+});
+
+/**
+ * Invite someone to several child workspaces
+ *
+ * Invites one address to several child workspaces, one email each. A member or an open invitation is reported, never sent twice. Needs a signed-in owner or admin, not an API key.
+ */
+export const createWorkspaceInvitations = <ThrowOnError extends boolean = false>(options: Options<CreateWorkspaceInvitationsData, ThrowOnError>): RequestResult<CreateWorkspaceInvitationsResponses, CreateWorkspaceInvitationsErrors, ThrowOnError> => (options.client ?? client).post<CreateWorkspaceInvitationsResponses, CreateWorkspaceInvitationsErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspace-invitations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Remove someone from your child workspaces
+ *
+ * Removes the person from every child workspace, or from the ones `workspaceIds` names, or from all but `notWorkspaceIds`. Never from your own workspace (that is DELETE /v1/members/{id}). Needs a signed-in owner or admin, not an API key.
+ */
+export const removeWorkspaceMember = <ThrowOnError extends boolean = false>(options: Options<RemoveWorkspaceMemberData, ThrowOnError>): RequestResult<RemoveWorkspaceMemberResponses, RemoveWorkspaceMemberErrors, ThrowOnError> => (options.client ?? client).delete<RemoveWorkspaceMemberResponses, RemoveWorkspaceMemberErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/v1/workspace-members/{id}',
     ...options
 });
 
